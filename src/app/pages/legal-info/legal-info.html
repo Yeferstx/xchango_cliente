@@ -1,0 +1,81 @@
+<div class="legal-page">
+  @if (seccionInicial()) {
+    <button type="button" class="enlace-volver" (click)="volverAlFormulario.emit()"><span aria-hidden="true">&#8592;</span> Volver al registro</button>
+  } @else {
+    <a class="enlace-volver" [routerLink]="volverAlPerfil ? '/perfil' : '/login'"><span aria-hidden="true">&#8592;</span> {{ volverAlPerfil ? 'Volver al perfil' : 'Volver al inicio' }}</a>
+  }
+
+  <!-- encabezado -->
+  <header class="legal-header">
+    <p class="eyebrow">Centro legal y de ayuda</p>
+    <h1 class="headline">
+      Todo lo que necesitas <span class="accent">saber.</span>
+    </h1>
+    <p class="subtext">
+      Términos, privacidad, soporte y contacto — en un solo lugar.
+    </p>
+  </header>
+
+  <!-- pestañas -->
+  <nav class="legal-tabs" role="tablist" aria-label="Secciones legales y de ayuda">
+    <button
+      *ngFor="let s of secciones"
+      type="button"
+      role="tab"
+      class="legal-tab"
+      [class.active]="pestanaActiva() === s.id"
+      [attr.aria-selected]="pestanaActiva() === s.id"
+      [id]="'legal-tab-' + s.id"
+      aria-controls="legal-panel"
+      (click)="cambiarPestana(s.id)"
+    >
+      <span class="legal-tab__icon">
+        <ng-container [ngSwitch]="s.icono">
+          <!-- Documento (Términos) -->
+          <svg *ngSwitchCase="'doc'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M9 13h6M9 17h6M9 9h1"/>
+          </svg>
+          <!-- Ayuda -->
+          <svg *ngSwitchCase="'help'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <path d="M12 17h.01"/>
+          </svg>
+          <!-- Privacidad -->
+          <svg *ngSwitchCase="'shield'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <!-- Contacto -->
+          <svg *ngSwitchCase="'mail'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="m22 6-10 7L2 6"/>
+          </svg>
+        </ng-container>
+      </span>
+      <span class="legal-tab__label">{{ s.etiqueta }}</span>
+    </button>
+  </nav>
+
+  <!-- contenido de la pestaña activa -->
+  <section class="legal-panel" role="tabpanel" id="legal-panel" [attr.aria-labelledby]="'legal-tab-' + pestanaActiva()" tabindex="0">
+    <div class="legal-panel__header">
+      <p class="legal-panel__eyebrow">{{ seccionActiva().etiqueta }}</p>
+      <h2 class="legal-panel__title">{{ seccionActiva().titulo }}</h2>
+      <p class="legal-panel__meta" *ngIf="seccionActiva().nota">{{ seccionActiva().nota }}</p>
+    </div>
+
+    <div class="legal-panel__body">
+      <ng-container *ngFor="let bloque of seccionActiva().bloques">
+        <h3 *ngIf="bloque.subtitulo" class="legal-block__heading">{{ bloque.subtitulo }}</h3>
+        <p *ngIf="bloque.texto" class="legal-block__text">{{ bloque.texto }}</p>
+        <ul *ngIf="bloque.lista" class="legal-block__list">
+          <li *ngFor="let item of bloque.lista">{{ item }}</li>
+        </ul>
+      </ng-container>
+    </div>
+  </section>
+
+</div>

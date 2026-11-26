@@ -1,0 +1,124 @@
+/* fondo borroso que tapa la pagina hasta que se responda */
+.cookies-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+
+  background: rgba(20, 16, 12, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  animation: aparecer 0.25s ease;
+}
+
+.cookies {
+  width: 100%;
+  max-width: 420px;
+  padding: 30px 28px 26px;
+
+  text-align: center;
+
+  background: var(--color-surface, #fffdfa);
+  border: 1px solid rgba(146, 116, 80, 0.22);
+  border-radius: var(--radius-lg, 26px);
+  box-shadow: 0 24px 60px rgba(60, 45, 26, 0.25);
+
+  animation: subir 0.3s ease;
+}
+
+/* la galleta se mueve un poco al aparecer */
+.cookies__icono {
+  display: inline-block;
+  margin-bottom: 8px;
+  animation: girar 0.6s ease;
+  filter: drop-shadow(0 6px 10px rgba(110, 70, 30, 0.28));
+}
+
+.cookies__titulo {
+  margin: 0 0 10px;
+  font-family: var(--font-title, sans-serif);
+  font-size: 24px;
+  color: var(--color-text, #29251f);
+}
+
+.cookies__texto {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-secondary, #6e6659);
+}
+
+.cookies__texto a {
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 700;
+  color: var(--color-accent-dark, #a27f59);
+}
+
+.cookies__botones {
+  display: flex;
+  gap: 10px;
+}
+
+.cookies__boton {
+  flex: 1;
+  padding: 11px 16px;
+
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid transparent;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cookies__boton:hover {
+  transform: translateY(-1px);
+}
+
+.cookies__boton--rechazar {
+  background: transparent;
+  border-color: rgba(146, 116, 80, 0.35);
+  color: var(--color-text-secondary, #6e6659);
+}
+
+.cookies__boton--rechazar:hover {
+  background: rgba(146, 116, 80, 0.1);
+}
+
+.cookies__boton--aceptar {
+  background: var(--color-primary, #111);
+  color: #fff;
+}
+
+.cookies__boton--aceptar:hover {
+  background: var(--color-accent-dark, #a27f59);
+}
+
+.cookies__boton:focus-visible {
+  outline: 2px solid var(--color-accent-dark, #a27f59);
+  outline-offset: 3px;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes subir {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes girar {
+  from { transform: rotate(-25deg) scale(0.7); }
+  to { transform: rotate(0) scale(1); }
+}

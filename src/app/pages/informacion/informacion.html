@@ -1,0 +1,139 @@
+<div class="perfil-page">
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="navbar__brand">
+            <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
+        </div>
+
+        <nav class=" navbar__pill">
+            <a class="navbar__link" routerLink="/home"><app-icono nombre="home"></app-icono> Inicio</a>
+            <a class="navbar__link" routerLink="/mis-trueques"><app-icono nombre="swap_horiz"></app-icono> Mis trueques</a>
+            <a class="navbar__link" routerLink="/mis-publicaciones"><app-icono nombre="apps"></app-icono> Mis publicaciones</a>
+        </nav>
+
+        <div class="navbar__actions">
+            <button class="navbar__icon-btn" aria-label="Notificaciones" routerLink="/notificaciones">
+                <app-icono nombre="notifications_none"></app-icono>
+            </button>
+            <div class="navbar__avatar" routerLink="/perfil" title="Mi perfil" style="cursor:pointer">
+                <img [src]="avatarUrl" [alt]="nombreUsuario" />
+            </div>
+            <app-icono nombre="expand_more"></app-icono>
+        </div>
+    </header>
+
+    <!-- CONTENIDO -->
+    <main class="perfil">
+        <section class="perfil__card perfil__hero">
+
+            <!-- Columna izquierda: igual que en /perfil, con link de vuelta -->
+            <div class="perfil__identity">
+                <a routerLink="/perfil" class="perfil__back" aria-label="Volver al perfil">
+                    <app-icono nombre="arrow_back"></app-icono> Volver
+                </a>
+
+                <div class="perfil__avatar-wrap">
+                    <img class="perfil__avatar" [src]="avatarUrl" [alt]="'Foto de perfil de ' + nombreUsuario" />
+                </div>
+
+                <h1 class="perfil__name">{{ nombreUsuario }}</h1>
+
+                <div class="perfil__rating">
+                    <h2 class="perfil__rating-title">Calificaciones y opiniones</h2>
+                    <div class="perfil__stars"
+                        [attr.aria-label]="calificacion + ' de ' + calificacionMaxima + ' estrellas'">
+                        <app-icono
+                            *ngFor="let llena of estrellas()"
+                            class="perfil__star"
+                            [class.perfil__star--llena]="llena"
+                            nombre="star"
+                        ></app-icono>
+                    </div>
+                    <p class="perfil__rating-note">
+                        (Solo será visible públicamente tras recibir
+                        {{ totalCalificacionesRequeridas }} calificaciones).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Columna derecha: formulario de "Tu información" -->
+            <div class="info-panel">
+
+                <header class="info-panel__cabeza">
+                    <h2 class="info-panel__title">Tu información</h2>
+                    <p class="info-panel__sub">Estos datos se ven en tu perfil y sirven para contactarte por WhatsApp.</p>
+                </header>
+
+                <!-- Foto -->
+                <div class="info-foto">
+                    <img class="info-foto__img" [src]="avatarUrl" [alt]="'Foto de perfil de ' + nombreUsuario" />
+                    <div class="info-foto__texto">
+                        <strong>Foto de perfil</strong>
+                        <small>JPG o PNG. Se ajusta sola.</small>
+                    </div>
+                    <label class="info-foto__boton" for="fotoInput">Cambiar foto</label>
+                    <input id="fotoInput" type="file" accept="image/*" class="info-foto__input"
+                        (change)="archivoSeleccionado($event)" />
+                </div>
+
+                <!-- Campos -->
+                <div class="info-grid">
+
+                    <label class="info-field">
+                        <span class="info-field__label">Nombre</span>
+                        <input class="info-field__input" type="text" name="nombreElegido" [(ngModel)]="nombreElegido"
+                            placeholder="Escribe tu nombre" />
+                    </label>
+
+                    <label class="info-field">
+                        <span class="info-field__label">Apellido</span>
+                        <input class="info-field__input" type="text" name="apellidoElegido" [(ngModel)]="apellidoElegido"
+                            placeholder="Escribe tu apellido" />
+                    </label>
+
+                    <label class="info-field">
+                        <span class="info-field__label">Número de teléfono</span>
+                        <input class="info-field__input" type="tel" name="numeroTelefono" [(ngModel)]="numeroTelefono"
+                            placeholder="Ej: 3001234567" />
+                    </label>
+
+                    <label class="info-field">
+                        <span class="info-field__label">Barrio</span>
+                        <input class="info-field__input" type="text" name="barrio" [(ngModel)]="barrio"
+                            placeholder="Ej: El Centro" />
+                    </label>
+
+                    <label class="info-field info-field--ancho">
+                        <span class="info-field__label">Dirección</span>
+                        <input class="info-field__input" type="text" name="direccion" [(ngModel)]="direccion"
+                            placeholder="Ej: Calle 10 # 5-20" />
+                    </label>
+
+                    <label class="info-field info-field--ancho">
+                        <span class="info-field__label">
+                            Descripción de tu perfil
+                            <em>{{ descripcion.length }}/300</em>
+                        </span>
+                        <textarea class="info-field__input" name="descripcion" rows="3" maxlength="300"
+                            [(ngModel)]="descripcion"
+                            placeholder="Cuéntale a los demás qué te gusta intercambiar"></textarea>
+                    </label>
+
+                </div>
+
+                <!-- Pie -->
+                <footer class="info-pie">
+                    <p class="info-pie__error" *ngIf="errorGuardado">{{ errorGuardado }}</p>
+                    <p class="info-pie__ok" *ngIf="guardado">Cambios guardados.</p>
+
+                    <button class="btn-guardar" type="button" (click)="guardarCambios()">
+                        Guardar cambios
+                    </button>
+                </footer>
+
+            </div>
+
+        </section>
+    </main>
+</div>

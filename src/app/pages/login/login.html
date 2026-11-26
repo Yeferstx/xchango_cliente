@@ -1,0 +1,573 @@
+<!-- logo fuera de la navbar -->
+
+@if (!modalAbierto()) {
+  <app-logo-xchango class="navbar__brand" [compactoEnMovil]="true" tamano="lg" enlace="/login"></app-logo-xchango>
+}
+
+<!-- acceso del equipo (admin y moderador) -->
+
+<div class="top-acciones">
+
+<a class="top-login top-login--admin" routerLink="/admin/login">
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+
+  XchanGo Admin
+
+</a>
+
+</div>
+
+<!-- hero -->
+
+<main class="hero">
+
+  <!-- hero left -->
+
+  <section class="hero-left">
+
+    <p class="eyebrow">
+      Bienvenido a XCHANGO
+    </p>
+
+    <h1 class="headline">
+
+      Intercambia<br>
+      lo que tienes<br>
+      por lo que <span class="accent">quieres.</span>
+
+    </h1>
+
+    <p class="subtext">
+
+      Intercambia bienes y servicios<br>
+      con personas de Casanare.
+
+    </p>
+
+    <div class="cta-row">
+
+      <button
+        class="btn btn-dark"
+        type="button"
+        (click)="explorarComoInvitado()"
+      >
+
+        Explorar trueques
+
+        <span class="arrow">
+          →
+        </span>
+
+      </button>
+
+      <button
+        class="btn btn-outline"
+        type="button"
+        (click)="abrirModal('registro')"
+      >
+
+        Crear cuenta
+
+      </button>
+
+    </div>
+
+  </section>
+
+  <!-- teléfono -->
+
+  <section class="hero-center">
+
+    <div
+      class="dot-grid"
+      aria-hidden="true">
+    </div>
+
+    <div class="phone-wrap">
+
+      <img
+        src="Logo-xchango/tel.png"
+        srcset="
+          Logo-xchango/tel.png 1x,
+          Logo-xchango/tel@2x.png 2x,
+          Logo-xchango/tel@3x.png 3x
+        "
+        alt="Teléfono XchanGo"
+        class="phone-img"
+      >
+
+      <div class="phone-screen">
+
+      </div>
+
+    </div>
+
+    <div class="phone-podium">
+    </div>
+
+  </section>
+
+  <!-- hero right -->
+
+  <section class="hero-right">
+
+    <!-- buscador -->
+
+    <div class="search-bar">
+
+      <svg
+        class="search-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+
+        <path d="m21 21-4.34-4.34"/>
+
+        <circle
+          cx="11"
+          cy="11"
+          r="8"
+        />
+
+      </svg>
+
+      <input
+        type="text"
+        placeholder="Buscar trueques..."
+        [(ngModel)]="terminoBusqueda"
+        (keydown.enter)="buscarComoInvitado()"
+      >
+
+      <button
+        class="filter-btn"
+        type="button"
+        aria-label="Buscar"
+        (click)="buscarComoInvitado()"
+      >
+
+        <svg
+          class="filter-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+
+          <path d="M11 22H5.5a1 1 0 0 1 0-5h4.501"/>
+
+          <path d="m21 22-1.879-1.878"/>
+
+          <path d="M3 19.5v-15A2.5 2.5 0 0 1 5.5 2H18a1 1 0 0 1 1 1v8"/>
+
+          <circle
+            cx="17"
+            cy="18"
+            r="3"
+          />
+
+        </svg>
+
+      </button>
+
+    </div>
+
+    <!-- categorías -->
+
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <h3>
+          Explora por categorías
+        </h3>
+
+        <a
+          href="javascript:void(0)"
+          class="see-all"
+          (click)="explorarComoInvitado()"
+        >
+          Ver todas las categorías ›
+        </a>
+
+      </div>
+
+      <div class="categories">
+
+        <!-- electrónicos -->
+
+        <div class="category">
+
+          <div class="category-icon">
+
+            <img
+              src="Logo-xchango/icono_elec.png"
+              alt="Electrónicos"
+            >
+
+          </div>
+
+          <span>
+            Electrónicos
+          </span>
+
+        </div>
+
+        <!-- vehículos -->
+
+        <div class="category">
+
+          <div class="category-icon">
+
+            <img
+              src="Logo-xchango/icono_vehiculo.png"
+              alt="Vehículos"
+            >
+
+          </div>
+
+          <span>
+            Vehículos
+          </span>
+
+        </div>
+
+        <!-- videojuegos -->
+
+        <div class="category">
+
+          <div class="category-icon">
+
+            <img
+              src="Logo-xchango/icono_juegos.png"
+              alt="Videojuegos"
+            >
+
+          </div>
+
+          <span>
+            Videojuegos
+          </span>
+
+        </div>
+
+        <!-- ropa -->
+
+        <div class="category">
+
+          <div class="category-icon">
+
+            <img
+              src="Logo-xchango/icono_ropa.png"
+              alt="Ropa"
+            >
+
+          </div>
+
+          <span>
+            Ropa
+          </span>
+
+        </div>
+
+        <!-- hogar -->
+
+        <div class="category">
+
+          <div class="category-icon">
+
+            <img
+              src="Logo-xchango/icono_hogar.png"
+              alt="Hogar"
+            >
+
+          </div>
+
+          <span>
+            Hogar
+          </span>
+
+        </div>
+
+        <!-- más -->
+
+        <div class="category">
+
+          <div class="category-icon">
+
+            <img
+              src="Logo-xchango/icono_mas.png"
+              alt="Más"
+            >
+
+          </div>
+
+          <span>
+            Más ...
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- destacados -->
+
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <h3>
+          Destacados
+        </h3>
+
+        <a
+          href="javascript:void(0)"
+          class="see-all"
+          (click)="explorarComoInvitado()"
+        >
+          Ver publicaciones ›
+        </a>
+
+      </div>
+
+      <div
+        class="products"
+        [class.is-fading]="atenuado()"
+        (mouseenter)="pausar()"
+        (mouseleave)="reanudar()"
+        (focusin)="pausar()"
+        (focusout)="reanudar()"
+      >
+
+        @for (
+          producto of productosVisibles();
+          track producto.nombre
+        ) {
+
+          <article class="product-card">
+
+            <div class="product-img">
+
+              <img
+                [src]="producto.imagen"
+                [alt]="producto.nombre"
+              >
+
+              <button
+                class="fav-btn"
+                type="button"
+                aria-label="Favorito"
+                (click)="abrirModal('registro')"
+              >
+
+                <svg
+                  class="fav-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+
+                  <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/>
+
+                  <path d="M7.828 13.07A3 3 0 0 1 12 8.764a3 3 0 0 1 5.004 2.224 3 3 0 0 1-.832 2.083l-3.447 3.62a1 1 0 0 1-1.45-.001z"/>
+
+                </svg>
+
+              </button>
+
+            </div>
+
+            <h4>
+              {{ producto.nombre }}
+            </h4>
+
+            <p class="location">
+
+              <svg
+                class="location-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+
+                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="3"
+                />
+
+              </svg>
+
+              {{ producto.ubicacion }}
+
+            </p>
+
+          </article>
+
+        }
+
+      </div>
+
+      <!-- flechas del carrusel -->
+
+      <div class="flechas">
+
+        <button class="flecha" type="button" aria-label="Productos anteriores" (click)="anteriorProducto()">
+          ‹
+        </button>
+
+        <button class="flecha" type="button" aria-label="Productos siguientes" (click)="siguienteProducto()">
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<!-- lo que se puede hacer -->
+
+<section class="features">
+
+  <!-- encuentra trueques -->
+
+  <div class="feature">
+
+    <div class="feature-icon">
+
+      <svg class="feature-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+
+    </div>
+
+    <div>
+
+      <h4>
+        Encuentra trueques cerca de ti
+      </h4>
+
+      <p>
+        Busca por municipio de Casanare.
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- publica -->
+
+  <div class="feature">
+
+    <div class="feature-icon">
+
+      <svg class="feature-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2"/>
+        <path d="M8 12h8"/>
+        <path d="M12 8v8"/>
+      </svg>
+
+    </div>
+
+    <div>
+
+      <h4>
+        Publica lo que ofreces
+      </h4>
+
+      <p>
+        Bienes, servicios o productos digitales.
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- whatsapp -->
+
+  <div class="feature">
+
+    <div class="feature-icon">
+
+      <svg class="feature-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+      </svg>
+
+    </div>
+
+    <div>
+
+      <h4>
+        Contacta por WhatsApp
+      </h4>
+
+      <p>
+        Acuerda el trueque directo con la otra persona.
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- pie -->
+
+  <div class="pie">
+
+    <a routerLink="/legal-info">Términos y condiciones</a>
+
+    <span aria-hidden="true">·</span>
+
+    <a routerLink="/admin/login">Acceso administrativo</a>
+
+  </div>
+
+</section>
+
+<!-- modal de autenticación -->
+
+<app-metodo-acceso
+  [abierto]="modalAbierto()"
+  [modo]="modoAuth()"
+  (cerrar)="cerrarModal()"
+  (cambiarModo)="cambiarModoAuth($event)"
+  (seleccionarMetodo)="continuarConCorreo()"
+>
+</app-metodo-acceso>
