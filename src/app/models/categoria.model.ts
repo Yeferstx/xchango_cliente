@@ -1,7 +1,7 @@
-// Catálogo único de categorías (data/categorias.json).
+// categoria de las publicaciones, viene del MID
 export interface Categoria {
   id: string;
   nombre: string;
-  // Nombre del ícono, disponible para el sidebar.
+  // nombre del icono, disponible para el sidebar
   icono: string;
 }
