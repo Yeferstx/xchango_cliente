@@ -2,15 +2,12 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 
+import { API_URL } from '../../config/api';
 import { Documento, DocumentoVista } from '../../models/admin/documento';
 import { Usuario } from '../../models/usuario.model';
 import { AdminUsuario } from '../../models/admin/admin-usuario';
 
-const CLAVE = 'xchango_documentos';
-
-// Verificación de documentos de identidad.
-// El usuario sube su documento y aquí el administrador o el moderador lo
-// aprueba o lo rechaza. Los datos salen de data/documentos.json.
+// verificacion de documentos, el admin o moderador aprueba o rechaza
 @Injectable({ providedIn: 'root' })
 export class DocumentosAdminService {
   private http = inject(HttpClient);
@@ -19,27 +16,43 @@ export class DocumentosAdminService {
   private listaUsuarios = signal<Usuario[]>([]);
   private listaAdmins = signal<AdminUsuario[]>([]);
   private estaCargando = signal(false);
-  private mensajeError = signal<string | null>(null);
+  private mensajeError = signal('');
   private yaCargo = false;
 
   cargando = this.estaCargando.asReadonly();
   error = this.mensajeError.asReadonly();
 
-  // Documentos con el nombre del usuario y del revisor ya resueltos.
-  documentos = computed<DocumentoVista[]>(() => {
-    const usuarios = new Map(this.listaUsuarios().map((u) => [u.id, u]));
-    const admins = new Map(this.listaAdmins().map((a) => [a.id, a]));
+  // documentos con el nombre del usuario y del que lo reviso
+  documentos = computed(() => {
+    const lista: DocumentoVista[] = [];
 
-    return this.listaDocumentos().map((d) => {
-      const usuario = usuarios.get(d.usuarioId);
-      return {
-        ...d,
-        usuarioNombre: usuario?.nombre ?? 'Usuario desconocido',
-        usuarioEmail: usuario?.email ?? '',
-        usuarioAvatar: usuario?.avatar ?? '',
-        revisorNombre: d.revisadoPor ? admins.get(d.revisadoPor)?.nombre ?? '' : '',
-      };
-    });
+    for (const d of this.listaDocumentos()) {
+      const vista: any = Object.assign({}, d);
+
+      vista.usuarioNombre = 'Usuario desconocido';
+      vista.usuarioEmail = '';
+      vista.usuarioAvatar = '/Logo-xchango/avatar-defecto.png';
+      for (const u of this.listaUsuarios()) {
+        if (u.id === d.usuarioId) {
+          vista.usuarioNombre = u.nombre;
+          vista.usuarioEmail = u.email;
+          if (u.avatar) {
+            vista.usuarioAvatar = u.avatar;
+          }
+        }
+      }
+
+      vista.revisorNombre = '';
+      for (const a of this.listaAdmins()) {
+        if (d.revisadoPor && a.id === d.revisadoPor) {
+          vista.revisorNombre = a.nombre;
+        }
+      }
+
+      lista.push(vista);
+    }
+
+    return lista;
   });
 
   pendientes = computed(() => this.documentos().filter((d) => d.estado === 'pendiente'));
@@ -47,19 +60,19 @@ export class DocumentosAdminService {
   rechazados = computed(() => this.documentos().filter((d) => d.estado === 'rechazado'));
 
   cargar(): void {
-    if (this.yaCargo) return;
+    if (this.yaCargo) {
+      return;
+    }
     this.yaCargo = true;
     this.estaCargando.set(true);
 
-    const guardados = this.leerGuardados();
-
     forkJoin({
-      documentos: this.http.get<Documento[]>('data/documentos.json'),
-      usuarios: this.http.get<Usuario[]>('data/usuarios.json'),
-      admins: this.http.get<AdminUsuario[]>('data/admins.json'),
+      documentos: this.http.get(API_URL + '/admin/documentos'),
+      usuarios: this.http.get(API_URL + '/admin/usuarios'),
+      admins: this.http.get(API_URL + '/admin/admins'),
     }).subscribe({
-      next: (datos) => {
-        this.listaDocumentos.set(guardados ?? datos.documentos);
+      next: (datos: any) => {
+        this.listaDocumentos.set(datos.documentos);
         this.listaUsuarios.set(datos.usuarios);
         this.listaAdmins.set(datos.admins);
         this.estaCargando.set(false);
@@ -72,44 +85,40 @@ export class DocumentosAdminService {
     });
   }
 
-  // Aprueba el documento: la cuenta del usuario queda verificada.
+  // aprueba el documento, la cuenta del usuario queda verificada
   aprobar(id: string, adminId: string, observacion: string): void {
-    this.actualizar(id, 'aprobado', adminId, observacion || 'Documento verificado sin novedad.');
+    if (!observacion) {
+      observacion = 'Documento verificado sin novedad.';
+    }
+    this.actualizar(id, 'aprobado', adminId, observacion);
   }
 
-  // Rechaza el documento. La observación explica el motivo.
+  // rechaza el documento, la observacion explica el motivo
   rechazar(id: string, adminId: string, observacion: string): void {
-    this.actualizar(id, 'rechazado', adminId, observacion || 'El documento no cumple los requisitos.');
-  }
-
-  private actualizar(
-    id: string,
-    estado: Documento['estado'],
-    adminId: string,
-    observacion: string,
-  ): void {
-    this.listaDocumentos.update((lista) =>
-      lista.map((d) =>
-        d.id === id ? { ...d, estado, revisadoPor: adminId, observacion } : d,
-      ),
-    );
-    this.guardar();
-  }
-
-  private guardar(): void {
-    try {
-      localStorage.setItem(CLAVE, JSON.stringify(this.listaDocumentos()));
-    } catch {
-      // Sin almacenamiento los cambios duran hasta recargar.
+    if (!observacion) {
+      observacion = 'El documento no cumple los requisitos.';
     }
+    this.actualizar(id, 'rechazado', adminId, observacion);
   }
 
-  private leerGuardados(): Documento[] | null {
-    try {
-      const texto = localStorage.getItem(CLAVE);
-      return texto ? (JSON.parse(texto) as Documento[]) : null;
-    } catch {
-      return null;
+  private actualizar(id: string, estado: Documento['estado'], adminId: string, observacion: string): void {
+    const nuevaLista: Documento[] = [];
+    for (const d of this.listaDocumentos()) {
+      const copia = Object.assign({}, d);
+      if (d.id === id) {
+        copia.estado = estado;
+        copia.revisadoPor = adminId;
+        copia.observacion = observacion;
+      }
+      nuevaLista.push(copia);
     }
+    this.listaDocumentos.set(nuevaLista);
+
+    this.http.patch(API_URL + '/admin/documentos/' + id, { estado: estado, observacion: observacion }).subscribe({
+      error: () => {
+        this.yaCargo = false;
+        this.cargar();
+      },
+    });
   }
 }
