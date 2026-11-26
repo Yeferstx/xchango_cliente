@@ -1,38 +1,40 @@
 <div class="vc-overlay">
-  <div class="vc-modal" role="dialog" aria-modal="true">
+  <div class="vc-modal" role="dialog" aria-modal="true" aria-labelledby="vc-titulo" tabindex="-1" (keydown.escape)="volver.emit()">
 
-    <div class="vc-logo">
-      <img src="Logo-xchango/chango.png" alt="Logo XchanGo" class="vc-logo__chango" />
-      <img src="Logo-xchango/letras-chango.png" alt="XchanGo" class="vc-logo__wordmark" />
-    </div>
+    <div class="vc-logo"><app-logo-xchango tamano="md"></app-logo-xchango></div>
 
-    <h2 class="vc-titulo">Verifica tu correo</h2>
+    <h2 class="vc-titulo" id="vc-titulo">Verifica tu correo</h2>
     <p class="vc-subtitulo">
-      Enviamos un código a <strong>{{ correo || 'tu correo' }}</strong>.
+      Enviamos un PIN de 4 dígitos a <strong>{{ correo || 'tu correo' }}</strong>.
       Escríbelo para continuar.
     </p>
 
     <form class="vc-form" (ngSubmit)="confirmar()">
-      <input
+      <input data-foco-inicial
         class="vc-input"
         type="text"
         inputmode="numeric"
-        maxlength="6"
-        placeholder="0000"
+        maxlength="4"
+        placeholder="----"
         [ngModel]="codigo()"
-        (ngModelChange)="onCodigoChange($event)"
+        (ngModelChange)="cambioCodigo($event)"
         name="codigo"
         autocomplete="one-time-code"
       />
 
       <p class="vc-error" *ngIf="error()">{{ error() }}</p>
+      <p class="vc-nota" *ngIf="aviso()">{{ aviso() }}</p>
 
       <button class="vc-btn" type="submit" [disabled]="enviando()">
         {{ enviando() ? 'Verificando...' : 'Verificar' }}
       </button>
     </form>
 
-    <p class="vc-nota">Código de prueba en esta versión: <strong>0000</strong></p>
+    <p class="vc-nota">
+      ¿No recibiste el PIN?
+      <button type="button" class="vc-volver" *ngIf="puedeReenviar()" (click)="reenviar()">Reenviar PIN</button>
+      <span *ngIf="!puedeReenviar()">Puedes pedir otro en {{ segundos() }}s</span>
+    </p>
 
     <button type="button" class="vc-volver" (click)="volverAtras()">
       ‹ Volver

@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(31, 27, 22, 0.42);
+  background: var(--color-overlay);
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
   animation: vcOverlayIn .22s ease;
@@ -21,8 +21,8 @@
   width: 100%;
   max-width: 380px;
   padding: 32px 28px 28px;
-  background: #fffdfa;
-  border: 1px solid rgba(255, 255, 255, .8);
+  background: var(--color-surface);
+  border: 1px solid rgba(var(--oscuro-borde-rgb, 255, 255, 255), .8);
   border-radius: 26px;
   box-shadow:
     0 24px 60px rgba(60, 45, 26, .22),
@@ -48,7 +48,7 @@
 .vc-logo__wordmark { width: 96px; height: auto; object-fit: contain; }
 
 .vc-titulo {
-  color: #111;
+  color: var(--oscuro-texto, var(--color-primary));
   font-family: "Baloo 2", sans-serif;
   font-size: 22px;
   font-weight: 800;
@@ -57,14 +57,14 @@
 
 .vc-subtitulo {
   margin-top: 6px;
-  color: #524b43;
+  color: var(--color-text-secondary);
   font-size: 13.5px;
   font-weight: 600;
   line-height: 1.45;
   text-align: center;
 }
 
-.vc-subtitulo strong { color: var(--xg-tinta-media); }
+.vc-subtitulo strong { color: var(--oscuro-texto, var(--color-text)); }
 
 .vc-form {
   margin-top: 22px;
@@ -77,8 +77,8 @@
   min-height: 52px;
   border: 1px solid rgba(146, 116, 80, .30);
   border-radius: 16px;
-  background: rgba(255, 252, 247, .70);
-  color: var(--xg-tinta-media);
+  background: rgba(var(--oscuro-fondo-rgb, 255, 252, 247), .70);
+  color: var(--oscuro-texto, var(--color-text));
   font-size: 22px;
   font-weight: 800;
   letter-spacing: 0.3em;
@@ -88,12 +88,12 @@
 
 .vc-input:focus {
   outline: none;
-  border-color: #a1785a;
-  background: #fff;
+  border-color: var(--color-accent);
+  background: var(--oscuro-fondo, #fff);
 }
 
 .vc-error {
-  color: var(--xg-rojo-medio);
+  color: #a63f33;
   font-size: 12.5px;
   font-weight: 600;
   text-align: center;
@@ -103,7 +103,7 @@
   min-height: 52px;
   border: none;
   border-radius: 16px;
-  background: #111;
+  background: var(--color-primary);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
@@ -112,27 +112,27 @@
   transition: background .2s ease, transform .2s ease;
 }
 
-.vc-btn:hover { background: #222; }
+.vc-btn:hover { background: var(--color-primary-dark); }
 .vc-btn:disabled { opacity: .6; cursor: default; }
 
 .vc-nota {
   margin-top: 16px;
-  color: #958c81;
+  color: var(--color-text-faint);
   font-size: 11.5px;
   text-align: center;
 }
 
-.vc-nota strong { color: #6a4f30; }
+.vc-nota strong { color: var(--oscuro-texto-suave, var(--color-text-secondary)); }
 
 .vc-volver {
   display: block;
   margin: 14px auto 0;
   border: none;
   background: none;
-  color: #6e665d;
+  color: var(--oscuro-texto-suave, var(--color-text-muted));
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.vc-volver:hover { color: var(--xg-tinta-media); }
+.vc-volver:hover { color: var(--oscuro-texto, var(--color-text)); }
