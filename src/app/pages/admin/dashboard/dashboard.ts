@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { StatCard } from '../../../components/admin/stat-card/stat-card';
@@ -15,36 +15,39 @@ import { PublicacionesAdminService } from '../../../services/admin/publicaciones
   imports: [DatePipe, RouterLink, StatCard, BadgeEstado, Icon],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard implements OnInit, OnDestroy {
-  private readonly metricasSrv = inject(MetricasAdminService);
-  private readonly historialSrv = inject(HistorialAdminService);
-  private readonly alertasSrv = inject(AlertasAdminService);
-  private readonly publicacionesSrv = inject(PublicacionesAdminService);
+  private metricasSrv = inject(MetricasAdminService);
+  private historialSrv = inject(HistorialAdminService);
+  private alertasSrv = inject(AlertasAdminService);
+  private publicacionesSrv = inject(PublicacionesAdminService);
 
-  readonly cargando = this.metricasSrv.cargando;
-  readonly resumen = this.metricasSrv.resumen;
-  readonly comparativas = this.metricasSrv.comparativas;
+  cargando = this.metricasSrv.cargando;
+  resumen = this.metricasSrv.resumen;
+  comparativas = this.metricasSrv.comparativas;
 
-  readonly actividad = computed(() => this.metricasSrv.actividadUsuarios('anio'));
-  readonly intercambios = computed(() => this.metricasSrv.intercambiosPorMes('anio'));
-  readonly categorias = computed(() => this.metricasSrv.publicacionesPorCategoria());
-  readonly ubicaciones = computed(() => this.metricasSrv.actividadPorUbicacion());
+  actividad = computed(() => this.metricasSrv.actividadUsuarios('anio'));
+  intercambios = computed(() => this.metricasSrv.intercambiosPorMes('anio'));
+  categorias = computed(() => this.metricasSrv.publicacionesPorCategoria());
+  ubicaciones = computed(() => this.metricasSrv.actividadPorUbicacion());
 
-  readonly accionesRecientes = computed(() => this.historialSrv.recientes(5));
-  readonly alertasActivas = computed(() => this.alertasSrv.alertas().filter(a => !a.leida).slice(0, 3));
-  readonly reportesRecientes = computed(() =>
+  accionesRecientes = computed(() => this.historialSrv.recientes(5));
+  alertasActivas = computed(() => this.alertasSrv.alertas().filter(a => !a.leida).slice(0, 3));
+  reportesRecientes = computed(() =>
     this.publicacionesSrv.reportadas().filter(p => p.estado === 'pendiente').slice(0, 5)
   );
 
-  // Porcentaje de variación de cada tarjeta (null si no hay comparativa).
+  // porcentaje de variacion de cada tarjeta (null si no hay comparativa)
   variacion(clave: string): number | null {
-    return this.comparativas()[clave]?.porcentaje ?? null;
+    const comparativa = this.comparativas()[clave];
+    if (comparativa) {
+      return comparativa.porcentaje;
+    }
+    return null;
   }
 
   ngOnInit(): void {
-    // Los servicios ya fueron cargados por el layout; esto cubre el acceso directo.
+    // los servicios ya fueron cargados por el layout; esto cubre el acceso directo
     this.metricasSrv.cargar();
     this.historialSrv.cargar();
     this.alertasSrv.cargar();
