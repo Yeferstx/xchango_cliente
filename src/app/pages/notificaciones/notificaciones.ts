@@ -1,15 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { IconoComponent } from '../../components/icono/icono';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 
 import { TruequesService } from '../../services/trueques';
 import { Notificacion } from '../../models/notificacion.model';
 import { TruequeVista } from '../../models/trueque.model';
 
-// HU54-HU59: bandeja de avisos.
-// NO es mensajería. Son avisos de una sola vía; la conversación real ocurre en
-// WhatsApp. Por eso no hay campo para responder.
+// bandeja de avisos (HU54-HU59), no es chat
 @Component({
   selector: 'app-notificaciones',
   standalone: true,
@@ -18,24 +16,27 @@ import { TruequeVista } from '../../models/trueque.model';
   styleUrl: './notificaciones.css',
 })
 export class NotificacionesComponent implements OnInit {
-  private readonly srv = inject(TruequesService);
-  private readonly router = inject(Router);
-  private readonly location = inject(Location);
+  private srv = inject(TruequesService);
+  private router = inject(Router);
 
-  readonly notificaciones = this.srv.notificaciones;
-  readonly sinLeer = this.srv.notificacionesSinLeer;
+  notificaciones = this.srv.notificaciones;
+  sinLeer = this.srv.notificacionesSinLeer;
 
-  // Busca el trueque al que se refiere el aviso.
+  // busca el trueque al que se refiere el aviso
   truequeDe(n: Notificacion): TruequeVista | undefined {
-    if (!n.referenciaId) return undefined;
+    if (!n.referenciaId) {
+      return undefined;
+    }
     return this.srv.trueques().find((t) => t.id === n.referenciaId);
   }
 
-  // Solo se puede responder si el aviso es una solicitud, el trueque sigue
-  // pendiente y el usuario es el dueño de la publicación.
+  // solo se puede responder si el aviso es una solicitud, el trueque sigue
+  // pendiente y el usuario es el dueño de la publicacion
   puedeResponder(n: Notificacion): boolean {
     const t = this.truequeDe(n);
-    if (!t) return false;
+    if (!t) {
+      return false;
+    }
     return (
       n.tipo === 'solicitud' &&
       t.estado === 'pendiente' &&
@@ -63,26 +64,43 @@ export class NotificacionesComponent implements OnInit {
     this.srv.cargar();
   }
 
-  volver(): void {
-    this.location.back();
-  }
 
   marcarTodas(): void {
     this.srv.marcarTodasLeidas();
   }
 
-  // Marca como leída y navega al trueque o a la publicación referenciada.
+  // marca como leida y navega al trueque o a la publicacion referenciada
   abrir(n: Notificacion): void {
     this.srv.marcarNotificacionLeida(n.id);
 
-    if (!n.referenciaId) return;
-    if (n.referenciaId.startsWith('tr')) this.router.navigate(['/mis-trueques']);
-    else if (n.referenciaId.startsWith('pub')) this.router.navigate(['/trueque', n.referenciaId]);
+    if (n.tipo === 'documento') {
+      this.router.navigate(['/perfil/verificacion'], { queryParams: { desde: 'notificaciones' } });
+      return;
+    }
+
+    if (!n.referenciaId) {
+
+      return;
+
+    }
+    if (n.referenciaId.startsWith('tr')) {
+      this.router.navigate(['/mis-trueques'], { queryParams: { trueque: n.referenciaId, desde: 'notificaciones' } });
+    }
+    else if (n.referenciaId.startsWith('pub')) {
+      this.router.navigate(['/trueque', n.referenciaId], { queryParams: { desde: 'notificaciones' } });
+    }
   }
 
   icono(tipo: Notificacion['tipo']): string {
-    if (tipo === 'aceptada') return 'check_circle';
-    if (tipo === 'rechazada') return 'cancel';
+    if (tipo === 'aceptada') {
+      return 'check_circle';
+    }
+    if (tipo === 'rechazada') {
+      return 'cancel';
+    }
+    if (tipo === 'documento') {
+      return 'verified_user';
+    }
     return 'swap_horiz';
   }
 }

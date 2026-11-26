@@ -1,6 +1,6 @@
 <div class="nt">
   <header class="nt__top">
-    <button class="nt__back" type="button" (click)="volver()"> Volver</button>
+    <a class="nt__back enlace-volver" routerLink="/home"><span aria-hidden="true">&#8592;</span> Volver al inicio</a>
     <h1 class="nt__title">Notificaciones</h1>
     <button class="nt__mark" type="button" [disabled]="sinLeer() === 0" (click)="marcarTodas()">
       Marcar todas como leídas

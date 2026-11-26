@@ -1,10 +1,10 @@
 :host {
-  --nt-bg: #f7f3ea;
-  --nt-card: #fffdf8;
-  --nt-line: #e5dcc8;
-  --nt-ink: #1f1b16;
-  --nt-soft: #7a6f5d;
-  --nt-acc: #c8a86b;
+  --nt-bg: var(--color-background);
+  --nt-card: var(--color-surface);
+  --nt-line: var(--color-border-solid);
+  --nt-ink: var(--color-text);
+  --nt-soft: var(--color-text-muted);
+  --nt-acc: var(--color-accent);
   display: block;
   background: var(--nt-bg);
   min-height: 100vh;
@@ -35,7 +35,7 @@
   border-radius: 14px; padding: 14px 16px; transition: .18s;
 }
 .nt__item:hover { border-color: var(--nt-acc); }
-.nt__item--nueva { background: #fffaef; border-left: 3px solid var(--nt-acc); }
+.nt__item--nueva { background: var(--color-surface-raised); border-left: 3px solid var(--nt-acc); }
 
 .nt__icon { color: var(--nt-acc); font-size: 22px; margin-top: 2px; }
 .nt__body { flex: 1; }
@@ -51,7 +51,7 @@
 .nt__acciones { display: flex; gap: 8px; margin-top: 10px; }
 .nt__btn {
   border-radius: 9px; padding: 7px 15px; cursor: pointer;
-  font: inherit; font-size: .88rem; border: 1px solid var(--nt-line); background: #fff;
+  font: inherit; font-size: .88rem; border: 1px solid var(--nt-line); background: var(--oscuro-fondo, #fff);
 }
-.nt__btn--ok { background: #3f7d52; border-color: #3f7d52; color: #fff; }
-.nt__btn--no { background: #fff; border-color: var(--xg-rojo); color: var(--xg-rojo); }
+.nt__btn--ok { background: var(--color-ok); border-color: var(--color-ok); color: #fff; }
+.nt__btn--no { background: var(--oscuro-fondo, #fff); border-color: var(--color-error); color: var(--color-error); }
