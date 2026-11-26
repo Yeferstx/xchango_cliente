@@ -1,18 +1,17 @@
-<!-- ===== NAVBAR ===== -->
+<!-- navbar -->
 <header class="navbar">
-    <a class="marca" routerLink="/home">
-        <img src="Logo-xchango/chango.png" alt="" class="logo" />
-        <span class="marca-texto">XchanGo</span>
-    </a>
+    <div class="marca">
+        <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
+    </div>
 
     <nav class="nav-pill">
-        <a routerLink="/home" class="nav-item activo">
+        <a routerLink="/home" class="nav-item">
             <app-icono nombre="home"></app-icono> Inicio
         </a>
         <a routerLink="/mis-trueques" class="nav-item">
             <app-icono nombre="swap_horiz"></app-icono> Mis trueques
         </a>
-        <a routerLink="/mis-publicaciones" class="nav-item">
+        <a routerLink="/mis-publicaciones" class="nav-item activo">
             <app-icono nombre="apps"></app-icono> Mis publicaciones
         </a>
     </nav>
@@ -29,15 +28,13 @@
     </div>
 </header>
 
-<!-- ===== CONTENEDOR BEIGE ===== -->
+<!-- contenedor beige -->
 <main class="contenedor">
     <div class="panel">
 
         <!-- Columna izquierda: identidad -->
         <aside class="columna-identidad">
-            <button class="btn-volver" type="button" (click)="volver()">
-                <app-icono nombre="arrow_back"></app-icono> Volver
-            </button>
+            <a class="btn-volver enlace-volver" routerLink="/perfil"><span aria-hidden="true">&#8592;</span> Volver al perfil</a>
 
             <div class="foto-perfil">
                 <img [src]="avatarUrl" [alt]="nombreUsuario" />
@@ -126,12 +123,12 @@
                     </div>
 
                     <div class="pub-acciones">
-                        <button class="btn-accion" type="button" [routerLink]="['/trueque', p.id]">
+                        <button class="btn-accion" type="button" [routerLink]="['/trueque', p.id]" [queryParams]="{ desde: 'mis-publicaciones' }">
                             <app-icono nombre="visibility"></app-icono> Ver
                         </button>
 
                         <button class="btn-accion" type="button" *ngIf="p.estado !== 'finalizada'"
-                            [routerLink]="['/trueque', p.id, 'editar']">
+                            [routerLink]="['/trueque', p.id, 'editar']" [queryParams]="{ desde: 'mis-publicaciones' }">
                             <app-icono nombre="edit"></app-icono> Editar
                         </button>
 
@@ -157,7 +154,6 @@
             </div>
 
         </section>
-        
 
     </div>
 </main>

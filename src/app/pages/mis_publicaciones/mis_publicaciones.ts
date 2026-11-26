@@ -1,21 +1,22 @@
+import { LogoXchangoComponent } from '../../components/logo-xchango/logo-xchango';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { IconoComponent } from '../../components/icono/icono';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TruequesService } from '../../services/trueques';
+import { nombreCompleto } from '../../models/usuario.model';
 import { PublicacionVista } from '../../models/publicacion.model';
-
 
 @Component({
     selector: 'app-mis-publicaciones',
     standalone: true,
-    imports: [IconoComponent, CommonModule, RouterLink],
+    imports: [LogoXchangoComponent, IconoComponent, CommonModule, RouterLink],
     templateUrl: './mis_publicaciones.html',
     styleUrl: './mis_publicaciones.css'
 })
 export class MisPublicacionesComponent implements OnInit {
 
-    filtro = signal<'todas' | 'activa' | 'pausada' | 'finalizada'>('todas');
+    filtro = signal('todas');
 
     filtros = [
         { id: 'todas', etiqueta: 'Todas' },
@@ -24,26 +25,42 @@ export class MisPublicacionesComponent implements OnInit {
         { id: 'finalizada', etiqueta: 'Finalizadas' }
     ] as const;
 
-    private readonly srv = inject(TruequesService);
+    private srv = inject(TruequesService);
 
-    /** Mismos datos que en /perfil, para la tarjeta de la izquierda. */
+    // mismos datos que en /perfil, para la tarjeta de la izquierda
     get nombreUsuario(): string {
-        return this.srv.usuarioActual()?.nombre ?? 'Invitado';
+        const usuario = this.srv.usuarioActual();
+        if (usuario) {
+            return nombreCompleto(usuario);
+        }
+        return 'Invitado';
     }
 
     get avatarUrl(): string {
-        return this.srv.usuarioActual()?.avatar ?? 'Logo-xchango/chango.png';
+        const usuario = this.srv.usuarioActual();
+        if (usuario && usuario.avatar) {
+            return usuario.avatar;
+        }
+        return '/Logo-xchango/avatar-defecto.png';
     }
 
     get calificacion(): number {
-        return this.srv.usuarioActual()?.calificacion ?? 0;
+        const usuario = this.srv.usuarioActual();
+        if (usuario && usuario.calificacion) {
+            return usuario.calificacion;
+        }
+        return 0;
     }
 
-    readonly calificacionMaxima = 5;
-    readonly totalCalificacionesRequeridas = 5;
+    calificacionMaxima = 5;
+    totalCalificacionesRequeridas = 5;
 
     get totalCalificaciones(): number {
-        return this.srv.usuarioActual()?.totalCalificaciones ?? 0;
+        const usuario = this.srv.usuarioActual();
+        if (usuario && usuario.totalCalificaciones) {
+            return usuario.totalCalificaciones;
+        }
+        return 0;
     }
 
     get muestraCalificacion(): boolean {
@@ -61,11 +78,11 @@ export class MisPublicacionesComponent implements OnInit {
         return this.srv.notificacionesSinLeer();
     }
 
-    /** Mensaje que se muestra al tocar un botón que todavía no guarda. */
+    // mensaje que se muestra al tocar un boton que todavia no guarda
     aviso = '';
 
-    /** Publicaciones reales del usuario en sesión. */
-    readonly publicaciones = this.srv.misPublicaciones;
+    // publicaciones reales del usuario en sesion
+    publicaciones = this.srv.misPublicaciones;
 
     publicacionesFiltradas = computed<PublicacionVista[]>(() => {
         const f = this.filtro();
@@ -82,25 +99,29 @@ export class MisPublicacionesComponent implements OnInit {
         this.srv.cargar();
     }
 
-    constructor(private location: Location) { }
 
-    cambiarFiltro(id: 'todas' | 'activa' | 'pausada' | 'finalizada'): void {
+    cambiarFiltro(id: string): void {
         this.filtro.set(id);
     }
 
     contarPor(estado: string): number {
-        return estado === 'todas'
-            ? this.publicaciones().length
-            : this.publicaciones().filter(p => p.estado === estado).length;
+        if (estado === 'todas') {
+            return this.publicaciones().length;
+        }
+        return this.publicaciones().filter(p => p.estado === estado).length;
     }
 
     etiquetaEstado(estado: string): string {
-        const mapa: Record<string, string> = {
-            activa: 'Activa',
-            pausada: 'Pausada',
-            finalizada: 'Finalizada'
-        };
-        return mapa[estado] ?? estado;
+        if (estado === 'activa') {
+            return 'Activa';
+        }
+        if (estado === 'pausada') {
+            return 'Pausada';
+        }
+        if (estado === 'finalizada') {
+            return 'Finalizada';
+        }
+        return estado;
     }
 
     alternarPausa(id: string): void {
@@ -113,12 +134,9 @@ export class MisPublicacionesComponent implements OnInit {
         }
     }
 
-    /** Total de solicitudes de trueque recibidas por mis publicaciones. */
-    readonly propuestasRecibidas = computed(() =>
+    // total de solicitudes de trueque recibidas por mis publicaciones
+    propuestasRecibidas = computed(() =>
         this.publicaciones().reduce((s, p) => s + p.propuestas, 0)
     );
 
-    volver(): void {
-        this.location.back();
-    }
 }
