@@ -4,19 +4,9 @@
 
   <header class="cabecera vidrio">
 
-    <a class="marca" href="#">
+    <app-logo-xchango class="marca" [compactoEnMovil]="true" tamano="md" enlace="/home"></app-logo-xchango>
 
-      <img
-        class="marca__logo"
-        src="Logo-xchango/chango.png"
-        alt="Logo XchanGo"
-      />
-
-      <span class="marca__nombre">
-        XchanGo
-      </span>
-
-    </a>
+    <!-- buscador -->
 
     <label class="buscador vidrio">
 
@@ -33,9 +23,11 @@
 
     </label>
 
+    <!-- menú -->
+
     <nav class="menu">
 
-      <!-- inicio -->
+      <!-- INICIO -->
 
       <a
         class="menu__item"
@@ -58,7 +50,7 @@
 
       </a>
 
-      <!-- mis trueques -->
+      <!-- MIS TRUEQUES -->
 
       <a
         class="menu__item"
@@ -79,37 +71,9 @@
 
         Mis trueques
 
-        <span class="menu__item-punto" *ngIf="truequesPendientes > 0">
-          {{ truequesPendientes }}
-        </span>
-
       </a>
 
-      <div class="menu__item menu__item--redes" (click)="toggleRedesSociales(); $event.stopPropagation()">
-
-        <svg viewBox="0 0 24 24">
-
-          <circle cx="18" cy="5" r="3"/>
-          <circle cx="6" cy="12" r="3"/>
-          <circle cx="18" cy="19" r="3"/>
-          <path d="m8.6 10.5 6.8-3.9"/>
-          <path d="m8.6 13.5 6.8 3.9"/>
-
-        </svg>
-
-        Redes sociales
-
-        <div class="mini-menu redes-menu" *ngIf="redesSocialesAbiertas()" (click)="$event.stopPropagation()">
-
-          <a href="https://facebook.com" target="_blank" rel="noopener" class="mini-menu__link">Facebook</a>
-          <a href="https://instagram.com" target="_blank" rel="noopener" class="mini-menu__link">Instagram</a>
-          <a href="https://wa.me/573000000000" target="_blank" rel="noopener" class="mini-menu__link">WhatsApp</a>
-
-        </div>
-
-      </div>
-
-      <!-- favoritos -->
+      <!-- FAVORITOS -->
 
       <a
         class="menu__item"
@@ -128,15 +92,14 @@
 
         Favoritos
 
-        <span class="menu__contador" *ngIf="cantidadFavoritos > 0">
-          {{ cantidadFavoritos }}
-        </span>
-
       </a>
 
     </nav>
 
+    <!-- acciones -->
+
     <div class="acciones">
+
 
       <ng-container *ngIf="estaAutenticado; else accionesInvitado">
 
@@ -146,7 +109,7 @@
           class="campana"
           type="button"
           aria-label="Notificaciones"
-          (click)="toggleNotificaciones(); $event.stopPropagation()"
+          (click)="abrirNotificaciones(); $event.stopPropagation()"
         >
 
           <svg viewBox="0 0 24 24">
@@ -191,7 +154,7 @@
         <button
           class="perfil"
           type="button"
-          (click)="toggleMenuPerfil(); $event.stopPropagation()"
+          (click)="abrirMenuPerfil(); $event.stopPropagation()"
         >
 
           <img
@@ -241,6 +204,8 @@
     </div>
 
   </header>
+
+  <!-- cuerpo -->
 
   <div class="cuerpo">
 
@@ -378,7 +343,7 @@
               <path d="m14.7 6.3 3 3-8.4 8.4H6.3v-3z"/>
               <path d="m13 8 3-3 3 3-3 3"/>
             </svg>
-            Servicios profesionales
+            Servicios
           </button>
         </li>
 
@@ -410,7 +375,11 @@
 
     </aside>
 
+    <!-- contenido -->
+
     <main class="contenido">
+
+      <!-- filtros -->
 
       <div class="filtros">
 
@@ -550,6 +519,28 @@
 
           </div>
 
+          <button
+            class="orden__ajustes vidrio"
+            type="button"
+            aria-label="Quitar filtros"
+            (click)="limpiarFiltros()"
+            title="Quitar todos los filtros"
+          >
+
+            <svg viewBox="0 0 24 24">
+
+              <path d="M4 7h10M18 7h2"/>
+
+              <path d="M4 17h4M12 17h8"/>
+
+              <circle cx="16" cy="7" r="2"/>
+
+              <circle cx="10" cy="17" r="2"/>
+
+            </svg>
+
+          </button>
+
         </div>
 
       </div>
@@ -568,17 +559,10 @@
           type="button"
           (click)="limpiarFiltros()"
         >
-          <svg viewBox="0 0 24 24">
-            <path d="M18 6 6 18"/>
-            <path d="m6 6 12 12"/>
-          </svg>
           Limpiar filtros
         </button>
 
       </div>
-
-      <!-- zona con su propio scroll: tarjetas + barra inferior -->
-      <div class="zona-scroll">
 
       <!-- tarjetas -->
 
@@ -587,7 +571,9 @@
         <article
           class="tarjeta vidrio"
           *ngFor="let t of truequesFiltrados; trackBy: trackPorId"
+          tabindex="0"
           (click)="irADetalle(t)"
+          (keydown.enter)="irADetalle(t)"
         >
 
           <div class="tarjeta__foto">
@@ -688,337 +674,208 @@
 
         </article>
 
+        <!-- footer, sale al final de la rejilla -->
+  <footer class="beneficios vidrio">
+
+    <!-- seguro y confiable -->
+
+    <div class="beneficio">
+
+      <span class="beneficio__icono">
+
+        <svg
+          class="feature-svg"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+
+          <path d="M7 3.34V5a3 3 0 0 0 3 3"/>
+
+          <path d="M11 21.95V18a2 2 0 0 0-2-2 2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/>
+
+          <path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/>
+
+          <path d="M12 2a10 10 0 1 0 9.54 13"/>
+
+          <path d="M20 6V4a2 2 0 1 0-4 0v2"/>
+
+          <rect
+            width="8"
+            height="5"
+            x="14"
+            y="6"
+            rx="1"
+          />
+
+        </svg>
+
+      </span>
+
+      <div>
+
+        <strong>
+          Seguro y confiable
+        </strong>
+
+        <p>
+          Perfiles verificados y trueques seguros.
+        </p>
+
+      </div>
+
+    </div>
+
+    <!-- comunidad activa -->
+
+    <div class="beneficio">
+
+      <span class="beneficio__icono">
+
+        <svg
+          class="feature-svg"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+
+          <path d="M16 3.128a4 4 0 0 1 0 7.744"/>
+
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
+          />
+
+        </svg>
+
+      </span>
+
+      <div>
+
+        <strong>
+          Comunidad activa
+        </strong>
+
+        <p>
+          Miles de personas intercambiando cada día.
+        </p>
+
+      </div>
+
+    </div>
+
+    <!-- fácil y rápido -->
+
+    <div class="beneficio">
+
+      <span class="beneficio__icono">
+
+        <svg
+          class="feature-svg"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+
+          <path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 00-.472-.667z"/>
+
+        </svg>
+
+      </span>
+
+      <div>
+
+        <strong>
+          Fácil y rápido
+        </strong>
+
+        <p>
+          Publica, negocia e intercambia en minutos.
+        </p>
+
+      </div>
+
+    </div>
+
+    <!-- soporte 24/7 -->
+
+    <div class="beneficio">
+
+      <span class="beneficio__icono">
+
+        <svg
+          class="feature-svg"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+
+          <path d="M12 6V2H8"/>
+
+          <path d="M15 11v2"/>
+
+          <path d="M2 12h2"/>
+
+          <path d="M20 12h2"/>
+
+          <path d="M20 16a2 2 0 0 1-2 2H8.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 4 20.286V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>
+
+          <path d="M9 11v2"/>
+
+        </svg>
+
+      </span>
+
+      <div>
+
+        <strong>
+          Soporte 24/7
+        </strong>
+
+        <p>
+          Estamos para ayudarte siempre que lo necesites.
+        </p>
+
+      </div>
+
+    </div>
+
+  </footer>
+
       </section>
 
       <ng-template #sinResultados>
         <p class="vacio-rejilla">No hay trueques con estos filtros todavía.</p>
       </ng-template>
-
-        <!-- Footer/beneficios: va al final del flujo normal de .contenido,
-            así aparece justo cuando llegas al final de la página. -->
-
-      <footer class="beneficios vidrio">
-
-          <!-- seguro y confiable icono del home original -->
-
-          <button class="beneficio" type="button" (click)="abrirBeneficio('seguro')">
-
-            <span class="beneficio__icono">
-
-              <svg
-                class="feature-svg"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-
-                <path d="M7 3.34V5a3 3 0 0 0 3 3"/>
-
-                <path d="M11 21.95V18a2 2 0 0 0-2-2 2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/>
-
-                <path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/>
-
-                <path d="M12 2a10 10 0 1 0 9.54 13"/>
-
-                <path d="M20 6V4a2 2 0 1 0-4 0v2"/>
-
-                <rect
-                  width="8"
-                  height="5"
-                  x="14"
-                  y="6"
-                  rx="1"
-                />
-
-              </svg>
-
-            </span>
-
-            <div>
-
-              <strong>
-                Seguro y confiable
-              </strong>
-
-              <p>
-                Perfiles verificados y trueques seguros.
-              </p>
-
-            </div>
-
-          </button>
-
-          <!-- comunidad activa icono del home original -->
-
-          <button class="beneficio" type="button" (click)="abrirBeneficio('comunidad')">
-
-            <span class="beneficio__icono">
-
-              <svg
-                class="feature-svg"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-
-                <path d="M16 3.128a4 4 0 0 1 0 7.744"/>
-
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-
-                <circle
-                  cx="9"
-                  cy="7"
-                  r="4"
-                />
-
-              </svg>
-
-            </span>
-
-            <div>
-
-              <strong>
-                Comunidad activa
-              </strong>
-
-              <p>
-                Miles de personas intercambiando cada día.
-              </p>
-
-            </div>
-
-          </button>
-
-          <!-- fácil y rápido icono del home original -->
-
-          <button class="beneficio" type="button" (click)="abrirBeneficio('facil')">
-
-            <span class="beneficio__icono">
-
-              <svg
-                class="feature-svg"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-
-                <path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 00-.472-.667z"/>
-
-              </svg>
-
-            </span>
-
-            <div>
-
-              <strong>
-                Fácil y rápido
-              </strong>
-
-              <p>
-                Publica, negocia e intercambia en minutos.
-              </p>
-
-            </div>
-
-          </button>
-
-          <!-- soporte 24/7 icono del home original: va directo a WhatsApp -->
-
-          <a
-            class="beneficio"
-            href="https://wa.me/573000000000"
-            target="_blank"
-            rel="noopener"
-          >
-
-            <span class="beneficio__icono">
-
-              <svg
-                class="feature-svg"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-
-                <path d="M12 6V2H8"/>
-
-                <path d="M15 11v2"/>
-
-                <path d="M2 12h2"/>
-
-                <path d="M20 12h2"/>
-
-                <path d="M20 16a2 2 0 0 1-2 2H8.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 4 20.286V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>
-
-                <path d="M9 11v2"/>
-
-              </svg>
-
-            </span>
-
-            <div>
-
-              <strong>
-                Soporte 24/7
-              </strong>
-
-              <p>
-                Estamos para ayudarte siempre que lo necesites.
-              </p>
-
-            </div>
-
-          </a>
-
-        </footer>
-
-      </div>
-      <!-- fin .zona-scroll -->
-
-          <!-- Panel con más información al hacer clic en "Seguro y confiable",
-              "Comunidad activa" o "Fácil y rápido". "Soporte 24/7" no pasa
-              por aquí: abre WhatsApp directamente. -->
-
-        <div
-          class="beneficio-overlay"
-          *ngIf="beneficioAbierto()"
-          (click)="cerrarBeneficio()"
-        >
-
-          <div class="beneficio-panel vidrio" (click)="$event.stopPropagation()">
-
-            <button
-              class="beneficio-panel__cerrar"
-              type="button"
-              aria-label="Cerrar"
-              (click)="cerrarBeneficio()"
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M18 6 6 18"/>
-                <path d="m6 6 12 12"/>
-              </svg>
-            </button>
-
-            <!-- Seguro y confiable -->
-            <ng-container *ngIf="beneficioAbierto() === 'seguro'">
-
-              <h3 class="beneficio-panel__titulo">Seguro y confiable</h3>
-
-              <p class="beneficio-panel__intro">
-                Así cuidamos que cada trueque en XchanGo sea seguro para ambas partes.
-              </p>
-
-              <ul class="beneficio-panel__lista">
-                <li>
-                  <strong>Perfiles verificados:</strong> pedimos datos reales y un número de contacto antes de publicar.
-                </li>
-                <li>
-                  <strong>Historial visible:</strong> puedes ver los trueques anteriores de la otra persona antes de aceptar.
-                </li>
-                <li>
-                  <strong>Reportes y moderación:</strong> cualquier publicación o usuario sospechoso se puede reportar y nuestro equipo lo revisa.
-                </li>
-                <li>
-                  <strong>Encuentros seguros:</strong> recomendamos siempre acordar el intercambio en un lugar público y a la luz del día.
-                </li>
-              </ul>
-
-            </ng-container>
-
-            <!-- Comunidad activa -->
-            <ng-container *ngIf="beneficioAbierto() === 'comunidad'">
-
-              <h3 class="beneficio-panel__titulo">Comunidad activa</h3>
-
-              <p class="beneficio-panel__intro">
-                XchanGo crece cada día en todo Casanare.
-              </p>
-
-              <div class="beneficio-panel__stats">
-                <div class="beneficio-panel__stat">
-                  <strong>+1.200</strong>
-                  <span>usuarios activos</span>
-                </div>
-                <div class="beneficio-panel__stat">
-                  <strong>+300</strong>
-                  <span>trueques este mes</span>
-                </div>
-                <div class="beneficio-panel__stat">
-                  <strong>8</strong>
-                  <span>municipios con actividad</span>
-                </div>
-              </div>
-
-              <p class="beneficio-panel__intro">
-                Las categorías más activas ahora mismo son Electrónicos, Servicios profesionales y Ropa y accesorios.
-              </p>
-
-            </ng-container>
-
-            <!-- Fácil y rápido -->
-            <ng-container *ngIf="beneficioAbierto() === 'facil'">
-
-              <h3 class="beneficio-panel__titulo">Fácil y rápido</h3>
-
-              <p class="beneficio-panel__intro">
-                Hacer un trueque en XchanGo toma solo unos minutos:
-              </p>
-
-              <ol class="beneficio-panel__pasos">
-                <li>
-                  <strong>Publica</strong> lo que quieres intercambiar, con fotos y una descripción corta.
-                </li>
-                <li>
-                  <strong>Recibe propuestas</strong> de otras personas interesadas en tu publicación.
-                </li>
-                <li>
-                  <strong>Chatea y ponte de acuerdo</strong> sobre qué se intercambia y dónde se van a encontrar.
-                </li>
-                <li>
-                  <strong>Haz el trueque</strong> y marca la publicación como completada.
-                </li>
-              </ol>
-
-              <button
-                class="beneficio-panel__cta"
-                type="button"
-                (click)="cerrarBeneficio(); publicarTrueque()"
-              >
-                Publicar un trueque
-              </button>
-
-            </ng-container>
-
-          </div>
-
-        </div>
-
 
     </main>
 

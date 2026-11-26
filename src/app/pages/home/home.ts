@@ -1,19 +1,20 @@
+import { LogoXchangoComponent } from '../../components/logo-xchango/logo-xchango';
 import { CommonModule } from '@angular/common';
 import { MUNICIPIOS_CASANARE } from '../../shared/municipios-casanare';
 import { AvisoUbicacion } from '../../models/aviso-ubicacion.model';
 import { ModalDetalleTruequeComponent } from '../../layout/modal-detalle-trueque/modal-detalle-trueque';
 import { Component, OnInit, HostListener, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { HeaderComponent } from '../../layout/header/header';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Categoria } from '../../models/categoria.model';
 import { PublicacionVista, TipoPublicacion } from '../../models/publicacion.model';
 import { TruequesService } from '../../services/trueques';
+import { nombreCompleto } from '../../models/usuario.model';
 
 type FiltroTrueque = 'todos' | 'bienes' | 'servicios' | 'digitales';
 
-// Cada pestaña del home corresponde a un tipo real de publicación.
-const TIPO_POR_FILTRO: Record<Exclude<FiltroTrueque, 'todos'>, TipoPublicacion> = {
+// cada pestaña del home corresponde a un tipo real de publicacion
+const TIPO_POR_FILTRO: any = {
   bienes: 'bien_fisico',
   servicios: 'servicio',
   digitales: 'bien_digital',
@@ -22,7 +23,7 @@ const TIPO_POR_FILTRO: Record<Exclude<FiltroTrueque, 'todos'>, TipoPublicacion> 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ModalDetalleTruequeComponent, CommonModule, FormsModule, HeaderComponent, RouterLink],
+  imports: [LogoXchangoComponent, ModalDetalleTruequeComponent, CommonModule, FormsModule, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -32,39 +33,45 @@ export class HomeComponent implements OnInit {
   categoriaSeleccionada = 'todos';
   mostrarSoloFavoritos = false;
 
-  // Municipio elegido. Vacío = todo Casanare.
+  // municipio elegido. Vacio = todo Casanare
   municipioSeleccionado = '';
 
-  // Municipios de Casanare, del catálogo compartido del proyecto.
-  readonly municipios: readonly string[] = MUNICIPIOS_CASANARE;
+  // municipios de Casanare, del catalogo compartido del proyecto
+  municipios: string[] = MUNICIPIOS_CASANARE;
 
-  // Categorías para el desplegable (reemplazan la barra lateral).
+  // categorias para el desplegable (reemplazan la barra lateral)
   get listaCategorias(): Categoria[] {
     return this.truequesService.categorias();
   }
 
-  // true cuando el panel de categorías está desplegado.
+  // true cuando el panel de categorias esta desplegado
   categoriasAbiertas = false;
 
   get textoCategoria(): string {
-    if (this.categoriaSeleccionada === 'todos') return 'Todas las categorías';
-    const categoria = this.listaCategorias.find((c) => c.id === this.categoriaSeleccionada);
-    return categoria ? categoria.nombre : 'Todas las categorías';
+    if (this.categoriaSeleccionada === 'todos') {
+      return 'Todas las categorías';
+    }
+    for (const c of this.listaCategorias) {
+      if (c.id === this.categoriaSeleccionada) {
+        return c.nombre;
+      }
+    }
+    return 'Todas las categorías';
   }
 
   alternarCategorias(): void {
     this.categoriasAbiertas = !this.categoriasAbiertas;
   }
 
-  // true cuando el panel de ubicación está desplegado.
+  // true cuando el panel de ubicacion esta desplegado
   ubicacionAbierta = false;
 
-  // Texto que muestra el botón de ubicación.
+  // texto que muestra el boton de ubicacion
   get textoUbicacion(): string {
     return this.municipioSeleccionado || 'Todo Casanare';
   }
 
-  // Aviso del municipio (data/avisos-ubicacion.json). Solo informativo.
+  // aviso del municipio, viene del MID y solo es informativo
   get avisoUbicacion(): AvisoUbicacion | undefined {
     return this.truequesService.avisoDeUbicacion(this.municipioSeleccionado);
   }
@@ -77,10 +84,7 @@ export class HomeComponent implements OnInit {
     this.ubicacionAbierta = false;
   }
 
-  // Catálogo único (data/categorias.json). Viene de un `computed` del servicio,
-  // así que devuelve SIEMPRE la misma referencia hasta que cambian los datos.
-  // No construir aquí un array nuevo: el sidebar lo recibe por @Input y Angular
-  // lo vería como cambiado en cada ciclo de detección de cambios.
+  // viene de un computed, no armar un array nuevo aqui o el sidebar se vuelve a pintar
 
   beneficios = [
     {
@@ -105,72 +109,59 @@ export class HomeComponent implements OnInit {
     },
   ];
 
-  // Avisos sin leer del usuario en sesión. Antes era un 2 fijo.
+  // avisos sin leer del usuario
   get notificaciones(): number {
     return this.truequesService.notificacionesSinLeer();
   }
 
-  // Trueques pendientes (enviados + recibidos), para el número junto a
-  // "Mis trueques" en el menú de arriba.
-  get truequesPendientes(): number {
-    return this.truequesService.misTruequesPendientes();
-  }
-
-  // Foto del usuario en sesión, para el botón del header.
+  // foto del usuario en sesion, para el boton del header
   get avatarUrl(): string {
-    return this.truequesService.usuarioActual()?.avatar ?? 'https://i.pravatar.cc/80?img=68';
+    const usuario = this.truequesService.usuarioActual();
+    if (usuario && usuario.avatar) {
+      return usuario.avatar;
+    }
+    return '/Logo-xchango/avatar-defecto.png';
   }
 
-  // true si hay una cuenta activa (no es una visita de invitado).
+  // true si hay una cuenta activa (no es una visita de invitado)
   get estaAutenticado(): boolean {
     return this.truequesService.autenticado();
   }
 
-  // Nombre del usuario en sesión, para el mini menú de perfil.
+  // nombre del usuario en sesion, para el mini menu de perfil
   get nombreUsuario(): string {
-    return this.truequesService.usuarioActual()?.nombre ?? 'Invitado';
+    const usuario = this.truequesService.usuarioActual();
+    if (usuario) {
+      return nombreCompleto(usuario);
+    }
+    return 'Invitado';
   }
 
+  // MINI MENU DE PERFIL Y NOTIFICACIONES (header)
 
-  // MINI MENÚ DE PERFIL Y NOTIFICACIONES (header)
+  menuPerfilAbierto = signal(false);
+  notificacionesAbiertas = signal(false);
 
-  readonly menuPerfilAbierto = signal(false);
-  readonly notificacionesAbiertas = signal(false);
-
-  toggleMenuPerfil(): void {
+  abrirMenuPerfil(): void {
     this.notificacionesAbiertas.set(false);
     this.menuPerfilAbierto.update((v) => !v);
   }
 
-  toggleNotificaciones(): void {
+  abrirNotificaciones(): void {
     this.menuPerfilAbierto.set(false);
     this.notificacionesAbiertas.update((v) => !v);
   }
 
-  // PANEL DE BENEFICIOS (footer): "Seguro y confiable", "Comunidad activa"
-  // y "Fácil y rápido" abren un panel con más información. "Soporte 24/7"
-  // no usa este panel: va directo a WhatsApp (ver plantilla).
-  readonly beneficioAbierto = signal<'seguro' | 'comunidad' | 'facil' | null>(null);
-
-  abrirBeneficio(tipo: 'seguro' | 'comunidad' | 'facil'): void {
-    this.beneficioAbierto.set(tipo);
-  }
-
-  cerrarBeneficio(): void {
-    this.beneficioAbierto.set(null);
-  }
-
-  // Últimos avisos para el mini panel de la campana ("solo para ver").
+  // ultimos avisos para el mini panel de la campana ("solo para ver")
   get ultimasNotificaciones() {
     return this.truequesService.notificaciones().slice(0, 4);
   }
 
-  // Cierra los menús del header y el de ubicación al hacer clic en cualquier otro lugar.
+  // cierra los menus del header y el de ubicacion al hacer clic en cualquier otro lugar
   @HostListener('document:click')
   cerrarMenusHeader(): void {
     this.menuPerfilAbierto.set(false);
     this.notificacionesAbiertas.set(false);
-    this.redesSocialesAbiertas.set(false);
     this.cerrarUbicacion();
   }
 
@@ -179,46 +170,64 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  readonly redesSocialesAbiertas = signal(false);
+  // el footer solo aparece (y se queda fijo abajo) tras hacer scroll
+  footerVisible = signal(false);
 
-  toggleRedesSociales(): void {
-    this.redesSocialesAbiertas.update((v) => !v);
+  moverRejilla(evento: Event): void {
+    const rejilla: any = evento.target;
+    if (rejilla.scrollTop > 16) {
+      this.footerVisible.set(true);
+    }
   }
 
   constructor(
+    private route: ActivatedRoute,
     private truequesService: TruequesService,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      this.seleccionarFiltro('todos');
+      this.busqueda = params.get('buscar') || '';
+      const filtro = params.get('filtro');
+      if (filtro === 'favoritos') {
+        this.verSoloFavoritos();
+      }
+      if (filtro === 'servicios') {
+        this.seleccionarFiltro('servicios');
+      }
+    });
     this.truequesService.cargar();
   }
 
-  // Catálogo visible, ya resuelto contra usuarios y categorías.
+  // catalogo visible, ya resuelto contra usuarios y categorias
   get trueques(): PublicacionVista[] {
     return this.truequesService.publicaciones();
   }
 
-  // true mientras se cargan los JSON.
+  // true mientras se cargan los JSON
   get cargando(): boolean {
     return this.truequesService.cargando();
   }
 
-  // Mensaje de error si los JSON no se pudieron cargar.
+  // mensaje de error si los JSON no se pudieron cargar
   get errorCarga(): string | null {
     return this.truequesService.error();
   }
 
-  // Abre WhatsApp con el dueño. XchanGo no tiene chat interno.
+  // abre WhatsApp con el dueño. XchanGo no tiene chat interno
   contactarPorWhatsApp(publicacion: PublicacionVista, evento?: Event): void {
-    evento?.stopPropagation();
+    if (evento) {
+      evento.stopPropagation();
+    }
     const enlace = this.truequesService.enlaceWhatsApp(publicacion);
     if (enlace) {
       window.open(enlace, '_blank');
     }
   }
 
-  // Combina búsqueda + tab (Bienes/Servicios/Digitales) + categoría del sidebar + solo-favoritos
+  // combina busqueda + tab (Bienes/Servicios/Digitales) + categoria del sidebar + solo-favoritos
   get truequesFiltrados(): PublicacionVista[] {
     let resultado = this.trueques;
 
@@ -226,8 +235,8 @@ export class HomeComponent implements OnInit {
       resultado = resultado.filter((t) => t.favorito);
     }
 
-    // Un bien digital no tiene municipio: se entrega de una vez,
-    // por eso se muestra siempre sin importar el filtro de ubicación.
+    // un bien digital no tiene municipio: se entrega de una vez,
+    // por eso se muestra siempre sin importar el filtro de ubicacion
     if (this.municipioSeleccionado) {
       resultado = resultado.filter(
         (t) => t.tipo === 'bien_digital' || t.ciudad === this.municipioSeleccionado,
@@ -260,10 +269,12 @@ export class HomeComponent implements OnInit {
     return this.trueques.filter((t) => t.favorito).length;
   }
 
-  // "Carlos Ospina" -> "Carlos O." para que quepa junto a la ciudad.
+  // "Carlos Ospina" -> "Carlos O." para que quepa junto a la ciudad
   nombreCorto(nombre: string): string {
     const partes = nombre.trim().split(' ');
-    if (partes.length < 2) return nombre;
+    if (partes.length < 2) {
+      return nombre;
+    }
     return partes[0] + ' ' + partes[1].charAt(0) + '.';
   }
 
@@ -271,9 +282,8 @@ export class HomeComponent implements OnInit {
     return t.id;
   }
 
-
-  // Filtra las publicaciones por municipio.
-  // Filtra las publicaciones por municipio y cierra el panel.
+  // filtra las publicaciones por municipio
+  // filtra las publicaciones por municipio y cierra el panel
   seleccionarMunicipio(municipio: string): void {
     this.municipioSeleccionado = municipio;
     this.ubicacionAbierta = false;
@@ -282,8 +292,8 @@ export class HomeComponent implements OnInit {
   seleccionarFiltro(filtro: FiltroTrueque): void {
     this.filtroActivo = filtro;
 
-    // "Todos" limpia TODO: tipo, categoría, municipio, búsqueda y favoritos,
-    // para que de verdad se vean todos los trueques.
+    // "Todos" limpia todo: tipo, categoria, municipio, busqueda y favoritos,
+    // para que de verdad se vean todos los trueques
     if (filtro === 'todos') {
       this.categoriaSeleccionada = 'todos';
       this.municipioSeleccionado = '';
@@ -320,32 +330,27 @@ export class HomeComponent implements OnInit {
     this.mostrarSoloFavoritos = false;
   }
 
-  // Clase del badge por TIPO. Reutiliza SOLO clases que ya existen en tu CSS
-  // (badge--bienes, badge--servicios, badge--electronicos). Cero cambios de
-  // estilo.
+  // clase del badge segun el tipo
   claseBadge(tipo: TipoPublicacion): string {
     return this.truequesService.claseBadge(tipo);
   }
 
-  // Abre el formulario para crear una publicación.
+  // abre el formulario para crear una publicacion
   publicarTrueque(): void {
     this.router.navigate(['/trueque']);
   }
 
   manejarErrorImagen(evento: Event): void {
-    const img = evento.target as HTMLImageElement;
+    const img: any = evento.target;
     img.src = 'https://placehold.co/600x450/ece2c9/1f1b16?text=Sin+imagen';
   }
 
-  // Navega a la página de detalle del trueque (/trueque/:id).
-  // Publicación abierta en el modal. null = no hay ninguno abierto.
-  // Se abre ENCIMA del home para que el fondo se vea difuminado detrás,
-  // igual que el modal de inicio de sesión.
+  // publicacion abierta en el modal (null = ninguna)
   detalleAbierto: string | null = null;
 
   irADetalle(trueque: PublicacionVista): void {
     this.detalleAbierto = trueque.id;
-    // Bloquea el scroll del fondo mientras el modal está abierto.
+    // bloquea el scroll del fondo mientras el modal esta abierto
     document.body.style.overflow = 'hidden';
   }
 
