@@ -8,10 +8,22 @@ import { Component, input } from '@angular/core';
   styleUrl: './chart-barras.css',
 })
 export class ChartBarras {
-  readonly datos = input<any[]>([]);
-  readonly color = input<string>('');
-  readonly modoCrecimiento = input<boolean>(false);
+  datos = input<any[]>([]);
+  color = input<string>('');
+  modoCrecimiento = input<boolean>(false);
 
-  maximo(): number { return Math.max(...this.datos().map(d => Math.abs(d.valor)), 1); }
-  magnitud(valor: number): number { return Math.abs(valor); }
+  // el valor mas alto, para saber que tan larga va cada barra
+  maximo(): number {
+    let mayor = 1;
+    for (const d of this.datos()) {
+      if (Math.abs(d.valor) > mayor) {
+        mayor = Math.abs(d.valor);
+      }
+    }
+    return mayor;
+  }
+
+  magnitud(valor: number): number {
+    return Math.abs(valor);
+  }
 }

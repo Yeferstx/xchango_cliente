@@ -9,9 +9,18 @@ import { Component, input } from '@angular/core';
 })
 export class ChartLinea {
 
-  readonly datos = input<any[]>([]);
-  readonly color = input<string>('#a1785a');
+  datos = input<any[]>([]);
+  color = input<string>('#a1785a');
 
-  maximo(): number { return Math.max(...this.datos().map(d => d.valor), 1); }
+  // el valor mas alto, para saber que tan alta va la linea
+  maximo(): number {
+    let mayor = 1;
+    for (const d of this.datos()) {
+      if (d.valor > mayor) {
+        mayor = d.valor;
+      }
+    }
+    return mayor;
+  }
 
 }

@@ -9,8 +9,8 @@ import { Component, input } from '@angular/core';
 })
 export class ChartDona {
 
-  readonly datos = input<any[]>([]);
-  readonly unidad = input<string>('');
+  datos = input<any[]>([]);
+  unidad = input<string>('');
 
   total(): number { return this.datos().reduce((s, d) => s + d.valor, 0); }
 
