@@ -10,9 +10,9 @@ import { Icon } from '../icon/icon';
 })
 export class HeaderAdmin {
 
-  readonly titulo = input<string>('');
-  readonly subtitulo = input<string>('');
+  titulo = input<string>('');
+  subtitulo = input<string>('');
 
-  readonly abrirMenu = output<void>();
-  readonly salir = output<void>();
+  abrirMenu = output<void>();
+  salir = output<void>();
 }
