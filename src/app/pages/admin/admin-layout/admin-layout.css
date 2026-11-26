@@ -1,26 +1,20 @@
-/*
-  Variables del panel administrativo.
-  Alineadas a la misma paleta del resto de XchanGo (home/login):
-  crema de fondo, dorado de acento, tinta de texto — para que el
-  admin se vea parte de la misma app y no un panel aparte.
-  Al declararlas en :host, todos los componentes hijos las heredan.
-*/
+/* variables del panel admin, misma paleta del resto de la app */
 :host {
-  --admin-bg: #f4eee1;
-  --admin-surface: #ffffff;
-  --admin-surface-2: #faf6ee;
-  --admin-border: #e5dcc8;
-  --admin-border-fuerte: #e2d5bd;
-  --admin-text: #1f1b16;
-  --admin-text-2: #645c52;
-  --admin-muted: #847a68;
-  --admin-accent: #a27f59;
-  --admin-accent-claro: #c9a876;
-  --admin-accent-soft: #eee4d7;
-  --admin-dark: #1f1b16;
-  --admin-ok: #2f6d4f;
-  --admin-warn: #a3690f;
-  --admin-danger: #d0554c;
+  --admin-bg: var(--color-background);
+  --admin-surface: var(--color-surface);
+  --admin-surface-2: var(--color-surface-raised);
+  --admin-border: var(--color-border-solid);
+  --admin-border-fuerte: var(--color-border-strong);
+  --admin-text: var(--color-text);
+  --admin-text-2: var(--color-text-secondary);
+  --admin-muted: var(--color-text-muted);
+  --admin-accent: var(--color-accent-dark);
+  --admin-accent-claro: var(--color-accent);
+  --admin-accent-soft: var(--xg-crema-fuerte);
+  --admin-dark: var(--color-text);
+  --admin-ok: var(--color-ok);
+  --admin-warn: var(--color-warn);
+  --admin-danger: var(--color-error);
   --admin-radius: 10px;
   --admin-radius-chico: 6px;
   --admin-sombra: none;
@@ -80,7 +74,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(23, 21, 15, 0.42);
+    background: var(--color-overlay);
     z-index: 110;
   }
 
