@@ -172,12 +172,16 @@
   flex-shrink: 0;
 }
 
+.rank__pos--1 { background: var(--color-warn-soft); color: var(--color-warn); }
+.rank__pos--2 { background: #eceaea; color: #6e6a6a; }
+.rank__pos--3 { background: var(--color-surface-raised); color: var(--color-text-secondary); }
+
 .rank__avatar {
   width: 30px;
   height: 30px;
   border-radius: 50%;
   background: var(--admin-dark);
-  color: #f0e6db;
+  color: var(--color-accent-soft);
   display: grid;
   place-items: center;
   font-size: 11px;
@@ -215,6 +219,6 @@
 
 .vacio { padding: 40px 0; text-align: center; color: var(--admin-muted); font-size: 14px; }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .grid-2 { grid-template-columns: 1fr; }
 }
