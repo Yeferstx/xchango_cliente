@@ -1,55 +1,96 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_URL } from '../../config/api';
 import { Alerta } from '../../models/admin/alerta';
 
 @Injectable({ providedIn: 'root' })
 export class AlertasAdminService {
-  private readonly http = inject(HttpClient);
+  private http = inject(HttpClient);
 
-  private readonly _alertas = signal<Alerta[]>([]);
-  private readonly _cargando = signal(false);
-  private readonly _error = signal<string | null>(null);
+  private listaAlertas = signal<Alerta[]>([]);
+  private estaCargando = signal(false);
+  private mensajeError = signal('');
   private cargado = false;
 
-  readonly alertas = this._alertas.asReadonly();
-  readonly cargando = this._cargando.asReadonly();
-  readonly error = this._error.asReadonly();
+  alertas = this.listaAlertas.asReadonly();
+  cargando = this.estaCargando.asReadonly();
+  error = this.mensajeError.asReadonly();
 
-  // Contador para el badge de notificaciones del header.
-  readonly noLeidas = computed(() => this._alertas().filter(a => !a.leida).length);
+  // contador para el numerito de notificaciones del header
+  noLeidas = computed(() => {
+    let total = 0;
+    for (const a of this.listaAlertas()) {
+      if (!a.leida) {
+        total = total + 1;
+      }
+    }
+    return total;
+  });
 
   cargar(): void {
-    if (this.cargado) return;
+    if (this.cargado) {
+      return;
+    }
     this.cargado = true;
-    this._cargando.set(true);
-    this._error.set(null);
+    this.estaCargando.set(true);
+    this.mensajeError.set('');
 
-    this.http.get<Alerta[]>('data/alertas.json').subscribe({
-      next: datos => {
-        this._alertas.set(datos);
-        this._cargando.set(false);
+    this.http.get(API_URL + '/admin/alertas').subscribe({
+      next: (datos: any) => {
+        this.listaAlertas.set(datos);
+        this.estaCargando.set(false);
       },
       error: () => {
         this.cargado = false;
-        this._error.set('No se pudieron cargar las alertas.');
-        this._cargando.set(false);
+        this.mensajeError.set('No se pudieron cargar las alertas.');
+        this.estaCargando.set(false);
       },
     });
   }
 
-  porTipo(tipo: Alerta['tipo'] | 'todas'): Alerta[] {
-    return tipo === 'todas' ? this._alertas() : this._alertas().filter(a => a.tipo === tipo);
+  porTipo(tipo: string): Alerta[] {
+    if (tipo === 'todas') {
+      return this.listaAlertas();
+    }
+    return this.listaAlertas().filter((a) => a.tipo === tipo);
   }
 
-  porPrioridad(prioridad: Alerta['prioridad']): Alerta[] {
-    return this._alertas().filter(a => a.prioridad === prioridad);
+  porPrioridad(prioridad: string): Alerta[] {
+    return this.listaAlertas().filter((a) => a.prioridad === prioridad);
+  }
+
+  private recargar(): void {
+    this.cargado = false;
+    this.cargar();
   }
 
   marcarLeida(id: string): void {
-    this._alertas.update(lista => lista.map(a => (a.id === id ? { ...a, leida: true } : a)));
+    const nuevaLista: Alerta[] = [];
+    for (const a of this.listaAlertas()) {
+      const copia = Object.assign({}, a);
+      if (a.id === id) {
+        copia.leida = true;
+      }
+      nuevaLista.push(copia);
+    }
+    this.listaAlertas.set(nuevaLista);
+
+    this.http.patch(API_URL + '/admin/alertas/' + id + '/leida', {}).subscribe({
+      error: () => this.recargar(),
+    });
   }
 
   marcarTodasLeidas(): void {
-    this._alertas.update(lista => lista.map(a => ({ ...a, leida: true })));
+    const nuevaLista: Alerta[] = [];
+    for (const a of this.listaAlertas()) {
+      const copia = Object.assign({}, a);
+      copia.leida = true;
+      nuevaLista.push(copia);
+    }
+    this.listaAlertas.set(nuevaLista);
+
+    this.http.patch(API_URL + '/admin/alertas/leidas', {}).subscribe({
+      error: () => this.recargar(),
+    });
   }
 }
