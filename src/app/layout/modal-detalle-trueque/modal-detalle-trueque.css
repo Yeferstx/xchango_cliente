@@ -1,12 +1,12 @@
 :host {
   display: block;
-  --bg: #f3efe7;
-  --panel: #faf8f3;
-  --ink: #1f1b16;
-  --ink-soft: #6b645a;
-  --line: #e7e0d3;
-  --accent: #c8a15a;
-  --accent-soft: #ece2c9;
+  --bg: var(--color-background);
+  --panel: var(--color-surface);
+  --ink: var(--color-text);
+  --ink-soft: var(--color-text-secondary);
+  --line: var(--color-border-solid);
+  --accent: var(--color-accent);
+  --accent-soft: var(--color-cream);
   --blue: #4d7cf0;
   --violet: #8a6de0;
   --green: #3f8f5f;
@@ -35,28 +35,10 @@ svg {
   min-height: 100vh;
   padding: 26px 24px 60px;
 
-  /* El fondo de los lados toma el color de la página; encima va una capa
-     desenfocada, como el modal del login. */
   background: var(--xg-bg);
   isolation: isolate;
 }
 
-/* Capa desenfocada detrás de la tarjeta */
-.detalle-page::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-
-  /* Fondo limpio, como detrás del modal del login: un solo halo suave
-     desde arriba. Las manchas de colores se veían sucias. */
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(255, 253, 248, 0.9) 0%, transparent 70%),
-    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(201, 168, 107, 0.14) 0%, transparent 70%),
-    var(--xg-bg);
-
-  pointer-events: none;
-}
 
 .detalle-volver {
   align-self: flex-start;
@@ -93,8 +75,7 @@ svg {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 28px;
 
-  /* stretch: la galería crece hasta la altura de la columna de datos,
-     así no queda el hueco blanco debajo de las fotos. */
+  /* la galeria crece hasta el alto de la columna de datos */
   align-items: stretch;
 
   max-width: 1080px;
@@ -102,7 +83,7 @@ svg {
   padding: 24px;
 
   background: var(--xg-card);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(var(--oscuro-borde-rgb, 255, 255, 255), 0.9);
   border-radius: 28px;
 
   box-shadow:
@@ -148,7 +129,7 @@ svg {
 }
 
 .modal__thumb {
-  /* Cuadradas y de tamaño fijo: ya no se estiran según cuántas fotos haya. */
+  /* cuadradas y de tamaño fijo */
   flex: 0 0 92px;
   aspect-ratio: 1 / 1;
   width: 100%;
@@ -242,7 +223,6 @@ svg {
   color: #e0554f;
 }
 
-
 .modal__section-title {
   margin: 0 0 8px;
   font-size: 0.8rem;
@@ -313,7 +293,7 @@ svg {
   opacity: 0.9;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .modal {
     grid-template-columns: 1fr;
   }
@@ -326,66 +306,21 @@ svg {
     min-height: 220px;
   }
 }
-/* --- Acciones de trueque (agregado por la migración) --- */
+/* Acciones de trueque (agregado por la migración) */
 .modal__acciones { display: flex; flex-direction: column; gap: 10px; }
 .modal__input {
-  border: 1px solid var(--xg-linea); border-radius: 10px; padding: 11px 13px;
-  font: inherit; background: #fff; color: var(--xg-tinta);
+  border: 1px solid var(--color-border-solid); border-radius: 10px; padding: 11px 13px;
+  font: inherit; background: var(--color-input); color: var(--color-text);
 
   /* Empuja los botones al fondo de la columna */
   margin-top: auto;
   padding-top: 4px;
 }
-.modal__input:focus { outline: none; border-color: var(--xg-dorado-oscuro); }
+.modal__input:focus { outline: none; border-color: var(--color-accent); }
+.modal__cta--wa { background: #1f8a4c; border-color: #1f8a4c; color: #fff; }
 .modal__aviso {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-
-  margin: 2px 0 0;
-
-  padding: 12px 14px;
-
-  font-size: .92rem;
-  font-weight: 600;
-  line-height: 1.4;
-
-  border-radius: 12px;
-  border: 1.5px solid transparent;
-
-  animation: modalAvisoIn .22s ease;
-}
-
-@keyframes modalAvisoIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modal__aviso-icono {
-  width: 19px;
-  height: 19px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-/* "Solicitud enviada..." */
-.modal__aviso--exito {
-  color: #1e6b3e;
-  background: #e4f6ea;
-  border-color: #a7ddba;
-}
-
-/* "Esta publicación es tuya.", "Ya tienes una propuesta abierta...", etc. */
-.modal__aviso--error {
-  color: #9a2f2f;
-  background: #fbe9e9;
-  border-color: #f0b7b7;
+  margin: 2px 0 0; font-size: .88rem; color: var(--color-text-muted);
+  background: var(--color-surface-raised); border-radius: 8px; padding: 9px 11px;
 }
 
 /* Flechas y contador de la galería */
@@ -402,8 +337,8 @@ svg {
   width: 38px;
   height: 38px;
 
-  background: rgba(255, 253, 248, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(var(--oscuro-fondo-rgb, 255, 253, 248), 0.9);
+  border: 1px solid rgba(var(--oscuro-borde-rgb, 255, 255, 255), 0.9);
   border-radius: 50%;
 
   color: var(--xg-texto);
@@ -442,7 +377,7 @@ svg {
   padding: 5px 12px;
 
   background: rgba(31, 27, 22, 0.62);
-  color: var(--xg-papel);
+  color: var(--color-on-primary);
   border-radius: var(--xg-radio-pill);
 
   font-size: 12px;
@@ -474,7 +409,42 @@ svg {
   }
 }
 
-/* MODO MODAL — encima del home, como el de iniciar sesión */
+/* Etiqueta de tipo: mismo chip claro de las tarjetas del home */
+.badge {
+  display: inline-flex;
+  align-self: flex-start;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+
+  padding: 7px 15px;
+
+  background: var(--xg-crema);
+  border: 1px solid var(--xg-borde-suave);
+  border-radius: var(--xg-radio-pill);
+
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--xg-texto);
+}
+
+.badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--xg-acento);
+}
+
+.badge--servicios::before {
+  background: #6f9a7a;
+}
+
+.badge--electronicos::before {
+  background: #8a93b8;
+}
+
+/* MODO MODAL, encima del home, como el de iniciar sesión */
 
 .detalle-page--modal {
   position: fixed;
@@ -486,19 +456,14 @@ svg {
   padding: 28px 20px;
   overflow-y: auto;
 
-  /* Oscurece y difumina TODO lo que hay detrás: el home queda borroso,
-     igual que en el modal de inicio de sesión. */
-  background: rgba(31, 27, 22, 0.42);
+  /* oscurece y difumina lo de atras, como el modal del login */
+  background: var(--color-overlay);
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
 
   animation: modalAparece 0.22s ease;
 }
 
-/* En modo modal el fondo decorativo estorba */
-.detalle-page--modal::before {
-  display: none;
-}
 
 .detalle-page--modal .modal {
   max-height: calc(100vh - 56px);
@@ -575,4 +540,22 @@ svg {
   .detalle-page--modal {
     padding: 14px 12px;
   }
+}
+
+/* Reportar la publicación */
+.modal__reportar {
+  background: none;
+  border: none;
+  padding: 6px 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+}
+
+.modal__reporte {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }

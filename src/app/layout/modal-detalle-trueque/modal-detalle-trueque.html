@@ -1,13 +1,17 @@
-<div class="detalle-page" [class.detalle-page--modal]="esModal" (click)="cerrarPorFondo($event)">
+<div class="detalle-page" [class.detalle-page--modal]="esModal" (click)="cerrarPorFondo($event)"
+     [attr.tabindex]="esModal ? -1 : null"
+     [attr.role]="esModal ? 'dialog' : null" [attr.aria-modal]="esModal ? 'true' : null"
+     [attr.aria-label]="esModal ? (trueque?.titulo || 'Detalle de la publicación') : null"
+     (keydown.escape)="esModal && volver()">
   <button class="detalle-volver" type="button" *ngIf="!esModal" (click)="volver()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="19" y1="12" x2="5" y2="12"></line>
       <polyline points="12 19 5 12 12 5"></polyline>
     </svg>
-    Volver
+    {{ textoVolver }}
   </button>
 
-  <button class="modal__cerrar" type="button" *ngIf="esModal" (click)="volver()" aria-label="Cerrar">
+  <button class="modal__cerrar" type="button" *ngIf="esModal" (click)="volver()" aria-label="Cerrar" data-foco-inicial>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round">
       <path d="m6 6 12 12"></path><path d="m18 6-12 12"></path>
@@ -143,40 +147,23 @@
         <button *ngIf="esMia" class="modal__cta" type="button" (click)="irAEditar()">
           Editar mi publicación
         </button>
-        <p
-          class="modal__aviso"
-          [class.modal__aviso--exito]="mensajeEsExito"
-          [class.modal__aviso--error]="!mensajeEsExito"
-          *ngIf="mensaje"
-        >
-          <svg
-            *ngIf="mensajeEsExito"
-            class="modal__aviso-icono"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M20 6 9 17l-5-5"></path>
-          </svg>
-          <svg
-            *ngIf="!mensajeEsExito"
-            class="modal__aviso-icono"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <span>{{ mensaje }}</span>
-        </p>
+        <p class="modal__aviso" *ngIf="mensaje">{{ mensaje }}</p>
+
+        <ng-container *ngIf="!esMia">
+          <button class="modal__reportar" type="button" (click)="abrirReporte()">
+            Reportar publicación
+          </button>
+          <div class="modal__reporte" *ngIf="reportando">
+            <select class="modal__input" [(ngModel)]="motivoReporte">
+              <option value="" disabled>Elige el motivo</option>
+              <option *ngFor="let motivo of motivosReporte" [value]="motivo">{{ motivo }}</option>
+            </select>
+            <button class="modal__cta" type="button" (click)="enviarReporte()">
+              Enviar reporte
+            </button>
+          </div>
+          <p class="modal__aviso" *ngIf="mensajeReporte">{{ mensajeReporte }}</p>
+        </ng-container>
       </div>
 
     </div>
