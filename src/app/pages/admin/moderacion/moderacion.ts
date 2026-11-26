@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { BadgeEstado } from '../../../components/admin/badge-estado/badge-estado';
 import { ModalConfirmacion } from '../../../components/admin/modal-confirmacion/modal-confirmacion';
@@ -18,49 +18,49 @@ type Pestana = 'reportadas' | 'eliminadas';
   imports: [DatePipe, BadgeEstado, ModalConfirmacion, Icon],
   templateUrl: './moderacion.html',
   styleUrl: './moderacion.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Moderacion implements OnInit {
-  private readonly publicacionesSrv = inject(PublicacionesAdminService);
-  private readonly usuariosSrv = inject(UsuariosAdminService);
-  private readonly historialSrv = inject(HistorialAdminService);
-  private readonly auth = inject(AdminsAdminService);
+  private publicacionesSrv = inject(PublicacionesAdminService);
+  private usuariosSrv = inject(UsuariosAdminService);
+  private historialSrv = inject(HistorialAdminService);
+  private auth = inject(AdminsAdminService);
 
-  readonly cargando = this.publicacionesSrv.cargando;
-  readonly eliminadas = this.publicacionesSrv.eliminadas;
-  readonly pendientes = this.publicacionesSrv.pendientes;
+  cargando = this.publicacionesSrv.cargando;
+  eliminadas = this.publicacionesSrv.eliminadas;
+  pendientes = this.publicacionesSrv.pendientes;
 
-  readonly pestana = signal<Pestana>('reportadas');
+  pestana = signal<Pestana>('reportadas');
 
-  // --- Filtros (HU75) ---
-  readonly motivo = signal<string>('todos');
-  readonly estado = signal<string>('todos');
-  readonly gravedad = signal<string>('todas');
-  readonly categoria = signal<string>('todas');
+  // filtros (HU75)
+  motivo = signal<string>('todos');
+  estado = signal('todos');
+  gravedad = signal('todas');
+  categoria = signal('todas');
 
-  readonly motivos = computed(() => this.publicacionesSrv.motivos());
-  readonly categorias = computed(() => this.publicacionesSrv.categorias());
+  motivos = computed(() => this.publicacionesSrv.motivos());
+  categorias = computed(() => this.publicacionesSrv.categorias());
 
-  readonly listado = computed(() =>
+  listado = computed(() =>
     this.publicacionesSrv.filtrar({
       motivo: this.motivo(),
-      estado: this.estado() as PublicacionReportada['estado'] | 'todos',
-      gravedad: this.gravedad() as PublicacionReportada['gravedad'] | 'todas',
+      estado: this.estado(),
+      gravedad: this.gravedad(),
       categoria: this.categoria(),
     })
   );
 
-  readonly detalle = signal<PublicacionReportada | null>(null);
-  readonly modal = signal<{ tipo: TipoAccion; pub: PublicacionReportada } | null>(null);
+  detalle = signal<PublicacionReportada | null>(null);
+  modal = signal<{ tipo: TipoAccion; pub: PublicacionReportada } | null>(null);
 
-  readonly configModal = computed(() => {
+  configModal = computed(() => {
     const m = this.modal();
-    if (!m) return null;
-
+    if (!m) {
+      return null;
+    }
     const config = {
       aprobar: {
         titulo: 'Aprobar publicación',
-        mensaje: `"${m.pub.titulo}" se marcará como revisada y seguirá visible en la plataforma.`,
+        mensaje: '"' + m.pub.titulo + '" se marcará como revisada y seguirá visible en la plataforma.',
         texto: 'Aprobar',
         icono: 'check-circle',
         tono: 'neutro' as const,
@@ -69,7 +69,7 @@ export class Moderacion implements OnInit {
       },
       eliminar: {
         titulo: 'Eliminar publicación',
-        mensaje: `"${m.pub.titulo}" será retirada y quedará registrada en el historial de eliminaciones.`,
+        mensaje: '"' + m.pub.titulo + '" será retirada y quedará registrada en el historial de eliminaciones.',
         texto: 'Eliminar',
         icono: 'trash',
         tono: 'danger' as const,
@@ -78,7 +78,7 @@ export class Moderacion implements OnInit {
       },
       advertir: {
         titulo: 'Advertir al usuario',
-        mensaje: `Se enviará una advertencia a ${m.pub.usuarioNombre} por el contenido publicado.`,
+        mensaje: 'Se enviará una advertencia a ' + m.pub.usuarioNombre + ' por el contenido publicado.',
         texto: 'Enviar advertencia',
         icono: 'alert',
         tono: 'warn' as const,
@@ -87,7 +87,7 @@ export class Moderacion implements OnInit {
       },
       suspender: {
         titulo: 'Suspender al usuario',
-        mensaje: `La cuenta de ${m.pub.usuarioNombre} quedará bloqueada en la plataforma.`,
+        mensaje: 'La cuenta de ' + m.pub.usuarioNombre + ' quedará bloqueada en la plataforma.',
         texto: 'Suspender',
         icono: 'ban',
         tono: 'danger' as const,
@@ -122,9 +122,10 @@ export class Moderacion implements OnInit {
 
   confirmarAccion(motivo: string): void {
     const m = this.modal();
-    if (!m) return;
-
-    // El historial guarda el ID del admin, nunca su nombre.
+    if (!m) {
+      return;
+    }
+    // el historial guarda el ID del admin, nunca su nombre
     const adminId = this.auth.idActual();
 
     switch (m.tipo) {
@@ -135,7 +136,7 @@ export class Moderacion implements OnInit {
 
       case 'eliminar':
         this.publicacionesSrv.eliminar(m.pub.id, motivo, adminId);
-        this.registrar(m.pub, 'Eliminación', `Publicación eliminada: ${motivo}`, adminId);
+        this.registrar(m.pub, 'Eliminación', 'Publicación eliminada: ' + motivo, adminId);
         break;
 
       case 'advertir':
