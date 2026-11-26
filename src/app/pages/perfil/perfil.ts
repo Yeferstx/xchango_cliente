@@ -1,14 +1,16 @@
+import { LogoXchangoComponent } from '../../components/logo-xchango/logo-xchango';
 import { Component, OnInit, HostListener, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 
 import { IconoComponent } from '../../components/icono/icono';
 import { TruequesService } from '../../services/trueques';
+import { nombreCompleto } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [IconoComponent, CommonModule, RouterLink],
+  imports: [LogoXchangoComponent, IconoComponent, CommonModule, RouterLink],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
@@ -16,83 +18,125 @@ export class PerfilComponent implements OnInit {
   private servicio = inject(TruequesService);
   private router = inject(Router);
 
-  // Cuántas calificaciones hacen falta para mostrar el promedio en público.
-  readonly totalCalificacionesRequeridas = 5;
-  readonly calificacionMaxima = 5;
+  // cuantas calificaciones hacen falta para mostrar el promedio
+  totalCalificacionesRequeridas = 5;
+  calificacionMaxima = 5;
 
-  ngOnInit(): void {
-    this.servicio.cargar();
+  // true cuando ya llegaron los datos, asi no se ve "Invitado" ni datos viejos
+  listo = signal(false);
+
+  async ngOnInit(): Promise<void> {
+    await this.servicio.esperarDatos();
+    this.listo.set(true);
+    // se piden otra vez los datos para que los contadores y la insignia salgan al dia
+    await this.servicio.refrescar();
   }
 
-  // DATOS DEL USUARIO EN SESIÓN
+  // datos del usuario en sesion
+  // si no hay usuario se usa uno vacio para no repetir validaciones
+  get usuario(): any {
+    const usuario = this.servicio.usuarioActual();
+    if (usuario) {
+      return usuario;
+    }
+    return {};
+  }
 
   get nombreUsuario(): string {
-    return this.servicio.usuarioActual()?.nombre ?? 'Invitado';
+    const usuario = this.servicio.usuarioActual();
+    if (usuario) {
+      return nombreCompleto(usuario);
+    }
+    return 'Invitado';
   }
 
   get avatarUrl(): string {
-    return this.servicio.usuarioActual()?.avatar ?? 'https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+    if (this.usuario.avatar) {
+      return this.usuario.avatar;
+    }
+    return '/Logo-xchango/avatar-defecto.png';
   }
 
   get ubicacion(): string {
-    return this.servicio.usuarioActual()?.ubicacion ?? 'Casanare';
+    if (this.usuario.ubicacion) {
+      return this.usuario.ubicacion;
+    }
+    return 'Casanare';
   }
 
   get calificacion(): number {
-    return this.servicio.usuarioActual()?.calificacion ?? 0;
+    if (this.usuario.calificacion) {
+      return this.usuario.calificacion;
+    }
+    return 0;
   }
 
   get totalCalificaciones(): number {
-    return this.servicio.usuarioActual()?.totalCalificaciones ?? 0;
+    if (this.usuario.totalCalificaciones) {
+      return this.usuario.totalCalificaciones;
+    }
+    return 0;
   }
 
-  // Texto libre del perfil (HU21). Si no ha escrito nada, un texto de ayuda.
+  // texto del perfil (HU21), si no ha escrito nada sale un texto de ayuda
   get descripcion(): string {
-    const texto = this.servicio.usuarioActual()?.descripcion?.trim();
-    return texto || 'Todavía no has agregado una descripción a tu perfil.';
+    if (this.usuario.descripcion && this.usuario.descripcion.trim()) {
+      return this.usuario.descripcion.trim();
+    }
+    return 'Todavía no has agregado una descripción a tu perfil.';
   }
 
   get verificado(): boolean {
-    return this.servicio.usuarioActual()?.verificacion === 'verificado';
+    return this.usuario.verificacion === 'verificado';
   }
 
-  // Fecha de registro en bruto (se formatea en el template con DatePipe).
+  // fecha de registro, en el html se le da formato con el pipe date
   get fechaRegistro(): string | null {
-    return this.servicio.usuarioActual()?.fechaRegistro ?? null;
+    if (this.usuario.fechaRegistro) {
+      return this.usuario.fechaRegistro;
+    }
+    return null;
   }
 
   get totalPublicaciones(): number {
-    return this.servicio.usuarioActual()?.publicaciones ?? 0;
+    if (this.usuario.publicaciones) {
+      return this.usuario.publicaciones;
+    }
+    return 0;
   }
 
   get totalIntercambios(): number {
-    return this.servicio.usuarioActual()?.intercambios ?? 0;
+    if (this.usuario.intercambios) {
+      return this.usuario.intercambios;
+    }
+    return 0;
   }
 
-  // Avisos sin leer, para el punto rojo de la campana.
+  // avisos sin leer, para el punto rojo de la campana
   get notificaciones(): number {
     return this.servicio.notificacionesSinLeer();
   }
 
-  // true cuando ya tiene suficientes calificaciones para mostrarlas.
+  // true cuando ya tiene las calificaciones suficientes para mostrarlas
   get muestraCalificacion(): boolean {
     return this.totalCalificaciones >= this.totalCalificacionesRequeridas;
   }
 
-  // Estrellas llenas y vacías según el promedio.
+  // estrellas llenas y vacias segun el promedio
   estrellas(): boolean[] {
-    return Array.from(
-      { length: this.calificacionMaxima },
-      (_, i) => i < Math.round(this.calificacion),
-    );
+    const lista: boolean[] = [];
+    for (let i = 0; i < this.calificacionMaxima; i++) {
+      lista.push(i < Math.round(this.calificacion));
+    }
+    return lista;
   }
 
-  // MINI MENÚ DEL AVATAR
+  // menu pequeño del avatar
 
-  readonly menuAbierto = signal(false);
+  menuAbierto = signal(false);
 
-  toggleMenu(): void {
-    this.menuAbierto.update((v) => !v);
+  abrirMenu(): void {
+    this.menuAbierto.set(!this.menuAbierto());
   }
 
   @HostListener('document:click')

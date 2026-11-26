@@ -1,9 +1,9 @@
 <div class="perfil-page">
 
+    <!-- NAVBAR -->
     <header class="navbar">
         <div class="navbar__brand">
-            <img src="Logo-xchango/chango.png" alt="XchanGo" class="navbar__logo" />
-            <img src="Logo-xchango/letras-chango.png" alt="XchanGo" class="navbar__logo" />
+            <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
         </div>
 
         <nav class="navbar__pill">
@@ -20,7 +20,6 @@
             <a class="navbar__link" routerLink="/mis-publicaciones">
                 <app-icono nombre="grid_view"></app-icono>
                 Mis publicaciones
-                
             </a>
         </nav>
 
@@ -34,7 +33,7 @@
                 <button
                     class="navbar__avatar-btn"
                     type="button"
-                    (click)="toggleMenu(); $event.stopPropagation()"
+                    (click)="abrirMenu(); $event.stopPropagation()"
                 >
                     <div class="navbar__avatar">
                         <img [src]="avatarUrl" [alt]="nombreUsuario" />
@@ -68,7 +67,8 @@
         </div>
     </header>
 
-    <main class="perfil">
+    <!-- CONTENIDO -->
+    <main class="perfil" *ngIf="listo()">
 
         <section class="perfil__card perfil__hero">
 
@@ -140,7 +140,7 @@
                     </div>
 
                     <p class="perfil__rating-valor" *ngIf="muestraCalificacion">
-                        {{ calificacion }} de {{ calificacionMaxima }}
+                        {{ calificacion | number: '1.0-1' }} de {{ calificacionMaxima }}
                         <span>({{ totalCalificaciones }} calificaciones)</span>
                     </p>
 
@@ -156,8 +156,8 @@
             <!-- Columna derecha: grid de opciones -->
             <div class="perfil__options">
 
-                <!-- tu información -->
-                <!-- información personal -->
+                <!-- TU INFORMACIÓN -->
+                <!-- INFORMACIÓN PERSONAL -->
                 <button
                     class="option-card"
                     type="button"
@@ -178,7 +178,7 @@
                     <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
                 </button>
 
-                <!-- datos de cuenta -->
+                <!-- DATOS DE CUENTA -->
                 <button
                     class="option-card"
                     type="button"
@@ -199,7 +199,28 @@
                     <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
                 </button>
 
-                <!-- ubicación -->
+                <!-- VERIFICAR CUENTA -->
+                <button
+                    class="option-card"
+                    type="button"
+                    routerLink="/perfil/verificacion"
+                >
+                    <app-icono class="option-card__icon" nombre="verified_user"></app-icono>
+
+                    <div>
+                        <h3 class="option-card__title">
+                            Verificar mi cuenta
+                        </h3>
+
+                        <p class="option-card__desc">
+                            Sube tu documento y consigue la insignia de cuenta verificada.
+                        </p>
+                    </div>
+
+                    <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
+                </button>
+
+                <!-- UBICACIÓN -->
                 <button
                     class="option-card"
                     type="button"
@@ -220,7 +241,7 @@
                     <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
                 </button>
 
-                <!-- mis trueques -->
+                <!-- MIS TRUEQUES -->
                 <button
                     class="option-card"
                     type="button"
@@ -241,9 +262,9 @@
                     <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
                 </button>
 
-                <!-- mis publicaciones -->
+                <!-- MIS PUBLICACIONES -->
                 <button
-                    class="option-card option-card--wide"
+                    class="option-card"
                     type="button"
                     routerLink="/mis-publicaciones"
                 >

@@ -1,5 +1,4 @@
-/* Esta página usa los tokens de XchanGo definidos en src/styles.css,
-   que salen de la paleta y las fuentes del login. */
+/* usa los colores de src/styles.css */
 
 :host {
   display: block;
@@ -48,11 +47,30 @@ h3 {
     min-height: 100vh;
 }
 
+/* general */
 
 * {
     box-sizing: border-box;
 }
 
+/* iconos */
+
+.icon {
+    display: block;
+
+    width: 24px;
+    height: 24px;
+
+    fill: none;
+
+    stroke: currentColor;
+    stroke-width: 2;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    flex-shrink: 0;
+}
 
 /* pagina */
 
@@ -64,6 +82,7 @@ h3 {
     padding: 24px 40px 60px;
 }
 
+/* navbar */
 
 .navbar {
     position: relative;
@@ -77,6 +96,7 @@ h3 {
     margin-bottom: 32px;
 }
 
+/* logo XchanGo */
 
 .navbar__brand {
     display: flex;
@@ -101,6 +121,37 @@ h3 {
     flex-shrink: 0;
 }
 
+/* CHANGO */
+
+.navbar__chango {
+    width: 50px;
+    height: 50px;
+
+    object-fit: contain;
+    object-position: center;
+
+    display: block;
+
+    flex-shrink: 0;
+
+    transform: scale(1.05);
+
+    transform-origin: center;
+}
+
+/* LETRAS */
+
+.navbar__letras {
+    width: 90px;
+    height: auto;
+
+    object-fit: contain;
+    object-position: center;
+
+    display: block;
+
+    flex-shrink: 0;
+}
 
 /* navbar centro */
 
@@ -112,8 +163,8 @@ h3 {
     padding: 5px;
 
     /* Mismo vidrio de la navbar del login */
-    background: rgba(255, 255, 255, 0.54);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: rgba(var(--oscuro-fondo-rgb, 255, 255, 255), 0.54);
+    border: 1px solid rgba(var(--oscuro-borde-rgb, 255, 255, 255), 0.7);
     border-radius: 20px;
 
     box-shadow: var(--xg-sombra-suave);
@@ -121,7 +172,6 @@ h3 {
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
 }
-
 
 .navbar__link {
     min-height: 40px;
@@ -144,23 +194,21 @@ h3 {
     transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
-
 .navbar__link .icon {
     width: 18px;
     height: 18px;
 }
 
-
 .navbar__link:hover {
-    background: rgba(255, 255, 255, 0.72);
-    color: var(--xg-texto-fuerte);
+    background: rgba(var(--oscuro-fondo-rgb, 255, 255, 255), 0.72);
+    color: var(--oscuro-texto, var(--xg-texto-fuerte));
     transform: translateY(-1px);
 }
 
 /* Enlace de la página en la que estás, igual que en el login */
 .navbar__link--activo {
-    background: rgba(238, 228, 214, 0.92);
-    color: var(--xg-texto-fuerte);
+    background: rgba(var(--oscuro-fondo-tinte-rgb, 238, 228, 214), 0.92);
+    color: var(--oscuro-texto, var(--xg-texto-fuerte));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
@@ -169,13 +217,7 @@ h3 {
     font-size: 18px;
 }
 
-
-.navbar__link:first-child {
-    background: var(--text-primary);
-
-    color: var(--xg-card);
-}
-
+/* ningún enlace queda marcado: en el perfil no se está en Inicio */
 
 /* acciones derecha */
 
@@ -188,7 +230,6 @@ h3 {
 
     flex-shrink: 0;
 }
-
 
 .navbar__icon-btn {
     background: var(--bg-nav);
@@ -214,19 +255,16 @@ h3 {
         transform 0.15s ease;
 }
 
-
 .navbar__icon-btn:hover {
     background: var(--bg-option);
 
     transform: scale(1.05);
 }
 
-
 .navbar__icon-btn .icon {
     width: 20px;
     height: 20px;
 }
-
 
 /* avatar navbar */
 
@@ -243,7 +281,6 @@ h3 {
     background: var(--bg-option);
 }
 
-
 .navbar__avatar img {
     width: 100%;
     height: 100%;
@@ -253,6 +290,12 @@ h3 {
     display: block;
 }
 
+.navbar__chevron {
+    width: 20px;
+    height: 20px;
+
+    color: var(--text-secondary);
+}
 
 /* contenido principal */
 
@@ -261,7 +304,6 @@ h3 {
 
     margin: 0 auto;
 }
-
 
 /* tarjeta principal */
 
@@ -281,7 +323,6 @@ h3 {
     padding: 40px;
 }
 
-
 /* identidad */
 
 .perfil__identity {
@@ -294,7 +335,6 @@ h3 {
     text-align: center;
 }
 
-
 /* foto de perfil */
 
 .perfil__avatar-wrap {
@@ -305,7 +345,6 @@ h3 {
 
     margin-bottom: 24px;
 }
-
 
 .perfil__avatar {
     width: 100%;
@@ -327,6 +366,47 @@ h3 {
     background: var(--bg-option);
 }
 
+/* boton camara */
+
+.perfil__avatar-edit {
+    position: absolute;
+
+    bottom: 8px;
+    right: 8px;
+
+    width: 48px;
+    height: 48px;
+
+    border-radius: 50%;
+
+    border: 4px solid var(--bg-card);
+
+    background: var(--accent);
+
+    color: var(--xg-card);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.perfil__avatar-edit:hover {
+    background: var(--accent-dark);
+
+    transform: scale(1.08);
+}
+
+.perfil__avatar-edit .icon {
+    width: 21px;
+    height: 21px;
+}
 
 /* nombre */
 
@@ -340,7 +420,6 @@ h3 {
     margin: 0 0 24px;
 }
 
-
 /* calificaciones */
 
 .perfil__rating-title {
@@ -353,7 +432,6 @@ h3 {
     margin: 0 0 10px;
 }
 
-
 .perfil__stars {
     display: flex;
 
@@ -364,7 +442,6 @@ h3 {
     margin-bottom: 8px;
 }
 
-
 .perfil__stars .icon {
     width: 26px;
     height: 26px;
@@ -372,13 +449,11 @@ h3 {
     color: var(--star-empty);
 }
 
-
 .perfil__stars .icon.is-filled {
     color: var(--star-filled);
 
     fill: var(--star-filled);
 }
-
 
 .perfil__rating-note {
     font-size: 0.8rem;
@@ -392,7 +467,6 @@ h3 {
     margin: 0 auto;
 }
 
-
 /* grid opciones */
 
 .perfil__options {
@@ -404,7 +478,6 @@ h3 {
 
     align-content: start;
 }
-
 
 /* tarjetas de opciones */
 
@@ -434,18 +507,15 @@ h3 {
         transform 0.15s ease;
 }
 
-
 .option-card:hover {
     background: var(--bg-option-hover);
 
     transform: translateY(-2px);
 }
 
-
 .option-card--wide {
     grid-column: 1 / -1;
 }
-
 
 /* iconos opciones */
 
@@ -467,12 +537,10 @@ h3 {
     justify-content: center;
 }
 
-
 .option-card__icon .icon {
     width: 22px;
     height: 22px;
 }
-
 
 /* textos */
 
@@ -486,7 +554,6 @@ h3 {
     margin: 0 0 4px;
 }
 
-
 .option-card__desc {
     font-size: 0.82rem;
 
@@ -497,6 +564,20 @@ h3 {
     line-height: 1.35;
 }
 
+/* flechas */
+
+.option-card__chevron {
+    margin-left: auto;
+
+    width: 20px;
+    height: 20px;
+
+    color: var(--text-secondary);
+
+    flex-shrink: 0;
+}
+
+/* responsive */
 
 @media (max-width: 1200px) {
 
@@ -513,7 +594,6 @@ h3 {
         width: 80px;
     }
 }
-
 
 @media (max-width: 1024px) {
 
@@ -540,18 +620,15 @@ h3 {
     }
 }
 
-
-@media (max-width: 600px) {
+@media (max-width: 640px) {
 
     .perfil-page {
         padding: 16px;
     }
 
-
     .navbar {
         gap: 10px;
     }
-
 
     .navbar__brand {
         gap: 5px;
@@ -561,23 +638,28 @@ h3 {
         margin-left: 0;
     }
 
+    .navbar__chango {
+        width: 45px;
+        height: 45px;
+    }
+
+    .navbar__letras {
+        width: 75px;
+    }
 
     .navbar__actions {
         gap: 6px;
     }
-
 
     .navbar__icon-btn {
         width: 36px;
         height: 36px;
     }
 
-
     .navbar__avatar {
         width: 34px;
         height: 34px;
     }
-
 
     .perfil__hero {
         padding: 24px 18px;
@@ -585,29 +667,33 @@ h3 {
         border-radius: 20px;
     }
 
-
     .perfil__options {
         grid-template-columns: 1fr;
     }
-
 
     .perfil__avatar-wrap {
         width: 160px;
         height: 160px;
     }
 
+    .perfil__avatar-edit {
+        width: 42px;
+        height: 42px;
+
+        right: 4px;
+        bottom: 4px;
+    }
 
     .option-card--wide {
         grid-column: auto;
     }
 
 }
-/* ARREGLOS DE LA CABECERA */
+/* arreglos de la cabecera */
 
-/* El logo salía a tamaño natural (256px) porque el HTML usa
-   .navbar__logo y el CSS solo tenía regla para .navbar__chango. */
+/* sin esto el logo sale a 256px */
 .navbar__logo {
-    width: 90px;
+    width: 34px;
     height: 34px;
     object-fit: contain;
     display: block;
@@ -697,7 +783,6 @@ h3 {
     border-radius: 22px;
     padding: 26px;
 }
-
 
 /* MINI MENÚ DEL AVATAR (nuevo) */
 
@@ -799,7 +884,6 @@ h3 {
     color: #b4453a;
 }
 
-
 /* VERIFICADO / MIEMBRO DESDE / STATS (nuevo) */
 
 .perfil__badge-verificado {
@@ -810,8 +894,8 @@ h3 {
     margin-left: 8px;
     padding: 3px 10px 3px 6px;
 
-    background: var(--xg-verde-fondo);
-    color: var(--xg-verde-claro);
+    background: var(--oscuro-fondo, #e8f3ed);
+    color: #2f7d5d;
 
     border-radius: 999px;
 
@@ -823,7 +907,7 @@ h3 {
 .perfil__badge-verificado app-icono {
     width: 14px;
     height: 14px;
-    color: var(--xg-verde-claro);
+    color: #2f7d5d;
 }
 
 .perfil__miembro-desde {
