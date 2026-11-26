@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { BadgeEstado } from '../../../components/admin/badge-estado/badge-estado';
 import { Icon } from '../../../components/admin/icon/icon';
@@ -14,30 +14,29 @@ import { HistorialAdminService } from '../../../services/admin/historial-admin.s
   imports: [DatePipe, BadgeEstado, Icon],
   templateUrl: './administracion.html',
   styleUrl: './administracion.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Administracion implements OnInit {
-  private readonly metricasSrv = inject(MetricasAdminService);
-  private readonly usuariosSrv = inject(UsuariosAdminService);
-  private readonly publicacionesSrv = inject(PublicacionesAdminService);
-  private readonly alertasSrv = inject(AlertasAdminService);
-  private readonly historialSrv = inject(HistorialAdminService);
+  private metricasSrv = inject(MetricasAdminService);
+  private usuariosSrv = inject(UsuariosAdminService);
+  private publicacionesSrv = inject(PublicacionesAdminService);
+  private alertasSrv = inject(AlertasAdminService);
+  private historialSrv = inject(HistorialAdminService);
 
-  readonly resumen = this.metricasSrv.resumen;
-  readonly alertas = this.alertasSrv.alertas;
+  resumen = this.metricasSrv.resumen;
+  alertas = this.alertasSrv.alertas;
 
-  // Usuarios "conectados": los activos con mayor nivel de actividad.
-  readonly conectados = computed(() =>
+  // usuarios "conectados": los activos con mayor nivel de actividad
+  conectados = computed(() =>
     this.usuariosSrv.usuarios()
       .filter(u => u.estado === 'activo' && u.nivelActividad !== 'bajo')
       .slice(0, 6)
   );
 
-  readonly publicacionesRecientes = computed(() => this.publicacionesSrv.reportadas().slice(0, 5));
-  readonly acciones = computed(() => this.historialSrv.recientes(6));
+  publicacionesRecientes = computed(() => this.publicacionesSrv.reportadas().slice(0, 5));
+  acciones = computed(() => this.historialSrv.recientes(6));
 
-  // Semáforo del estado general de la plataforma.
-  readonly estadoPlataforma = computed(() => {
+  // semaforo del estado general de la plataforma
+  estadoPlataforma = computed(() => {
     const pendientes = this.publicacionesSrv.pendientes();
     const alertasAltas = this.alertasSrv.porPrioridad('alta').filter(a => !a.leida).length;
 
@@ -50,7 +49,7 @@ export class Administracion implements OnInit {
     return { nivel: 'ok', texto: 'Operativo', detalle: 'Todos los servicios funcionan correctamente.' };
   });
 
-  readonly servicios = [
+  servicios = [
     { nombre: 'API de publicaciones', estado: 'activo', detalle: 'Latencia 82 ms' },
     { nombre: 'Base de datos', estado: 'activo', detalle: 'Conexiones 24/100' },
     { nombre: 'Servicio de imágenes', estado: 'activo', detalle: 'Almacenamiento 41%' },
