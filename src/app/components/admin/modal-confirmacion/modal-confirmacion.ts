@@ -9,16 +9,16 @@ import { Icon } from '../icon/icon';
   styleUrl: './modal-confirmacion.css',
 })
 export class ModalConfirmacion {
-  readonly abierto = input<boolean>(false);
-  readonly titulo = input<string>('');
-  readonly mensaje = input<string>('');
-  readonly textoConfirmar = input<string>('Confirmar');
-  readonly icono = input<string>('alert');
-  readonly tono = input<string>('warn');
-  readonly pideMotivo = input<boolean>(false);
-  readonly etiquetaMotivo = input<string>('Motivo');
+  abierto = input<boolean>(false);
+  titulo = input<string>('');
+  mensaje = input<string>('');
+  textoConfirmar = input<string>('Confirmar');
+  icono = input<string>('alert');
+  tono = input<string>('warn');
+  pideMotivo = input<boolean>(false);
+  etiquetaMotivo = input<string>('Motivo');
 
-  readonly confirmar = output<string>();
-  readonly cancelar = output<void>();
-  readonly motivo = signal('');
+  confirmar = output<string>();
+  cancelar = output<void>();
+  motivo = signal('');
 }

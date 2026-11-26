@@ -9,9 +9,9 @@ import { Component, input, output } from '@angular/core';
 })
 export class Paginacion {
 
-  readonly total = input<number>(0);
-  readonly porPagina = input<number>(10);
-  readonly pagina = input<number>(1);
+  total = input<number>(0);
+  porPagina = input<number>(10);
+  pagina = input<number>(1);
 
-  readonly cambio = output<number>();
+  cambio = output<number>();
 }

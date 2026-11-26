@@ -23,11 +23,11 @@ export interface RangoFechas {
 })
 export class FiltroFechas {
 
-  readonly cambio = output<RangoFechas>();
+  cambio = output<RangoFechas>();
 
-  readonly desde = signal('');
-  readonly hasta = signal('');
-  readonly periodo = signal<PeriodoFiltro>('mes');
+  desde = signal('');
+  hasta = signal('');
+  periodo = signal<PeriodoFiltro>('mes');
 
   cambiarRango(r: RangoFechas): void {
     this.desde.set(r.desde);
