@@ -1,6 +1,11 @@
 <div class="legal-page">
+  @if (seccionInicial()) {
+    <button type="button" class="enlace-volver" (click)="volverAlFormulario.emit()"><span aria-hidden="true">&#8592;</span> Volver al registro</button>
+  } @else {
+    <a class="enlace-volver" [routerLink]="volverAlPerfil ? '/perfil' : '/login'"><span aria-hidden="true">&#8592;</span> {{ volverAlPerfil ? 'Volver al perfil' : 'Volver al inicio' }}</a>
+  }
 
-  <!-- Encabezado: reutiliza el mismo lenguaje que el hero (eyebrow + headline) -->
+  <!-- encabezado -->
   <header class="legal-header">
     <p class="eyebrow">Centro legal y de ayuda</p>
     <h1 class="headline">
@@ -11,19 +16,21 @@
     </p>
   </header>
 
-  <!-- Tabs, con el mismo estilo pill que .nav-links / .nav-item -->
+  <!-- pestañas -->
   <nav class="legal-tabs" role="tablist" aria-label="Secciones legales y de ayuda">
     <button
-      *ngFor="let s of sections"
+      *ngFor="let s of secciones"
       type="button"
       role="tab"
       class="legal-tab"
-      [class.active]="activeTab() === s.id"
-      [attr.aria-selected]="activeTab() === s.id"
-      (click)="setTab(s.id)"
+      [class.active]="pestanaActiva() === s.id"
+      [attr.aria-selected]="pestanaActiva() === s.id"
+      [id]="'legal-tab-' + s.id"
+      aria-controls="legal-panel"
+      (click)="cambiarPestana(s.id)"
     >
       <span class="legal-tab__icon">
-        <ng-container [ngSwitch]="s.icon">
+        <ng-container [ngSwitch]="s.icono">
           <!-- Documento (Términos) -->
           <svg *ngSwitchCase="'doc'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -48,24 +55,24 @@
           </svg>
         </ng-container>
       </span>
-      <span class="legal-tab__label">{{ s.eyebrow }}</span>
+      <span class="legal-tab__label">{{ s.etiqueta }}</span>
     </button>
   </nav>
 
-  <!-- Panel de vidrio con el contenido de la sección activa -->
-  <section class="legal-panel" role="tabpanel">
+  <!-- contenido de la pestaña activa -->
+  <section class="legal-panel" role="tabpanel" id="legal-panel" [attr.aria-labelledby]="'legal-tab-' + pestanaActiva()" tabindex="0">
     <div class="legal-panel__header">
-      <p class="legal-panel__eyebrow">{{ activeSection().eyebrow }}</p>
-      <h2 class="legal-panel__title">{{ activeSection().title }}</h2>
-      <p class="legal-panel__meta" *ngIf="activeSection().meta">{{ activeSection().meta }}</p>
+      <p class="legal-panel__eyebrow">{{ seccionActiva().etiqueta }}</p>
+      <h2 class="legal-panel__title">{{ seccionActiva().titulo }}</h2>
+      <p class="legal-panel__meta" *ngIf="seccionActiva().nota">{{ seccionActiva().nota }}</p>
     </div>
 
     <div class="legal-panel__body">
-      <ng-container *ngFor="let block of activeSection().blocks">
-        <h3 *ngIf="block.heading" class="legal-block__heading">{{ block.heading }}</h3>
-        <p *ngIf="block.text" class="legal-block__text">{{ block.text }}</p>
-        <ul *ngIf="block.items" class="legal-block__list">
-          <li *ngFor="let item of block.items">{{ item }}</li>
+      <ng-container *ngFor="let bloque of seccionActiva().bloques">
+        <h3 *ngIf="bloque.subtitulo" class="legal-block__heading">{{ bloque.subtitulo }}</h3>
+        <p *ngIf="bloque.texto" class="legal-block__text">{{ bloque.texto }}</p>
+        <ul *ngIf="bloque.lista" class="legal-block__list">
+          <li *ngFor="let item of bloque.lista">{{ item }}</li>
         </ul>
       </ng-container>
     </div>

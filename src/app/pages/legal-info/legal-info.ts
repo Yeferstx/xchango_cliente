@@ -1,47 +1,72 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, input, output, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-interface LegalBlock {
-  heading?: string;
-  text?: string;
-  items?: string[];
+// un pedazo de texto de una seccion
+interface BloqueLegal {
+  subtitulo?: string;
+  texto?: string;
+  lista?: string[];
 }
 
-interface LegalSection {
+// cada pestaña: terminos, ayuda, privacidad y contacto
+interface SeccionLegal {
   id: string;
-  icon: 'doc' | 'help' | 'shield' | 'mail';
-  eyebrow: string;
-  title: string;
-  meta?: string;
-  blocks: LegalBlock[];
+  icono: string;
+  etiqueta: string;
+  titulo: string;
+  nota?: string;
+  bloques: BloqueLegal[];
 }
 
 @Component({
   selector: 'app-legal-info',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './legal-info.html',
   styleUrls: ['./legal-info.css'],
 })
-export class LegalInfo {
-  // Tab activo. Cambia el contenido sin navegar a otra ruta.
-  activeTab = signal<string>('terminos');
+export class LegalInfo implements OnInit {
+  seccionInicial = input<string>();
+  volverAlFormulario = output<void>();
+  private route = inject(ActivatedRoute);
 
-  readonly sections: LegalSection[] = [
+  get volverAlPerfil(): boolean {
+    return this.route.snapshot.queryParamMap.get('desde') === 'perfil';
+  }
+
+  ngOnInit(): void {
+    // la seccion puede llegar desde el registro o por la url
+    let seccion = this.seccionInicial();
+    if (!seccion) {
+      seccion = this.route.snapshot.queryParamMap.get('seccion') || '';
+    }
+
+    for (const s of this.secciones) {
+      if (s.id === seccion) {
+        this.cambiarPestana(seccion);
+      }
+    }
+  }
+
+  // tab activo. Cambia el contenido sin navegar a otra ruta
+  pestanaActiva = signal('terminos');
+
+  secciones: SeccionLegal[] = [
     {
       id: 'terminos',
-      icon: 'doc',
-      eyebrow: 'Legal',
-      title: 'Términos y condiciones de uso del sitio',
-      meta: 'Versión vigente: 20 de febrero, 2026',
-      blocks: [
+      icono: 'doc',
+      etiqueta: 'Legal',
+      titulo: 'Términos y condiciones de uso del sitio',
+      nota: 'Versión vigente: 20 de febrero, 2026',
+      bloques: [
         {
-          heading: 'Resumen de términos y condiciones',
-          text: 'XchanGo es una plataforma diseñada para fomentar la economía circular a través del intercambio directo de bienes y servicios, eliminando la necesidad de transacciones monetarias.',
+          subtitulo: 'Resumen de términos y condiciones',
+          texto: 'XchanGo es una plataforma diseñada para fomentar la economía circular a través del intercambio directo de bienes y servicios, eliminando la necesidad de transacciones monetarias.',
         },
         {
-          heading: 'Nuestro ecosistema de intercambio',
-          items: [
+          subtitulo: 'Nuestro ecosistema de intercambio',
+          lista: [
             'El Marketplace de Trueque: es el espacio principal donde las personas usuarias publican lo que ya no necesitan y encuentran lo que buscan, gestionando propuestas de intercambio directo.',
             'XchanGo Especializados (VIS): conectamos a personas interesadas en realizar permutas o intercambios de mayor envergadura, como vehículos, inmuebles o servicios profesionales.',
             'Logística XchanGo: ponemos a disposición soluciones tecnológicas para que las personas usuarias puedan coordinar el envío y la recepción de los objetos intercambiados de forma eficiente.',
@@ -49,8 +74,8 @@ export class LegalInfo {
           ],
         },
         {
-          heading: 'Responsabilidades del usuario',
-          items: [
+          subtitulo: 'Responsabilidades del usuario',
+          lista: [
             'Registro y veracidad: para operar en la plataforma, cada persona usuaria debe aceptar estos términos, sus anexos y la Declaración de Privacidad. Es responsable de la veracidad de los datos brindados y de mantener su contraseña bajo estricto resguardo.',
             'Descripción del bien: el usuario se obliga a describir con honestidad el estado real del objeto o servicio que ofrece para intercambio.',
           ],
@@ -59,24 +84,24 @@ export class LegalInfo {
     },
     {
       id: 'ayuda',
-      icon: 'help',
-      eyebrow: 'Soporte',
-      title: 'Centro de ayuda al usuario de XchanGo',
-      blocks: [
+      icono: 'help',
+      etiqueta: 'Soporte',
+      titulo: 'Centro de ayuda al usuario de XchanGo',
+      bloques: [
         {
-          text: 'En XchanGo queremos que tu experiencia de intercambio sea lo más fluida y sencilla posible. Si eres nuevo en la comunidad o tienes dudas técnicas sobre cómo funciona nuestra plataforma, aquí encontrarás los recursos necesarios para resolverlas.',
+          texto: 'En XchanGo queremos que tu experiencia de intercambio sea lo más fluida y sencilla posible. Si eres nuevo en la comunidad o tienes dudas técnicas sobre cómo funciona nuestra plataforma, aquí encontrarás los recursos necesarios para resolverlas.',
         },
         {
-          heading: 'Guías rápidas para el trueque',
-          items: [
+          subtitulo: 'Guías rápidas para el trueque',
+          lista: [
             '¿Cómo publicar mi primer objeto?: aprende a tomar fotos atractivas y a redactar descripciones honestas para que otros se interesen en tu intercambio.',
             'Búsqueda de servicios: utiliza nuestros filtros avanzados para encontrar talentos locales, desde clases particulares hasta reparaciones técnicas.',
             'Cómo proponer un trato: consejos sobre cómo redactar mensajes claros y justos al momento de acordar un intercambio equilibrado para ambas partes.',
           ],
         },
         {
-          heading: 'Soporte técnico y resolución de problemas',
-          items: [
+          subtitulo: 'Soporte técnico y resolución de problemas',
+          lista: [
             'Gestión de perfil: instrucciones paso a paso para actualizar tu información, cambiar tu contraseña o mejorar tu nivel de verificación.',
             'Reportar un incidente: si un intercambio no salió como esperabas o detectas un comportamiento sospechoso, te enseñamos a usar nuestras herramientas de reporte.',
           ],
@@ -85,16 +110,16 @@ export class LegalInfo {
     },
     {
       id: 'privacidad',
-      icon: 'shield',
-      eyebrow: 'Confianza',
-      title: 'Privacidad y verificación en XchanGo',
-      blocks: [
+      icono: 'shield',
+      etiqueta: 'Confianza',
+      titulo: 'Privacidad y verificación en XchanGo',
+      bloques: [
         {
-          text: 'En XchanGo, la seguridad de nuestra comunidad es nuestra prioridad número uno. Entendemos que el intercambio de objetos y servicios requiere un entorno de confianza mutua, por lo que hemos implementado procesos estrictos para proteger tanto tus datos como tu integridad física y material.',
+          texto: 'En XchanGo, la seguridad de nuestra comunidad es nuestra prioridad número uno. Entendemos que el intercambio de objetos y servicios requiere un entorno de confianza mutua, por lo que hemos implementado procesos estrictos para proteger tanto tus datos como tu integridad física y material.',
         },
         {
-          heading: 'Nuestros pilares de seguridad',
-          items: [
+          subtitulo: 'Nuestros pilares de seguridad',
+          lista: [
             'Protección de datos personales: implementamos protocolos de seguridad avanzados para asegurar que tu información de contacto y ubicación solo sea compartida con otros usuarios bajo tu autorización explícita durante un intercambio.',
             'Verificación de identidad: para evitar perfiles falsos, cada miembro de XchanGo debe completar un proceso de verificación que incluye la validación de correo electrónico y, opcionalmente, documentos de identidad para obtener la insignia de "Usuario Verificado".',
             'Sistema de reputación y reseñas: después de cada intercambio, ambas partes pueden calificarse. Este historial es público y permite a los nuevos usuarios verificar la fiabilidad de sus futuros compañeros de trueque.',
@@ -106,16 +131,16 @@ export class LegalInfo {
     },
     {
       id: 'contacto',
-      icon: 'mail',
-      eyebrow: 'Contacto',
-      title: 'Canales de contacto oficial de XchanGo',
-      blocks: [
+      icono: 'mail',
+      etiqueta: 'Contacto',
+      titulo: 'Canales de contacto oficial de XchanGo',
+      bloques: [
         {
-          text: 'En XchanGo valoramos la comunicación abierta con nuestra comunidad. Ya sea que tengas una propuesta comercial, necesites asistencia técnica especializada o simplemente quieras darnos una sugerencia para mejorar el intercambio de objetos y servicios, ponemos a tu disposición nuestros canales oficiales de atención.',
+          texto: 'En XchanGo valoramos la comunicación abierta con nuestra comunidad. Ya sea que tengas una propuesta comercial, necesites asistencia técnica especializada o simplemente quieras darnos una sugerencia para mejorar el intercambio de objetos y servicios, ponemos a tu disposición nuestros canales oficiales de atención.',
         },
         {
-          heading: 'Nuestras vías de comunicación',
-          items: [
+          subtitulo: 'Nuestras vías de comunicación',
+          lista: [
             'Soporte técnico: para reportar fallos en la plataforma o problemas con tu cuenta, escríbenos a soporte@xchango.com. Atendemos tus requerimientos en un plazo máximo de 24 horas hábiles.',
             'Atención al cliente: si tienes dudas sobre un intercambio en curso o el sistema de reputación, nuestro equipo de conciliación está disponible en hola@xchango.com.',
             'Alianzas y prensa: para propuestas de colaboración institucional o consultas de medios de comunicación, el contacto directo es prensa@xchango.com.',
@@ -126,11 +151,16 @@ export class LegalInfo {
     },
   ];
 
-  activeSection = computed<LegalSection>(
-    () => this.sections.find((s) => s.id === this.activeTab()) ?? this.sections[0]
-  );
+  seccionActiva = computed(() => {
+    for (const s of this.secciones) {
+      if (s.id === this.pestanaActiva()) {
+        return s;
+      }
+    }
+    return this.secciones[0];
+  });
 
-  setTab(id: string): void {
-    this.activeTab.set(id);
+  cambiarPestana(id: string): void {
+    this.pestanaActiva.set(id);
   }
 }
