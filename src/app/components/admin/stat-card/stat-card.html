@@ -2,8 +2,8 @@
 	<div class="stat-card__top">
 		<span class="stat-card__icon"><app-icon [name]="icono()" [size]="20" /></span>
 		@if (variacion() !== null) {
-			<span class="stat-card__variacion" [class.stat-card__variacion--negativa]="variacion()! < 0">
-				{{ variacion()! > 0 ? '+' : '' }}{{ variacion() }}%
+			<span class="stat-card__variacion" [class.stat-card__variacion--negativa]="esNegativa()">
+				{{ signo() }}{{ variacion() }}%
 			</span>
 		}
 	</div>

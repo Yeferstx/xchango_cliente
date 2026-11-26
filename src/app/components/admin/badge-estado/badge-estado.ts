@@ -8,7 +8,7 @@ import { Component, input } from '@angular/core';
   styleUrl: './badge-estado.css',
 })
 export class BadgeEstado {
-  readonly estado = input<string>('');
-  readonly etiqueta = input<string>('');
-  readonly punto = input<boolean>(true);
+  estado = input<string>('');
+  etiqueta = input<string>('');
+  punto = input<boolean>(true);
 }

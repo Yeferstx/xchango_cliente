@@ -9,10 +9,27 @@ import { Icon } from '../icon/icon';
   styleUrl: './stat-card.css',
 })
 export class StatCard {
-  readonly etiqueta = input<string>('');
-  readonly valor = input<string | number>(0);
-  readonly icono = input<string>('');
-  readonly variacion = input<number | null>(null);
-  readonly detalle = input<string>('');
-  readonly tono = input<string>('');
+  etiqueta = input<string>('');
+  valor = input<string | number>(0);
+  icono = input<string>('');
+  variacion = input<number | null>(null);
+  detalle = input<string>('');
+  tono = input<string>('');
+
+  esNegativa(): boolean {
+    const v = this.variacion();
+    if (v !== null && v < 0) {
+      return true;
+    }
+    return false;
+  }
+
+  // a los numeros positivos se les pone el +
+  signo(): string {
+    const v = this.variacion();
+    if (v !== null && v > 0) {
+      return '+';
+    }
+    return '';
+  }
 }
