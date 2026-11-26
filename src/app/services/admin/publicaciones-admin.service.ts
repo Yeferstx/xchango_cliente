@@ -2,195 +2,276 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 
+import { API_URL } from '../../config/api';
 import { Usuario } from '../../models/usuario.model';
 import { Categoria } from '../../models/categoria.model';
 import { Publicacion, ETIQUETA_TIPO } from '../../models/publicacion.model';
-import {
-  PublicacionReportada,
-  Reporte,
-} from '../../models/admin/publicacion-reportada';
-import {
-  PublicacionEliminada,
-  PublicacionEliminadaVista,
-} from '../../models/admin/publicacion-eliminada';
+import { PublicacionReportada, Reporte } from '../../models/admin/publicacion-reportada';
+import { PublicacionEliminada, PublicacionEliminadaVista } from '../../models/admin/publicacion-eliminada';
 import { AdminUsuario } from '../../models/admin/admin-usuario';
 
-// Moderación de publicaciones.
-// `publicaciones-reportadas.json` ya no duplica el título, el dueño ni la
-// categoría: guarda solo `publicacionId` + `reportanteId`. Este servicio hace
-// el join contra publicaciones.json, usuarios.json y categorias.json, y expone
-// `PublicacionReportada` con los mismos nombres de campo que ya usaba la vista,
-// de modo que `moderacion.html` no necesita cambios.
-// Las interfaces que antes se redeclaraban aquí ahora viven en `models/admin/`.
+// moderacion de publicaciones reportadas
+// une el reporte con la publicacion, el usuario y la categoria
 @Injectable({ providedIn: 'root' })
 export class PublicacionesAdminService {
-  private readonly http = inject(HttpClient);
+  private http = inject(HttpClient);
 
-  private readonly _reportes = signal<Reporte[]>([]);
-  private readonly _eliminadas = signal<PublicacionEliminada[]>([]);
-  private readonly _publicaciones = signal<Publicacion[]>([]);
-  private readonly _usuarios = signal<Usuario[]>([]);
-  private readonly _categorias = signal<Categoria[]>([]);
-  private readonly _admins = signal<AdminUsuario[]>([]);
-  private readonly _cargando = signal(false);
-  private readonly _error = signal<string | null>(null);
+  private listaReportes = signal<Reporte[]>([]);
+  private listaEliminadas = signal<PublicacionEliminada[]>([]);
+  private listaPublicaciones = signal<Publicacion[]>([]);
+  private listaUsuarios = signal<Usuario[]>([]);
+  private listaCategorias = signal<Categoria[]>([]);
+  private listaAdmins = signal<AdminUsuario[]>([]);
+  private estaCargando = signal(false);
+  private mensajeError = signal('');
   private cargado = false;
 
-  readonly cargando = this._cargando.asReadonly();
-  readonly error = this._error.asReadonly();
+  cargando = this.estaCargando.asReadonly();
+  error = this.mensajeError.asReadonly();
 
-  // ---------- Índices para el join ----------
-  private readonly mapaPublicaciones = computed(
-    () => new Map(this._publicaciones().map((p) => [p.id, p]))
-  );
-  private readonly mapaUsuarios = computed(
-    () => new Map(this._usuarios().map((u) => [u.id, u]))
-  );
-  private readonly mapaCategorias = computed(
-    () => new Map(this._categorias().map((c) => [c.id, c]))
-  );
-  private readonly mapaAdmins = computed(
-    () => new Map(this._admins().map((a) => [a.id, a]))
-  );
+  // reportes con titulo, dueño y categoria
+  reportadas = computed(() => {
+    const lista: PublicacionReportada[] = [];
 
-  // Reportes con título, dueño y categoría ya resueltos.
-  readonly reportadas = computed<PublicacionReportada[]>(() => {
-    const pubs = this.mapaPublicaciones();
-    const usuarios = this.mapaUsuarios();
-    const categorias = this.mapaCategorias();
+    for (const r of this.listaReportes()) {
+      const vista: any = Object.assign({}, r);
+      const pub = this.obtenerPublicacion(r.publicacionId);
 
-    return this._reportes().map((r) => {
-      const pub = pubs.get(r.publicacionId);
-      const dueno = pub ? usuarios.get(pub.usuarioId) : undefined;
+      vista.titulo = 'Publicación no disponible';
+      vista.usuarioId = '';
+      vista.usuarioNombre = 'Usuario desconocido';
+      vista.categoria = 'Sin categoría';
+      vista.tipo = '';
 
-      return {
-        ...r,
-        titulo: pub?.titulo ?? 'Publicación no disponible',
-        usuarioId: pub?.usuarioId ?? '',
-        usuarioNombre: dueno?.nombre ?? 'Usuario desconocido',
-        categoria: pub ? categorias.get(pub.categoriaId)?.nombre ?? 'Sin categoría' : 'Sin categoría',
-        tipo: pub ? ETIQUETA_TIPO[pub.tipo] : '',
-        reportanteNombre: usuarios.get(r.reportanteId)?.nombre ?? 'Usuario desconocido',
-      };
-    });
+      if (pub) {
+        vista.titulo = pub.titulo;
+        vista.usuarioId = pub.usuarioId;
+        vista.tipo = ETIQUETA_TIPO[pub.tipo];
+        vista.usuarioNombre = this.nombreUsuario(pub.usuarioId);
+
+        for (const c of this.listaCategorias()) {
+          if (c.id === pub.categoriaId) {
+            vista.categoria = c.nombre;
+          }
+        }
+      }
+
+      vista.reportanteNombre = this.nombreUsuario(r.reportanteId);
+      lista.push(vista);
+    }
+
+    return lista;
   });
 
-  // Eliminadas con título y nombres resueltos.
-  readonly eliminadas = computed<PublicacionEliminadaVista[]>(() => {
-    const pubs = this.mapaPublicaciones();
-    const usuarios = this.mapaUsuarios();
-    const admins = this.mapaAdmins();
+  // eliminadas con titulo y nombres
+  eliminadas = computed(() => {
+    const lista: PublicacionEliminadaVista[] = [];
 
-    return this._eliminadas().map((e) => ({
-      ...e,
-      titulo: pubs.get(e.publicacionId)?.titulo ?? 'Publicación no disponible',
-      usuarioNombre: usuarios.get(e.usuarioId)?.nombre ?? 'Usuario desconocido',
-      administrador: admins.get(e.adminId)?.nombre ?? 'Administrador',
-    }));
+    for (const e of this.listaEliminadas()) {
+      const vista: any = Object.assign({}, e);
+
+      vista.titulo = 'Publicación no disponible';
+      const pub = this.obtenerPublicacion(e.publicacionId);
+      if (pub) {
+        vista.titulo = pub.titulo;
+      }
+
+      vista.usuarioNombre = this.nombreUsuario(e.usuarioId);
+
+      vista.administrador = 'Administrador';
+      for (const a of this.listaAdmins()) {
+        if (a.id === e.adminId) {
+          vista.administrador = a.nombre;
+        }
+      }
+
+      lista.push(vista);
+    }
+
+    return lista;
   });
 
-  readonly pendientes = computed(
-    () => this._reportes().filter((r) => r.estado === 'pendiente').length
-  );
+  pendientes = computed(() => {
+    let total = 0;
+    for (const r of this.listaReportes()) {
+      if (r.estado === 'pendiente') {
+        total = total + 1;
+      }
+    }
+    return total;
+  });
 
   cargar(): void {
-    if (this.cargado) return;
+    if (this.cargado) {
+      return;
+    }
     this.cargado = true;
-    this._cargando.set(true);
-    this._error.set(null);
+    this.estaCargando.set(true);
+    this.mensajeError.set('');
 
     forkJoin({
-      reportes: this.http.get<Reporte[]>('data/publicaciones-reportadas.json'),
-      eliminadas: this.http.get<PublicacionEliminada[]>('data/publicaciones-eliminadas.json'),
-      publicaciones: this.http.get<Publicacion[]>('data/publicaciones.json'),
-      usuarios: this.http.get<Usuario[]>('data/usuarios.json'),
-      categorias: this.http.get<Categoria[]>('data/categorias.json'),
-      admins: this.http.get<AdminUsuario[]>('data/admins.json'),
+      reportes: this.http.get(API_URL + '/admin/reportes'),
+      eliminadas: this.http.get(API_URL + '/admin/eliminadas'),
+      publicaciones: this.http.get(API_URL + '/admin/publicaciones'),
+      usuarios: this.http.get(API_URL + '/admin/usuarios'),
+      categorias: this.http.get(API_URL + '/categorias'),
+      admins: this.http.get(API_URL + '/admin/admins'),
     }).subscribe({
-      next: (d) => {
-        this._reportes.set(d.reportes);
-        this._eliminadas.set(d.eliminadas);
-        this._publicaciones.set(d.publicaciones);
-        this._usuarios.set(d.usuarios);
-        this._categorias.set(d.categorias);
-        this._admins.set(d.admins);
-        this._cargando.set(false);
+      next: (datos: any) => {
+        this.listaReportes.set(datos.reportes);
+        this.listaEliminadas.set(datos.eliminadas);
+        this.listaPublicaciones.set(datos.publicaciones);
+        this.listaUsuarios.set(datos.usuarios);
+        this.listaCategorias.set(datos.categorias);
+        this.listaAdmins.set(datos.admins);
+        this.estaCargando.set(false);
       },
       error: () => {
         this.cargado = false;
-        this._error.set('No se pudieron cargar las publicaciones reportadas.');
-        this._cargando.set(false);
+        this.mensajeError.set('No se pudieron cargar las publicaciones reportadas.');
+        this.estaCargando.set(false);
       },
     });
   }
 
-  // ---------- Consultas ----------
+  private nombreUsuario(id: string): string {
+    for (const u of this.listaUsuarios()) {
+      if (u.id === id) {
+        return u.nombre;
+      }
+    }
+    return 'Usuario desconocido';
+  }
+
+  // consultas
 
   motivos(): string[] {
-    return [...new Set(this._reportes().map((r) => r.motivo))].sort();
+    const lista: string[] = [];
+    for (const r of this.listaReportes()) {
+      if (!lista.includes(r.motivo)) {
+        lista.push(r.motivo);
+      }
+    }
+    return lista.sort();
   }
 
-  // Se alimenta del catálogo único de categorías, no de los reportes.
+  // sale de las categorias de la base, no de los reportes
   categorias(): string[] {
-    return this._categorias().map((c) => c.nombre).sort();
+    const lista: string[] = [];
+    for (const c of this.listaCategorias()) {
+      lista.push(c.nombre);
+    }
+    return lista.sort();
   }
 
-  filtrar(f: {
-    motivo?: string;
-    estado?: PublicacionReportada['estado'] | 'todos';
-    gravedad?: PublicacionReportada['gravedad'] | 'todas';
-    categoria?: string;
-  }): PublicacionReportada[] {
-    return this.reportadas().filter(
-      (p) =>
-        (!f.motivo || f.motivo === 'todos' || p.motivo === f.motivo) &&
-        (!f.estado || f.estado === 'todos' || p.estado === f.estado) &&
-        (!f.gravedad || f.gravedad === 'todas' || p.gravedad === f.gravedad) &&
-        (!f.categoria || f.categoria === 'todas' || p.categoria === f.categoria)
-    );
+  // filtros de la tabla, 'todos' o 'todas' es sin filtro
+  filtrar(f: { motivo?: string; estado?: string; gravedad?: string; categoria?: string }): PublicacionReportada[] {
+    const lista: PublicacionReportada[] = [];
+
+    for (const p of this.reportadas()) {
+      let pasa = true;
+
+      if (f.motivo && f.motivo !== 'todos' && p.motivo !== f.motivo) {
+        pasa = false;
+      }
+      if (f.estado && f.estado !== 'todos' && p.estado !== f.estado) {
+        pasa = false;
+      }
+      if (f.gravedad && f.gravedad !== 'todas' && p.gravedad !== f.gravedad) {
+        pasa = false;
+      }
+      if (f.categoria && f.categoria !== 'todas' && p.categoria !== f.categoria) {
+        pasa = false;
+      }
+
+      if (pasa) {
+        lista.push(p);
+      }
+    }
+
+    return lista;
   }
 
   obtenerPublicacion(publicacionId: string): Publicacion | undefined {
-    return this.mapaPublicaciones().get(publicacionId);
+    for (const p of this.listaPublicaciones()) {
+      if (p.id === publicacionId) {
+        return p;
+      }
+    }
+    return undefined;
   }
 
-  // ---------- Mutaciones (en memoria) ----------
+  // cambios
+
+  private recargar(): void {
+    this.cargado = false;
+    this.cargar();
+  }
 
   aprobar(reporteId: string): void {
     this.actualizarEstado(reporteId, 'aprobada');
+    this.http.patch(API_URL + '/admin/reportes/' + reporteId, { estado: 'aprobada' }).subscribe({
+      error: () => this.recargar(),
+    });
   }
 
-  // Marca el reporte como resuelto, cambia la publicación a estado 'eliminada'
-  // y deja el registro en la lista de eliminadas, referenciando por ID.
+  // marca el reporte como resuelto, la publicacion queda eliminada
+  // y se agrega a la lista de eliminadas
   eliminar(reporteId: string, motivo: string, adminId: string): void {
-    const reporte = this._reportes().find((r) => r.id === reporteId);
-    if (!reporte) return;
+    let reporte: Reporte | undefined = undefined;
+    for (const r of this.listaReportes()) {
+      if (r.id === reporteId) {
+        reporte = r;
+      }
+    }
+    if (!reporte) {
+      return;
+    }
 
-    const publicacion = this.mapaPublicaciones().get(reporte.publicacionId);
-    if (!publicacion) return;
+    const publicacion = this.obtenerPublicacion(reporte.publicacionId);
+    if (!publicacion) {
+      return;
+    }
 
     this.actualizarEstado(reporteId, 'eliminada');
 
-    this._publicaciones.update((lista) =>
-      lista.map((p) => (p.id === publicacion.id ? { ...p, estado: 'eliminada' as const } : p))
-    );
+    const nuevasPublicaciones: Publicacion[] = [];
+    for (const p of this.listaPublicaciones()) {
+      if (p.id === publicacion.id) {
+        const copia: any = Object.assign({}, p);
+        copia.estado = 'eliminada';
+        nuevasPublicaciones.push(copia);
+      } else {
+        nuevasPublicaciones.push(p);
+      }
+    }
+    this.listaPublicaciones.set(nuevasPublicaciones);
 
-    this._eliminadas.update((lista) => [
-      {
-        id: `el_${Date.now()}`,
-        publicacionId: publicacion.id,
-        usuarioId: publicacion.usuarioId,
-        adminId,
-        motivo,
-        fecha: new Date().toISOString(),
-      },
-      ...lista,
-    ]);
+    const registro: PublicacionEliminada = {
+      id: 'el_' + Date.now(),
+      publicacionId: publicacion.id,
+      usuarioId: publicacion.usuarioId,
+      adminId: adminId,
+      motivo: motivo,
+      fecha: new Date().toISOString(),
+    };
+    const nuevasEliminadas = [registro].concat(this.listaEliminadas());
+    this.listaEliminadas.set(nuevasEliminadas);
+
+    this.http.post(API_URL + '/admin/reportes/' + reporteId + '/eliminar', { motivo: motivo }).subscribe({
+      error: () => this.recargar(),
+    });
   }
 
   private actualizarEstado(reporteId: string, estado: Reporte['estado']): void {
-    this._reportes.update((lista) =>
-      lista.map((r) => (r.id === reporteId ? { ...r, estado } : r))
-    );
+    const nuevaLista: Reporte[] = [];
+    for (const r of this.listaReportes()) {
+      const copia = Object.assign({}, r);
+      if (r.id === reporteId) {
+        copia.estado = estado;
+      }
+      nuevaLista.push(copia);
+    }
+    this.listaReportes.set(nuevaLista);
   }
 }
