@@ -1,140 +1,31 @@
 <!-- logo fuera de la navbar -->
 
-<a href="/" class="navbar__brand">
+@if (!modalAbierto()) {
+  <app-logo-xchango class="navbar__brand" [compactoEnMovil]="true" tamano="lg" enlace="/login"></app-logo-xchango>
+}
 
-  <img
-    src="Logo-xchango/chango.png"
-    alt="Logo XchanGo"
-    class="navbar__chango"
-  >
+<!-- acceso del equipo (admin y moderador) -->
 
-  <img
-    src="Logo-xchango/letras-chango.png"
-    alt="XchanGo"
-    class="navbar__wordmark"
-  >
+<div class="top-acciones">
 
-</a>
+<a class="top-login top-login--admin" routerLink="/admin/login">
 
-<!-- acceso administrativo -->
-
-<a routerLink="/admin/login" class="admin-link" title="Ingresar como administrador o moderador">
-
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5z"/>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
   </svg>
 
-  Administrador / Moderador
+  XchanGo Admin
 
 </a>
 
-<header class="navbar">
+</div>
 
-  <nav class="nav-links">
-
-    <!-- inicio -->
-
-    <a href="javascript:void(0)" class="nav-item active" (click)="abrirModal('login')">
-
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#847A68"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M12 18v4"/>
-        <path d="m17 18 1.956-11.468"/>
-        <path d="m3 8 7.82-5.615a2 2 0 0 1 2.36 0L21 8"/>
-        <path d="M4 18h16"/>
-        <path d="M7 18 5.044 6.532"/>
-        <circle cx="12" cy="10" r="2"/>
-      </svg>
-
-      Inicio
-
-    </a>
-
-    <a href="javascript:void(0)" class="nav-item" (click)="explorarComoInvitado()">
-
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#847A68"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/>
-        <path d="m13.56 11.747 4.332-.924"/>
-        <path d="m16 21-3.105-6.21"/>
-        <path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"/>
-        <path d="m6.158 8.633 1.114 4.456"/>
-        <path d="m8 21 3.105-6.21"/>
-        <circle cx="12" cy="13" r="2"/>
-      </svg>
-
-      Explora
-
-    </a>
-
-    <div class="nav-item nav-item--redes" (click)="toggleRedesSociales(); $event.stopPropagation()">
-
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#847A68"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="18" cy="5" r="3"/>
-        <circle cx="6" cy="12" r="3"/>
-        <circle cx="18" cy="19" r="3"/>
-        <path d="m8.6 10.5 6.8-3.9"/>
-        <path d="m8.6 13.5 6.8 3.9"/>
-      </svg>
-
-      Redes sociales
-
-      @if (redesSocialesAbiertas()) {
-
-        <div class="redes-menu" (click)="$event.stopPropagation()">
-
-          <a href="https://facebook.com" target="_blank" rel="noopener" class="redes-menu__item">
-            Facebook
-          </a>
-
-          <a href="https://instagram.com" target="_blank" rel="noopener" class="redes-menu__item">
-            Instagram
-          </a>
-
-          <a href="https://wa.me/573145979628" target="_blank" rel="noopener" class="redes-menu__item">
-            WhatsApp
-          </a>
-
-        </div>
-
-      }
-
-    </div>
-
-  </nav>
-
-</header>
+<!-- hero -->
 
 <main class="hero">
+
+  <!-- hero left -->
 
   <section class="hero-left">
 
@@ -152,8 +43,8 @@
 
     <p class="subtext">
 
-      La plataforma #1 de trueques<br>
-      en tu comunidad.
+      Intercambia bienes y servicios<br>
+      con personas de Casanare.
 
     </p>
 
@@ -162,13 +53,13 @@
       <button
         class="btn btn-dark"
         type="button"
-        (click)="abrirModal('registro')"
+        (click)="explorarComoInvitado()"
       >
 
-        Crear Cuenta
+        Explorar trueques
 
         <span class="arrow">
-
+          →
         </span>
 
       </button>
@@ -176,10 +67,10 @@
       <button
         class="btn btn-outline"
         type="button"
-        (click)="abrirModal('login')"
+        (click)="abrirModal('registro')"
       >
 
-        iniciar sesión
+        Crear cuenta
 
       </button>
 
@@ -220,6 +111,8 @@
 
   </section>
 
+  <!-- hero right -->
+
   <section class="hero-right">
 
     <!-- buscador -->
@@ -233,7 +126,7 @@
         height="20"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#847A68"
+        stroke="currentColor"
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
@@ -270,7 +163,7 @@
           height="20"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#847A68"
+          stroke="currentColor"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -307,9 +200,9 @@
         <a
           href="javascript:void(0)"
           class="see-all"
-          (click)="abrirModal('login')"
+          (click)="explorarComoInvitado()"
         >
-          Ver todas ›
+          Ver todas las categorías ›
         </a>
 
       </div>
@@ -447,9 +340,9 @@
         <a
           href="javascript:void(0)"
           class="see-all"
-          (click)="abrirModal('login')"
+          (click)="explorarComoInvitado()"
         >
-          Ver todas ›
+          Ver publicaciones ›
         </a>
 
       </div>
@@ -546,29 +439,17 @@
 
       </div>
 
-      <!-- puntos -->
+      <!-- flechas del carrusel -->
 
-      <div class="dots">
+      <div class="flechas">
 
-        <span
-          class="dot"
-          [class.active]="puntoActivo() === 0">
-        </span>
+        <button class="flecha" type="button" aria-label="Productos anteriores" (click)="anteriorProducto()">
+          ‹
+        </button>
 
-        <span
-          class="dot"
-          [class.active]="puntoActivo() === 1">
-        </span>
-
-        <span
-          class="dot"
-          [class.active]="puntoActivo() === 2">
-        </span>
-
-        <span
-          class="dot"
-          [class.active]="puntoActivo() === 3">
-        </span>
+        <button class="flecha" type="button" aria-label="Productos siguientes" (click)="siguienteProducto()">
+          ›
+        </button>
 
       </div>
 
@@ -578,47 +459,20 @@
 
 </main>
 
-<!-- características -->
+<!-- lo que se puede hacer -->
 
 <section class="features">
 
-  <!-- seguro y confiable -->
+  <!-- encuentra trueques -->
 
   <div class="feature">
 
     <div class="feature-icon">
 
-      <svg
-        class="feature-svg"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-
-        <path d="M7 3.34V5a3 3 0 0 0 3 3"/>
-
-        <path d="M11 21.95V18a2 2 0 0 0-2-2 2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/>
-
-        <path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/>
-
-        <path d="M12 2a10 10 0 1 0 9.54 13"/>
-
-        <path d="M20 6V4a2 2 0 1 0-4 0v2"/>
-
-        <rect
-          width="8"
-          height="5"
-          x="14"
-          y="6"
-          rx="1"
-        />
-
+      <svg class="feature-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+        <circle cx="12" cy="10" r="3"/>
       </svg>
 
     </div>
@@ -626,48 +480,28 @@
     <div>
 
       <h4>
-        Seguro y confiable
+        Encuentra trueques cerca de ti
       </h4>
 
       <p>
-        Perfiles verificados y trueques seguros.
+        Busca por municipio de Casanare.
       </p>
 
     </div>
 
   </div>
 
-  <!-- comunidad activa -->
+  <!-- publica -->
 
   <div class="feature">
 
     <div class="feature-icon">
 
-      <svg
-        class="feature-svg"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-
-        <path d="M16 3.128a4 4 0 0 1 0 7.744"/>
-
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-
-        <circle
-          cx="9"
-          cy="7"
-          r="4"
-        />
-
+      <svg class="feature-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2"/>
+        <path d="M8 12h8"/>
+        <path d="M12 8v8"/>
       </svg>
 
     </div>
@@ -675,38 +509,26 @@
     <div>
 
       <h4>
-        Comunidad activa
+        Publica lo que ofreces
       </h4>
 
       <p>
-        Miles de personas intercambiando cada día.
+        Bienes, servicios o productos digitales.
       </p>
 
     </div>
 
   </div>
 
-  <!-- fácil y rápido -->
+  <!-- whatsapp -->
 
   <div class="feature">
 
     <div class="feature-icon">
 
-      <svg
-        class="feature-svg"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-
-        <path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 00-.472-.667z"/>
-
+      <svg class="feature-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
       </svg>
 
     </div>
@@ -714,71 +536,26 @@
     <div>
 
       <h4>
-        Fácil y rápido
+        Contacta por WhatsApp
       </h4>
 
       <p>
-        Publica, negocia e intercambia en minutos.
+        Acuerda el trueque directo con la otra persona.
       </p>
 
     </div>
 
   </div>
 
-  <!-- soporte -->
+  <!-- pie -->
 
-  <div class="feature">
+  <div class="pie">
 
-    <div class="feature-icon">
+    <a routerLink="/legal-info">Términos y condiciones</a>
 
-      <svg
-        class="feature-svg"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
+    <span aria-hidden="true">·</span>
 
-        <path d="M12 6V2H8"/>
-
-        <path d="M15 11v2"/>
-
-        <path d="M2 12h2"/>
-
-        <path d="M20 12h2"/>
-
-        <path d="M20 16a2 2 0 0 1-2 2H8.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 4 20.286V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>
-
-        <path d="M9 11v2"/>
-
-      </svg>
-
-    </div>
-
-    <div>
-
-      <h4>
-        Soporte 24/7
-      </h4>
-
-      <p>
-        Estamos para ayudarte siempre que lo necesites.
-      </p>
-
-    </div>
-
-    <div class="terminos">
-
-      <a href="legal-info">
-        Términos y condiciones
-      </a>
-
-    </div>
+    <a routerLink="/admin/login">Acceso administrativo</a>
 
   </div>
 
@@ -791,6 +568,6 @@
   [modo]="modoAuth()"
   (cerrar)="cerrarModal()"
   (cambiarModo)="cambiarModoAuth($event)"
-  (seleccionarMetodo)="onMetodoSeleccionado($event)"
+  (seleccionarMetodo)="continuarConCorreo()"
 >
 </app-metodo-acceso>

@@ -1,7 +1,6 @@
+import { LogoXchangoComponent } from '../../components/logo-xchango/logo-xchango';
 import {
-  ChangeDetectionStrategy,
   Component,
-  HostListener,
   OnDestroy,
   OnInit,
   computed,
@@ -12,7 +11,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MetodoAcceso, ModoAuth, MetodoAuth } from './metodo-acceso/metodo-acceso';
+import { MetodoAcceso, ModoAuth } from './metodo-acceso/metodo-acceso';
 
 export interface Producto {
   imagen: string;
@@ -25,8 +24,7 @@ export interface Producto {
   templateUrl: './login.html',
   styleUrl: './login.css',
   standalone: true,
-  imports: [MetodoAcceso, RouterLink, FormsModule],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  imports: [LogoXchangoComponent, MetodoAcceso, RouterLink, FormsModule],
 })
 export class Login implements OnInit, OnDestroy {
 
@@ -54,7 +52,7 @@ export class Login implements OnInit, OnDestroy {
 
     {
       imagen: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=220&fit=crop',
-      nombre: 'Audífonos inalám',
+      nombre: 'Audífonos inalámbricos',
       ubicacion: 'Yopal'
     },
 
@@ -126,73 +124,55 @@ export class Login implements OnInit, OnDestroy {
 
   ];
 
+  // configuracion
 
-  private readonly visibles = 4;
+  private visibles = 4;
 
-  private readonly dotsCount = 4;
+  private intervalo = 5000;
 
-  private readonly intervalo = 5000;
+  // fundido corto para que no se vean las tarjetas en blanco
+  private duracionFundido = 260;
 
-  // Antes 500ms de fundido + 100ms extra de espera = 600ms
-  // en los que las tarjetas se veían "fantasma"/en blanco.
-  // Se acorta a 260ms para que el bache casi no se note.
-  private readonly duracionFundido = 260;
-
+  // timers
 
   private timerCarrusel?: ReturnType<typeof setInterval>;
 
   private timerFundido?: ReturnType<typeof setTimeout>;
   private timerReaparicion?: ReturnType<typeof setTimeout>;
 
-
   // estados carrusel
 
-  readonly inicio = signal(0);
+  inicio = signal(0);
 
-  readonly atenuado = signal(false);
+  atenuado = signal(false);
 
-  readonly cambiando = signal(false);
+  cambiando = signal(false);
 
-  readonly pausado = signal(false);
+  pausado = signal(false);
 
+  // estado modal de autenticacion
 
-  // ESTADO MODAL DE AUTENTICACIÓN
+  modalAbierto = signal(false);
 
-  readonly modalAbierto = signal(false);
+  modoAuth = signal<ModoAuth>('login');
 
-  readonly modoAuth = signal<ModoAuth>('login');
-
-
-  // BUSCADOR Y REDES SOCIALES (sin sesión)
+  // BUSCADOR Y REDES SOCIALES (sin sesion)
 
   terminoBusqueda = '';
 
-  readonly redesSocialesAbiertas = signal(false);
-
-  toggleRedesSociales(): void {
-    this.redesSocialesAbiertas.update((v) => !v);
-  }
-
-  @HostListener('document:click')
-  cerrarRedesSociales(): void {
-    if (this.redesSocialesAbiertas()) {
-      this.redesSocialesAbiertas.set(false);
-    }
-  }
-
-  // "Explora" deja navegar por el home sin cuenta, solo para ver.
   explorarComoInvitado(): void {
     this.router.navigate(['/home']);
   }
 
-  // El buscador del hero también funciona sin haber iniciado sesión.
+  // el buscador del hero tambien funciona sin haber iniciado sesion
   buscarComoInvitado(): void {
     const termino = this.terminoBusqueda.trim();
     this.router.navigate(['/home'], termino ? { queryParams: { buscar: termino } } : {});
   }
 
+  // productos visibles
 
-  readonly productosVisibles = computed<Producto[]>(() => {
+  productosVisibles = computed<Producto[]>(() => {
 
     const lista = this.productos;
 
@@ -200,11 +180,7 @@ export class Login implements OnInit, OnDestroy {
 
     const resultado: Producto[] = [];
 
-    /*
-     * Siempre mostramos 4 productos. Si nos acercamos al final
-     * de la lista, damos la vuelta con módulo para no dejar
-     * espacios vacíos nunca.
-     */
+    // siempre se muestran 4 productos, al llegar al final se vuelve al inicio
 
     for (let i = 0; i < this.visibles; i++) {
 
@@ -218,31 +194,7 @@ export class Login implements OnInit, OnDestroy {
 
   });
 
-
-  readonly puntoActivo = computed(() => {
-
-    const posicion = this.inicio();
-
-    /*
-     * Repartimos el total de productos en `dotsCount` segmentos
-     * (no en grupos de `visibles`, que es un valor distinto y
-     * solo coincidía con dotsCount por casualidad). Con 15
-     * productos y 4 puntos: segmento = ceil(15/4) = 4
-     *  posiciones 0-3 = punto 0, 4-7 = punto 1, 8-11 = punto 2,
-     *   12-14 = punto 3.
-     * El Math.min evita que el índice se pase del último punto
-     * si la división no es exacta.
-     */
-
-    const segmento = Math.ceil(this.productos.length / this.dotsCount);
-
-    return Math.min(
-      Math.floor(posicion / segmento),
-      this.dotsCount - 1
-    );
-
-  });
-
+  // ciclo de vida
 
   ngOnInit(): void {
 
@@ -250,13 +202,13 @@ export class Login implements OnInit, OnDestroy {
 
   }
 
-
   ngOnDestroy(): void {
 
     this.detenerCarrusel();
 
   }
 
+  // pausar
 
   pausar(): void {
 
@@ -264,15 +216,13 @@ export class Login implements OnInit, OnDestroy {
 
   }
 
-
   reanudar(): void {
 
     this.pausado.set(false);
 
   }
 
-
-  // modal de autenticación
+  // modal de autenticacion
 
   abrirModal(modo: ModoAuth): void {
 
@@ -293,12 +243,11 @@ export class Login implements OnInit, OnDestroy {
 
   }
 
-  private readonly router = inject(Router);
+  private router = inject(Router);
 
-  onMetodoSeleccionado(metodo: MetodoAuth): void {
+  continuarConCorreo(): void {
     this.cerrarModal();
 
-    // Google y Apple no están implementados, todo se resuelve por correo.
     if (this.modoAuth() === 'registro') {
       this.router.navigate(['/formulario']);
     } else {
@@ -306,6 +255,7 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
+  // iniciar
 
   private iniciarCarrusel(): void {
 
@@ -325,8 +275,19 @@ export class Login implements OnInit, OnDestroy {
 
   }
 
+  // flechas del carrusel
 
-  private avanzar(): void {
+  siguienteProducto(): void {
+    this.avanzar(1);
+  }
+
+  anteriorProducto(): void {
+    this.avanzar(-1);
+  }
+
+  // avanzar (paso 1 va hacia adelante y -1 hacia atras)
+
+  private avanzar(paso: number = 1): void {
 
     if (this.cambiando()) {
       return;
@@ -334,28 +295,17 @@ export class Login implements OnInit, OnDestroy {
 
     this.cambiando.set(true);
 
-    /*
-     * 1. Desaparecer
-     */
+    // 1. se desaparecen
 
     this.atenuado.set(true);
 
-
     this.timerFundido = setTimeout(() => {
 
-      /*
-       * 2. Avanzar UN producto, con vuelta al inicio.
-       */
+      // 2. se avanza un producto, al final vuelve al inicio
 
-      this.inicio.update(valor => (valor + 1) % this.productos.length);
+      this.inicio.update(valor => (valor + paso + this.productos.length) % this.productos.length);
 
-
-      /*
-       * 3. Volver a aparecer.
-       *    Antes había 100ms extra de espera acá, que sumados
-       *    a los 500ms del fundido daban ~600ms de tarjetas casi
-       *    invisibles. Se reaparece en el frame siguiente.
-       */
+      // 3. vuelven a aparecer
 
       this.timerReaparicion = setTimeout(() => {
 
@@ -365,11 +315,11 @@ export class Login implements OnInit, OnDestroy {
 
       }, 20);
 
-
     }, this.duracionFundido);
 
   }
 
+  // detener
 
   private detenerCarrusel(): void {
 
