@@ -1,119 +1,95 @@
-import { Component, signal } from '@angular/core';
+import { LogoXchangoComponent } from '../../components/logo-xchango/logo-xchango';
+import { Component, OnInit, inject } from '@angular/core';
 import { IconoComponent } from '../../components/icono/icono';
-import { CommonModule, Location } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { TruequesService } from '../../services/trueques';
+import { nombreCompleto } from '../../models/usuario.model';
 
 @Component({
     selector: 'app-datos-cuenta',
     standalone: true,
-    imports: [IconoComponent, CommonModule, FormsModule, RouterLink],
+    imports: [LogoXchangoComponent, IconoComponent, CommonModule, RouterLink],
     templateUrl: './datos_cuenta.html',
     styleUrl: './datos_cuenta.css'
 })
-export class DatosCuentaComponent {
+export class DatosCuentaComponent implements OnInit {
+    private servicio = inject(TruequesService);
+    private router = inject(Router);
 
-    /* --- Datos de la cuenta --- */
-    correo = signal('miguel.perez@gmail.com');
-    usuario = signal('@miguelperez');
-    idCuenta = signal('XCH-2026-0418');
-    fechaRegistro = signal('18 de marzo de 2026');
-    tipoCuenta = signal('Personal');
-    correoVerificado = signal(true);
+    // modal para confirmar que de verdad quiere eliminar la cuenta
+    confirmando = false;
+    errorEliminar = '';
 
-    /* --- Campo que se está editando (null = ninguno) --- */
-    editando = signal<string | null>(null);
-    valorTemporal = signal('');
-
-    /* --- Preferencias --- */
-    preferencias = signal([
-        { id: 'correos', titulo: 'Correos de novedades', detalle: 'Recibe noticias y actualizaciones de XchanGo.', activo: true },
-        { id: 'resumen', titulo: 'Resumen semanal', detalle: 'Un correo con el movimiento de tus trueques.', activo: false },
-        { id: 'sesion', titulo: 'Mantener sesión iniciada', detalle: 'No cerrar sesión automáticamente en este navegador.', activo: true }
-    ]);
-
-    /** Aviso verde que aparece al guardar. Se borra solo a los 3 segundos. */
-    mensajeExito = '';
-
-    /** Modal de confirmación. null = cerrado. */
-    confirmacion: { titulo: string; texto: string; accion: 'desactivar' | 'eliminar' } | null = null;
-
-    constructor(private location: Location) { }
-
-    /** Muestra un aviso y lo quita después de un momento. */
-    private avisar(texto: string): void {
-        this.mensajeExito = texto;
-        setTimeout(() => (this.mensajeExito = ''), 3000);
+    async ngOnInit(): Promise<void> {
+        await this.servicio.esperarDatos();
+        // por si el moderador ya verifico la cuenta
+        await this.servicio.refrescar();
     }
 
-    guardarCambios(): void {
-        this.avisar('Cambios guardados correctamente.');
+    get usuario(): any {
+        return this.servicio.usuarioActual();
     }
 
-    pedirDesactivar(): void {
-        this.confirmacion = {
-            titulo: '¿Desactivar tu cuenta?',
-            texto: 'Tu perfil y tus publicaciones dejarán de verse hasta que vuelvas a entrar.',
-            accion: 'desactivar',
-        };
+    get nombreUsuario(): string {
+        if (this.usuario) {
+            return nombreCompleto(this.usuario);
+        }
+        return 'Invitado';
+    }
+
+    get avatarUrl(): string {
+        if (this.usuario && this.usuario.avatar) {
+            return this.usuario.avatar;
+        }
+        return '/Logo-xchango/avatar-defecto.png';
+    }
+
+    get calificacion(): number {
+        if (this.usuario && this.usuario.calificacion) {
+            return Math.round(this.usuario.calificacion);
+        }
+        return 0;
+    }
+
+    get verificada(): boolean {
+        if (this.usuario && this.usuario.verificacion === 'verificado') {
+            return true;
+        }
+        return false;
+    }
+
+    // la fecha llega como aaaa-mm-dd y se muestra con el mes en letras
+    get fechaRegistro(): string {
+        if (!this.usuario || !this.usuario.fechaRegistro) {
+            return '';
+        }
+        const fecha = this.usuario.fechaRegistro;
+        return new Date(fecha.substring(0, 10) + 'T00:00:00').toLocaleDateString('es-CO', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
     }
 
     pedirEliminar(): void {
-        this.confirmacion = {
-            titulo: '¿Eliminar tu cuenta?',
-            texto: 'Se borran tus publicaciones, trueques y calificaciones. Esta acción no se puede deshacer.',
-            accion: 'eliminar',
-        };
+        this.errorEliminar = '';
+        this.confirmando = true;
     }
 
     cerrarConfirmacion(): void {
-        this.confirmacion = null;
+        this.confirmando = false;
     }
 
-    confirmarAccion(): void {
-        const accion = this.confirmacion?.accion;
-        this.confirmacion = null;
-
-        if (accion === 'desactivar') {
-            this.avisar('Tu cuenta quedó desactivada. Vuelve a entrar para reactivarla.');
-        } else if (accion === 'eliminar') {
-            this.avisar('Solicitud de eliminación registrada. Te confirmaremos por correo.');
-        }
-    }
-
-    /* --- Edición en línea --- */
-    iniciarEdicion(campo: string, valorActual: string): void {
-        this.editando.set(campo);
-        this.valorTemporal.set(valorActual);
-    }
-
-    cancelarEdicion(): void {
-        this.editando.set(null);
-        this.valorTemporal.set('');
-    }
-
-    guardarEdicion(campo: string): void {
-        const nuevo = this.valorTemporal().trim();
-        if (!nuevo) return;
-
-        if (campo === 'correo') {
-            this.correo.set(nuevo);
-            this.correoVerificado.set(false);
-        }
-        if (campo === 'usuario') {
-            this.usuario.set(nuevo.startsWith('@') ? nuevo : '@' + nuevo);
+    async confirmarEliminar(): Promise<void> {
+        const error = await this.servicio.eliminarCuenta();
+        if (error) {
+            this.errorEliminar = error;
+            return;
         }
 
-        this.cancelarEdicion();
+        this.confirmando = false;
+        this.router.navigate(['/']);
     }
 
-    togglePreferencia(id: string): void {
-        this.preferencias.update(lista =>
-            lista.map(p => (p.id === id ? { ...p, activo: !p.activo } : p))
-        );
-    }
-
-    volver(): void {
-        this.location.back();
-    }
 }

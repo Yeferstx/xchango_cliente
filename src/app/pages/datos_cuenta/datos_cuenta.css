@@ -1,5 +1,4 @@
-/* Esta página usa los tokens de XchanGo definidos en src/styles.css,
-   que salen de la paleta y las fuentes del login. */
+/* usa los colores de src/styles.css */
 
 :host {
   display: block;
@@ -21,11 +20,11 @@ h3 {
   color: var(--xg-texto);
 }
 
-/* ===== BASE ===== */
+/* base */
 :host {
     display: block;
     min-height: 100vh;
-    background: var(--color-fondo, var(--xg-crema));
+    background: var(--xg-bg);
     font-family: var(--xg-fuente-texto);
     color: var(--color-texto, var(--xg-texto));
 }
@@ -36,7 +35,7 @@ h3 {
     box-sizing: border-box;
 }
 
-/* ===== NAVBAR ===== */
+/* navbar */
 .navbar {
     display: flex;
     align-items: center;
@@ -69,7 +68,7 @@ h3 {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(var(--oscuro-fondo-rgb, 255, 255, 255), 0.6);
     border: 1px solid rgba(0, 0, 0, 0.04);
     border-radius: 999px;
     padding: 6px;
@@ -145,7 +144,7 @@ h3 {
     color: var(--color-texto, var(--xg-texto));
 }
 
-/* ===== CONTENEDOR BEIGE ===== */
+/* contenedor beige */
 .contenedor {
     max-width: 1320px;
     margin: 0 auto;
@@ -162,7 +161,7 @@ h3 {
     align-items: start;
 }
 
-/* ===== COLUMNA IZQUIERDA ===== */
+/* columna izquierda */
 .columna-identidad {
     text-align: center;
     position: sticky;
@@ -198,7 +197,7 @@ h3 {
     border-radius: 50%;
     overflow: hidden;
     background: var(--xg-borde);
-    border: 4px solid rgba(255, 255, 255, 0.7);
+    border: 4px solid rgba(var(--oscuro-borde-rgb, 255, 255, 255), 0.7);
 }
 
 .foto-perfil img {
@@ -246,7 +245,7 @@ h3 {
     line-height: 1.55;
 }
 
-/* ===== TARJETA BLANCA ===== */
+/* tarjeta blanca */
 .tarjeta {
     background: var(--xg-card);
     border-radius: 22px;
@@ -274,7 +273,7 @@ h3 {
     margin: 0;
 }
 
-/* ===== ACORDEONES ===== */
+/* acordeones */
 .lista-acordeones {
     display: flex;
     flex-direction: column;
@@ -358,7 +357,7 @@ h3 {
     color: var(--color-texto, var(--xg-texto));
 }
 
-/* Colapso: el overflow va SOLO en el contenedor interno */
+/* el overflow va solo en el contenedor de adentro */
 .acordeon-cuerpo {
     display: grid;
     grid-template-rows: 0fr;
@@ -374,7 +373,7 @@ h3 {
     min-height: 0;
 }
 
-/* ===== FILAS INTERNAS ===== */
+/* filas internas */
 .filas {
     list-style: none;
     margin: 0;
@@ -497,7 +496,7 @@ h3 {
     color: var(--color-texto-suave, var(--xg-texto-tenue));
 }
 
-/* ===== PIE ===== */
+/* pie */
 .tarjeta-pie {
     margin-top: 28px;
     padding-top: 22px;
@@ -524,7 +523,7 @@ h3 {
     opacity: 0.92;
 }
 
-/* ===== RESPONSIVE ===== */
+/* responsive */
 @media (max-width: 1150px) {
     .nav-pill {
         display: none;
@@ -579,7 +578,7 @@ h3 {
     }
 }
 
-/* ===== GRUPOS (sin acordeón) ===== */
+/* GRUPOS (sin acordeón) */
 .grupo {
     border: 1px solid var(--xg-borde-suave);
     border-radius: 16px;
@@ -608,7 +607,7 @@ h3 {
     color: var(--xg-peligro);
 }
 
-/* ===== ELEMENTOS DE FILA ===== */
+/* elementos de fila */
 .campo-edicion {
     margin-top: 4px;
     width: 100%;
@@ -657,7 +656,7 @@ h3 {
     font-style: italic;
 }
 
-/* ===== BOTONES ===== */
+/* botones */
 .btn-secundario {
     flex-shrink: 0;
     display: inline-flex;
@@ -718,7 +717,7 @@ h3 {
     color: var(--xg-card);
 }
 
-/* ===== RESPONSIVE ===== */
+/* responsive */
 @media (max-width: 700px) {
     .fila {
         flex-wrap: wrap;
@@ -733,7 +732,7 @@ h3 {
         justify-content: flex-end;
     }
 }
-/* ===== Aviso de acción realizada ===== */
+/* Aviso de acción realizada */
 .aviso-exito {
     position: fixed;
     bottom: 24px;
@@ -749,7 +748,7 @@ h3 {
     box-shadow: var(--xg-sombra);
 }
 
-/* ===== Modal de confirmación ===== */
+/* Modal de confirmación */
 .modal-fondo {
     position: fixed;
     inset: 0;
@@ -759,7 +758,7 @@ h3 {
     padding: 20px;
 
   /* Efecto vidrio: oscurece y difumina todo lo que hay detrás. */
-  background: rgba(31, 27, 22, 0.42);
+  background: var(--color-overlay);
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
 }

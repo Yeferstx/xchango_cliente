@@ -1,28 +1,18 @@
-<!-- ===== NAVBAR ===== -->
+<!-- navbar -->
 <header class="navbar">
-    <a class="marca" routerLink="/home">
-        <img src="Logo-xchango/logo-xchango.png" alt="" class="logo" />
-        <span class="marca-texto">XchanGo</span>
-    </a>
+    <div class="marca">
+        <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
+    </div>
 
     <nav class="nav-pill">
-        <a routerLink="/home" class="nav-item activo">
+        <a routerLink="/home" class="nav-item">
             <app-icono nombre="home"></app-icono> Inicio
-        </a>
-        <a routerLink="/explorar" class="nav-item">
-            <app-icono nombre="search"></app-icono> Explorar
         </a>
         <a routerLink="/mis-trueques" class="nav-item">
             <app-icono nombre="swap_horiz"></app-icono> Mis trueques
         </a>
-        <a routerLink="/servicios" class="nav-item">
-            <app-icono nombre="apps"></app-icono> Servicios
-        </a>
-        <a routerLink="/mensajes" class="nav-item">
-            <app-icono nombre="chat_bubble_outline"></app-icono> Mensajes
-        </a>
-        <a routerLink="/favoritos" class="nav-item">
-            <app-icono nombre="favorite_border"></app-icono> Favoritos
+        <a routerLink="/mis-publicaciones" class="nav-item">
+            <app-icono nombre="apps"></app-icono> Mis publicaciones
         </a>
     </nav>
 
@@ -30,36 +20,31 @@
         <button class="btn-campana" type="button" routerLink="/notificaciones" title="Ver notificaciones">
             <app-icono nombre="notifications_none"></app-icono>
         </button>
-        <div class="avatar-nav">
-            <img src="https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
+        <div class="avatar-nav" routerLink="/perfil" title="Mi perfil" style="cursor:pointer">
+            <img [src]="avatarUrl" alt="" />
         </div>
         <app-icono nombre="expand_more"></app-icono>
     </div>
 </header>
 
-<!-- ===== CONTENEDOR BEIGE ===== -->
+<!-- contenedor beige -->
 <main class="contenedor">
     <div class="panel">
 
         <!-- Columna izquierda: identidad -->
         <aside class="columna-identidad">
-            <button class="btn-volver" type="button" (click)="volver()">
-                <app-icono nombre="arrow_back"></app-icono> Volver
-            </button>
+            <a class="btn-volver enlace-volver" routerLink="/perfil"><span aria-hidden="true">&#8592;</span> Volver al perfil</a>
 
             <div class="foto-perfil">
-                <img src="https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
+                <img [src]="avatarUrl" alt="" />
             </div>
 
-            <h2 class="nombre">Carlos Ospina</h2>
+            <h2 class="nombre">{{ nombreUsuario }}</h2>
 
             <h3 class="subtitulo-calif">Calificaciones y opiniones</h3>
             <div class="estrellas">
-                <app-icono nombre="star"></app-icono>
-                <app-icono nombre="star"></app-icono>
-                <app-icono nombre="star"></app-icono>
-                <app-icono nombre="star"></app-icono>
-                <app-icono nombre="star"></app-icono>
+                <app-icono *ngFor="let n of [1, 2, 3, 4, 5]" nombre="star"
+                    [style.opacity]="n <= calificacion ? 1 : 0.3"></app-icono>
             </div>
             <p class="nota-calif">(Solo será visible públicamente tras recibir 5 calificaciones).</p>
         </aside>
@@ -72,7 +57,7 @@
                 <p class="descripcion">Datos que representan tu cuenta de XchanGo.</p>
             </header>
 
-            <!-- ===== GRUPO: Información de la cuenta ===== -->
+            <!-- GRUPO: Información de la cuenta -->
             <div class="grupo">
                 <div class="grupo-cabecera">
                     <span class="icono-caja"><app-icono nombre="account_circle"></app-icono></span>
@@ -89,63 +74,31 @@
                         <app-icono nombre="mail"></app-icono>
                         <span class="fila-texto">
                             <strong>Correo electrónico</strong>
-                            <small>{{ correo() }}</small>
+                            <small>{{ usuario?.email }}</small>
                         </span>
-
-                        <span class="insignia" [class.pendiente]="!correoVerificado()">
-                            {{ correoVerificado() ? 'Verificado' : 'Sin verificar' }}
-                        </span>
-
-                        <a
-                            class="btn-secundario"
-                            href="https://wa.me/573145979628?text=Hola%2C%20necesito%20cambiar%20el%20correo%20de%20mi%20cuenta%20XchanGo"
-                            target="_blank"
-                            rel="noopener"
-                            title="Por seguridad, el cambio de correo lo hace soporte"
-                        >
-                            Escribir a soporte
-                        </a>
                     </li>
 
-                    <!-- Nombre de usuario -->
+                    <!-- Verificación -->
                     <li class="fila">
-                        <app-icono nombre="alternate_email"></app-icono>
+                        <app-icono nombre="verified_user"></app-icono>
                         <span class="fila-texto">
-                            <strong>Nombre de usuario</strong>
-                            <small *ngIf="editando() !== 'usuario'">{{ usuario() }}</small>
-                            <input class="campo-edicion" *ngIf="editando() === 'usuario'" type="text"
-                                [ngModel]="valorTemporal()" (ngModelChange)="valorTemporal.set($event)"
-                                placeholder="@tuusuario" />
+                            <strong>Verificación de la cuenta</strong>
+                            <small>{{ verificada ? 'Tu cuenta está verificada.' : 'Sube tu documento para verificar tu cuenta.' }}</small>
                         </span>
-
-                        <button class="btn-secundario" type="button" *ngIf="editando() !== 'usuario'"
-                            (click)="iniciarEdicion('usuario', usuario())">
-                            Cambiar
-                        </button>
-
-                        <span class="acciones-edicion" *ngIf="editando() === 'usuario'">
-                            <button class="btn-secundario" type="button" (click)="cancelarEdicion()">Cancelar</button>
-                            <button class="btn-mini" type="button" (click)="guardarEdicion('usuario')">Guardar</button>
+                        <span class="insignia" [class.pendiente]="!verificada">
+                            {{ verificada ? 'Verificada' : 'Sin verificar' }}
                         </span>
+                        <a class="btn-secundario" routerLink="/perfil/verificacion" [queryParams]="{ desde: 'cuenta' }" *ngIf="!verificada">Verificar</a>
                     </li>
 
-                    <!-- ID de cuenta -->
+                    <!-- Identificador -->
                     <li class="fila">
                         <app-icono nombre="badge"></app-icono>
                         <span class="fila-texto">
                             <strong>Identificador de cuenta</strong>
-                            <small>{{ idCuenta() }}</small>
+                            <small>{{ usuario?.id }}</small>
                         </span>
                         <span class="valor-fijo">No editable</span>
-                    </li>
-
-                    <!-- Tipo de cuenta -->
-                    <li class="fila">
-                        <app-icono nombre="workspace_premium"></app-icono>
-                        <span class="fila-texto">
-                            <strong>Tipo de cuenta</strong>
-                            <small>Cuenta {{ tipoCuenta() }}</small>
-                        </span>
                     </li>
 
                     <!-- Fecha de registro -->
@@ -153,52 +106,14 @@
                         <app-icono nombre="event"></app-icono>
                         <span class="fila-texto">
                             <strong>Miembro desde</strong>
-                            <small>{{ fechaRegistro() }}</small>
+                            <small>{{ fechaRegistro }}</small>
                         </span>
                     </li>
 
                 </ul>
             </div>
 
-            <!-- ===== GRUPO: Acceso ===== -->
-            <div class="grupo">
-                <div class="grupo-cabecera">
-                    <span class="icono-caja"><app-icono nombre="key"></app-icono></span>
-                    <span class="acordeon-texto">
-                        <strong>Acceso</strong>
-                        <small>Credenciales con las que ingresas a XchanGo.</small>
-                    </span>
-                </div>
-
-                <ul class="filas">
-                </ul>
-            </div>
-
-            <!-- ===== GRUPO: Preferencias ===== -->
-            <div class="grupo">
-                <div class="grupo-cabecera">
-                    <span class="icono-caja"><app-icono nombre="tune"></app-icono></span>
-                    <span class="acordeon-texto">
-                        <strong>Preferencias de la cuenta</strong>
-                        <small>Ajustes generales de correos y sesión.</small>
-                    </span>
-                </div>
-
-                <ul class="filas">
-                    <li class="fila" *ngFor="let p of preferencias()">
-                        <span class="fila-texto">
-                            <strong>{{ p.titulo }}</strong>
-                            <small>{{ p.detalle }}</small>
-                        </span>
-                        <button class="switch" type="button" [class.on]="p.activo" [attr.aria-pressed]="p.activo"
-                            (click)="togglePreferencia(p.id)">
-                            <span class="bolita"></span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- ===== ZONA DE RIESGO ===== -->
+            <!-- zona de riesgo -->
             <div class="grupo grupo--riesgo">
                 <div class="grupo-cabecera">
                     <span class="icono-caja icono-caja--riesgo">
@@ -213,42 +128,28 @@
                 <ul class="filas">
                     <li class="fila">
                         <span class="fila-texto">
-                            <strong>Desactivar cuenta temporalmente</strong>
-                            <small>Tu perfil y publicaciones dejan de ser visibles hasta que vuelvas a entrar.</small>
-                        </span>
-                        <button class="btn-secundario" type="button" (click)="pedirDesactivar()">Desactivar</button>
-                    </li>
-
-                    <li class="fila">
-                        <span class="fila-texto">
                             <strong>Eliminar cuenta</strong>
-                            <small>Se borran tus publicaciones, trueques y calificaciones. No se puede deshacer.</small>
+                            <small>Tus publicaciones dejan de verse y tu cuenta se cierra.</small>
                         </span>
                         <button class="btn-peligro" type="button" (click)="pedirEliminar()">Eliminar cuenta</button>
                     </li>
                 </ul>
             </div>
 
-            <footer class="tarjeta-pie">
-                <button class="btn-guardar" type="button" (click)="guardarCambios()">Guardar cambios</button>
-            </footer>
-
         </section>
 
     </div>
 </main>
 
-<!-- Aviso que aparece al guardar o confirmar una acción -->
-<p class="aviso-exito" *ngIf="mensajeExito">{{ mensajeExito }}</p>
-
-<!-- Confirmación antes de desactivar o eliminar la cuenta -->
-<div class="modal-fondo" *ngIf="confirmacion" (click)="cerrarConfirmacion()">
+<!-- Confirmación antes de eliminar la cuenta -->
+<div class="modal-fondo" *ngIf="confirmando" (click)="cerrarConfirmacion()">
     <div class="modal-caja" (click)="$event.stopPropagation()">
-        <h3 class="modal-titulo">{{ confirmacion.titulo }}</h3>
-        <p class="modal-texto">{{ confirmacion.texto }}</p>
+        <h3 class="modal-titulo">¿Eliminar tu cuenta?</h3>
+        <p class="modal-texto">Tus publicaciones dejan de verse. No puedes eliminarla si tienes trueques abiertos. Esta acción no se puede deshacer.</p>
+        <p class="modal-texto" *ngIf="errorEliminar" style="color:#a8453b;">{{ errorEliminar }}</p>
         <div class="modal-acciones">
             <button class="btn-secundario" type="button" (click)="cerrarConfirmacion()">Cancelar</button>
-            <button class="btn-peligro" type="button" (click)="confirmarAccion()">Confirmar</button>
+            <button class="btn-peligro" type="button" (click)="confirmarEliminar()">Sí, eliminar</button>
         </div>
     </div>
 </div>
