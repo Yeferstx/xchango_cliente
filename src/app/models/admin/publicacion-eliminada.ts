@@ -1,6 +1,4 @@
-// Publicación retirada por moderación (data/publicaciones-eliminadas.json).
-// Solo claves foráneas: el nombre del usuario y del administrador se resuelven
-// en el servicio para no duplicar información.
+// publicacion que borro un moderador
 export interface PublicacionEliminada {
   id: string;
   publicacionId: string;
@@ -10,7 +8,7 @@ export interface PublicacionEliminada {
   fecha: string;
 }
 
-// Registro enriquecido para la pestaña "Eliminadas" del panel de moderación.
+// registro enriquecido para la pestaña "Eliminadas" del panel de moderacion
 export interface PublicacionEliminadaVista extends PublicacionEliminada {
   titulo: string;
   usuarioNombre: string;

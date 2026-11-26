@@ -1,7 +1,4 @@
-// Documento de identidad que sube un usuario para verificar su cuenta
-// (data/documentos.json).
-// Como todavía no hay backend, el archivo se guarda solo como nombre; cuando
-// exista la API ahí irá la URL real de la imagen.
+// documento de identidad que sube el usuario para verificar la cuenta
 export type EstadoDocumento = 'pendiente' | 'aprobado' | 'rechazado';
 
 export interface Documento {
@@ -9,16 +6,19 @@ export interface Documento {
   usuarioId: string;
   tipoDocumento: string;
   numero: string;
+  // foto del frente (texto de imagen)
   archivo: string;
+  // foto de atras; vacio en los documentos viejos
+  archivoReverso: string;
   fechaSubida: string;
   estado: EstadoDocumento;
-  // Motivo del rechazo o comentario del revisor.
+  // motivo del rechazo o comentario del revisor
   observacion: string;
-  // Id del administrador que lo revisó. null si nadie lo ha revisado.
+  // id del administrador que lo reviso. null si nadie lo ha revisado
   revisadoPor: string | null;
 }
 
-// Documento con el nombre del usuario y del revisor ya resueltos.
+// documento con el nombre del usuario y del revisor ya resueltos
 export interface DocumentoVista extends Documento {
   usuarioNombre: string;
   usuarioEmail: string;
