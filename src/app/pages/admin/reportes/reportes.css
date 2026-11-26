@@ -98,7 +98,7 @@
   font-size: 11.5px;
   font-weight: 600;
   color: var(--admin-ok);
-  background: var(--xg-verde-fondo);
+  background: #e8f3ed;
   padding: 4px 10px;
   border-radius: 999px;
 }
@@ -138,6 +138,10 @@
   flex-shrink: 0;
 }
 
+.rank__pos--1 { background: var(--color-warn-soft); color: var(--color-warn); }
+.rank__pos--2 { background: #eceaea; color: #6e6a6a; }
+.rank__pos--3 { background: var(--color-surface-raised); color: var(--color-text-secondary); }
+
 .rank__cuerpo { flex: 1; min-width: 0; }
 
 .rank__nombre {
@@ -174,6 +178,10 @@
   flex-shrink: 0;
   padding-top: 2px;
 }
+
+.alerta__icono--alta { color: var(--admin-danger); }
+.alerta__icono--media { color: var(--admin-warn); }
+.alerta__icono--baja { color: var(--admin-text-2); }
 
 .alerta__titulo {
   font-size: 13.5px;

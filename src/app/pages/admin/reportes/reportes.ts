@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   OnDestroy,
   OnInit,
@@ -42,48 +41,47 @@ import { AlertasAdminService } from '../../../services/admin/alertas-admin.servi
   ],
   templateUrl: './reportes.html',
   styleUrl: './reportes.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Reportes implements OnInit, OnDestroy {
 
-  private readonly metricasSrv = inject(MetricasAdminService);
-  private readonly usuariosSrv = inject(UsuariosAdminService);
-  private readonly historialSrv = inject(HistorialAdminService);
-  private readonly alertasSrv = inject(AlertasAdminService);
+  private metricasSrv = inject(MetricasAdminService);
+  private usuariosSrv = inject(UsuariosAdminService);
+  private historialSrv = inject(HistorialAdminService);
+  private alertasSrv = inject(AlertasAdminService);
 
-  readonly resumen = this.metricasSrv.resumen;
-  readonly comparativas = this.metricasSrv.comparativas;
-  readonly alertas = this.alertasSrv.alertas;
+  resumen = this.metricasSrv.resumen;
+  comparativas = this.metricasSrv.comparativas;
+  alertas = this.alertasSrv.alertas;
 
-  readonly periodo = signal<Periodo>('90d');
+  periodo = signal<Periodo>('90d');
 
-  readonly desde = signal('');
-  readonly hasta = signal('');
-  readonly exportando = signal('');
+  desde = signal('');
+  hasta = signal('');
+  exportando = signal('');
 
-  readonly actividad = computed(() =>
+  actividad = computed(() =>
     this.metricasSrv.actividadUsuarios(this.periodo())
   );
 
-  readonly intercambios = computed(() =>
+  intercambios = computed(() =>
     this.metricasSrv.intercambiosPorMes(this.periodo())
   );
 
-  readonly categorias = computed(() =>
+  categorias = computed(() =>
     this.metricasSrv.publicacionesPorCategoria()
   );
 
-  readonly ubicaciones = computed(() =>
+  ubicaciones = computed(() =>
     this.metricasSrv.actividadPorUbicacion()
   );
 
-  // HU76 — ranking de usuarios más activos.
-  readonly ranking = computed(() =>
+  // HU76, ranking de usuarios mas activos
+  ranking = computed(() =>
     this.usuariosSrv.ranking('actividad', 5)
   );
 
-  // HU68 — historial filtrado por rango de fechas.
-  readonly historial = computed(() =>
+  // HU68, historial filtrado por rango de fechas
+  historial = computed(() =>
     this.historialSrv.entreFechas(
       this.desde() || undefined,
       this.hasta() || undefined
@@ -113,19 +111,19 @@ export class Reportes implements OnInit, OnDestroy {
 
     switch (r.periodo) {
       case 'hoy':
-        this.periodo.set('1d' as Periodo);
+        this.periodo.set('1d');
         break;
 
       case '7dias':
-        this.periodo.set('7d' as Periodo);
+        this.periodo.set('7d');
         break;
 
       case '30dias':
-        this.periodo.set('30d' as Periodo);
+        this.periodo.set('30d');
         break;
 
       case '90dias':
-        this.periodo.set('90d' as Periodo);
+        this.periodo.set('90d');
         break;
 
       default:
@@ -134,37 +132,31 @@ export class Reportes implements OnInit, OnDestroy {
   }
 
   variacion(clave: string): number | null {
-    return this.comparativas()[clave]?.porcentaje ?? null;
+    const comparativa = this.comparativas()[clave];
+    if (comparativa) {
+      return comparativa.porcentaje;
+    }
+    return null;
   }
 
-  // HU67 — exportación CSV.
-  // Excel puede abrir el archivo directamente.
+  // HU67, exportar en CSV, Excel lo abre directo
   exportarCSV(): void {
+    const resumen: any = this.resumen();
+    let csv = 'Métrica;Valor\n';
 
-    const filas = [
-      ['Métrica', 'Valor'],
+    for (const clave of Object.keys(resumen)) {
+      csv = csv + clave + ';' + resumen[clave] + '\n';
+    }
 
-      ...Object.entries(this.resumen() ?? {})
-        .map(([k, v]) => [k, String(v)]),
+    csv = csv + '\nCategoría;Publicaciones\n';
+    for (const c of this.categorias()) {
+      csv = csv + c.label + ';' + c.valor + '\n';
+    }
 
-      [],
-
-      ['Categoría', 'Publicaciones'],
-
-      ...this.categorias()
-        .map(c => [c.label, String(c.valor)]),
-
-      [],
-
-      ['Ubicación', 'Actividad'],
-
-      ...this.ubicaciones()
-        .map(u => [u.label, String(u.valor)]),
-    ];
-
-    const csv = filas
-      .map(f => f.join(';'))
-      .join('\n');
+    csv = csv + '\nUbicación;Actividad\n';
+    for (const u of this.ubicaciones()) {
+      csv = csv + u.label + ';' + u.valor + '\n';
+    }
 
     this.descargar(
       new Blob(
@@ -177,7 +169,7 @@ export class Reportes implements OnInit, OnDestroy {
     this.avisar('CSV');
   }
 
-  // Abre el diálogo de impresión para guardar como PDF.
+  // abre el dialogo de impresion para guardar como PDF
   exportarPDF(): void {
     this.avisar('PDF');
 
