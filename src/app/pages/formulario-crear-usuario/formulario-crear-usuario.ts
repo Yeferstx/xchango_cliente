@@ -1,211 +1,201 @@
-import { Component, ChangeDetectorRef } from "@angular/core";
+import { LegalInfo } from '../legal-info/legal-info';
+import { LogoXchangoComponent } from '../../components/logo-xchango/logo-xchango';
+import { limpiarCelular, MENSAJE_CELULAR } from '../../shared/celular';
+import { DocumentosService } from '../../services/documentos';
+import { Component } from "@angular/core";
 import { inject, signal } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { TruequesService } from "../../services/trueques";
+import { AuthPinService } from "../../services/auth-pin";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { VerificarCodigoComponent } from "../../layout/verificar-codigo/verificar-codigo";
+import { MUNICIPIOS_CASANARE } from "../../shared/municipios-casanare";
+import { achicarImagen } from "../../shared/imagenes";
 
 interface RegistroUsuario {
   nombres: string;
   apellidos: string;
   fechaNacimiento: string;
-  sexo: string;
   direccion: string;
   ciudad: string;
-  estado: string;
   barrio: string;
   email: string;
   telefono: string;
-  tipoDocumento: string;
-  numeroDocumento: string;
 }
-
-interface Opcion {
-  value: string;
-  label: string;
-}
-
-// Representa una zona de carga de imagen individual (perfil, frente o reverso)
-interface CampoImagen {
-  archivo: File | null;
-  previewUrl: string | null;
-  arrastrando: boolean;
-}
-
-type ClaveImagen = "perfil" | "documentoFrente" | "documentoReverso";
 
 @Component({
   selector: "formulario-crear-usuario",
   standalone: true,
-  imports: [CommonModule, FormsModule, VerificarCodigoComponent, RouterLink],
+  imports: [LegalInfo, LogoXchangoComponent, CommonModule, FormsModule, VerificarCodigoComponent, RouterLink],
   templateUrl: "./formulario-crear-usuario.html",
   styleUrls: ["./formulario-crear-usuario.css"],
 })
-export class FormularioCrearUsuarioComponent {
+export class formulario_crear_usuarioComponent {
+  seccionLegal = signal<'terminos' | 'privacidad' | null>(null);
+
+  volverAlCorreo(): void {
+    this.paso.set('correo');
+    this.enfocar('correo-inicial');
+  }
+
+  volverDelLegal(): void {
+    const seccion = this.seccionLegal();
+    this.seccionLegal.set(null);
+    this.enfocar('registro-' + seccion);
+  }
+
+  // pone el cursor en un campo cuando ya se ve en pantalla
+  private enfocar(id: string): void {
+    setTimeout(() => {
+      const campo = document.getElementById(id);
+      if (campo) {
+        campo.focus();
+      }
+    });
+  }
+
   modelo: RegistroUsuario = {
     nombres: "",
     apellidos: "",
     fechaNacimiento: "",
-    sexo: "",
     direccion: "",
-    ciudad: "",
-    estado: "",
+    ciudad: "Yopal",
     barrio: "",
     email: "",
     telefono: "+57 ",
-    tipoDocumento: "",
-    numeroDocumento: "",
   };
 
-  // Paso actual del registro: primero el correo, luego el código, luego el formulario.
-  readonly paso = signal<'correo' | 'verificar' | 'formulario'>('correo');
+  municipios = MUNICIPIOS_CASANARE;
+
+  // la fecha mas reciente que se puede elegir: hoy hace 18 años (aaaa-mm-dd)
+  fechaMaxima = (() => {
+    const fecha = new Date();
+    fecha.setFullYear(fecha.getFullYear() - 18);
+    return fecha.toISOString().slice(0, 10);
+  })();
+
+  // paso actual del registro: primero el correo, luego el codigo, luego el formulario
+  paso = signal<'correo' | 'verificar' | 'formulario'>('correo');
 
   errorRegistro = "";
+  // para que el boton de continuar no se presione dos veces
+  enviandoCorreo = false;
 
   private servicio = inject(TruequesService);
 
-  private readonly router = inject(Router);
+  private auth = inject(AuthPinService);
 
-  private readonly cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
-  // Datos de los <select>: cada uno se recorre en el HTML con *ngFor.
-  readonly opcionesSexo: Opcion[] = [
-    { value: "femenino", label: "Femenino" },
-    { value: "masculino", label: "Masculino" },
-    { value: "otro", label: "Otro" },
-  ];
+  private documentos = inject(DocumentosService);
 
-  readonly tiposDocumento: Opcion[] = [
-    { value: "cc", label: "Cédula de ciudadanía" },
-    { value: "ce", label: "Cédula de extranjería" },
-    { value: "ti", label: "Tarjeta de identidad" },
-    { value: "pasaporte", label: "Pasaporte" },
-  ];
+  // documento de identidad (es opcional, pero si se sube va completo)
+  tiposDocumento = this.documentos.tiposDocumento;
+  tipoDocumento = "";
+  numeroDocumento = "";
+  docFrente = "";
+  docReverso = "";
 
-  private readonly tiposPermitidos = ["image/png", "image/jpeg"];
-  private readonly tamanoMaximoBytes = 5 * 1024 * 1024; // 5MB
+  // la foto ya achicada y convertida a texto, lista para mandar
+  fotoPerfilTexto = "";
+  fotoPerfilNombre = "";
+  arrastrandoFoto = false;
 
-  readonly fechaRegistro = new Date();
+  private tiposPermitidos = ["image/png", "image/jpeg"];
+  private tamanoMaximoBytes = 5 * 1024 * 1024; // 5MB
 
-  // Una entrada por cada zona de carga de imagen del paso 3
-  imagenes: Record<ClaveImagen, CampoImagen> = {
-    perfil: { archivo: null, previewUrl: null, arrastrando: false },
-    documentoFrente: { archivo: null, previewUrl: null, arrastrando: false },
-    documentoReverso: { archivo: null, previewUrl: null, arrastrando: false },
-  };
-
-  constructor() {
-    this.asegurarFuenteMaterialIcons();
-  }
-
-  /**
-   * Inyecta el link de Google Fonts para Material Icons si el proyecto
-   * todavía no lo tiene cargado (evita que los íconos se vean como texto).
-   */
-  private asegurarFuenteMaterialIcons(): void {
-    const idLink = "material-icons-font";
-    if (document.getElementById(idLink)) {
+  fotoPerfilSeleccionada(event: Event): void {
+    const input: any = event.target;
+    if (!input.files || input.files.length === 0) {
       return;
     }
-    const link = document.createElement("link");
-    link.id = idLink;
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/icon?family=Material+Icons";
-    document.head.appendChild(link);
+    this.asignarFotoPerfil(input.files[0]);
   }
 
-  // ---------------------------------------------------------
-  // Vista previa (columna derecha del paso 3)
-  // ---------------------------------------------------------
-  get nombreCompleto(): string {
-    const nombreCompleto = `${this.modelo.nombres} ${this.modelo.apellidos}`.trim();
-    return nombreCompleto || "Juan Pérez";
-  }
-
-  get ubicacionVistaPrevia(): string {
-    if (this.modelo.ciudad && this.modelo.estado) {
-      return `${this.modelo.ciudad}, ${this.modelo.estado}`;
-    }
-    return "Yopal, Casanare";
-  }
-
-  get telefonoVistaPrevia(): string {
-    return this.modelo.telefono || "+57 300 123 4567";
-  }
-
-  get emailVistaPrevia(): string {
-    return this.modelo.email || "juan@correo.com";
-  }
-
-  get fechaRegistroFormateada(): string {
-    const dia = String(this.fechaRegistro.getDate()).padStart(2, "0");
-    const mes = String(this.fechaRegistro.getMonth() + 1).padStart(2, "0");
-    const anio = this.fechaRegistro.getFullYear();
-    return `${dia}/${mes}/${anio}`;
-  }
-
-  // ---------------------------------------------------------
-  // Manejo de imágenes (drag & drop + input) — genérico para
-  // perfil, frente y reverso del documento
-  // ---------------------------------------------------------
-  onDragOver(event: DragEvent, clave: ClaveImagen): void {
+  arrastrarEncima(event: DragEvent): void {
     event.preventDefault();
-    this.imagenes[clave] = { ...this.imagenes[clave], arrastrando: true };
+    this.arrastrandoFoto = true;
   }
 
-  onDragLeave(event: DragEvent, clave: ClaveImagen): void {
+  salirArrastre(event: DragEvent): void {
     event.preventDefault();
-    this.imagenes[clave] = { ...this.imagenes[clave], arrastrando: false };
+    this.arrastrandoFoto = false;
   }
 
-  onDrop(event: DragEvent, clave: ClaveImagen): void {
+  soltarArchivo(event: DragEvent): void {
     event.preventDefault();
-    this.imagenes[clave] = { ...this.imagenes[clave], arrastrando: false };
-    if (event.dataTransfer?.files?.length) {
-      this.asignarImagen(event.dataTransfer.files[0], clave);
+    this.arrastrandoFoto = false;
+
+    if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+      this.asignarFotoPerfil(event.dataTransfer.files[0]);
     }
   }
 
-  onFileSelected(event: Event, clave: ClaveImagen): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.asignarImagen(input.files[0], clave);
-    }
-    input.value = "";
-  }
-
-  private asignarImagen(file: File, clave: ClaveImagen): void {
-    if (!this.tiposPermitidos.includes(file.type)) {
-      console.warn("Formato no permitido. Usa JPG o PNG.");
+  private async asignarFotoPerfil(archivo: File): Promise<void> {
+    if (!this.tiposPermitidos.includes(archivo.type)) {
+      this.errorRegistro = "La foto debe ser JPG o PNG.";
       return;
     }
-    if (file.size > this.tamanoMaximoBytes) {
-      console.warn("El archivo supera el máximo de 5MB.");
+    if (archivo.size > this.tamanoMaximoBytes) {
+      this.errorRegistro = "La foto supera el máximo de 5MB.";
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.imagenes[clave] = {
-        archivo: file,
-        previewUrl: reader.result as string,
-        arrastrando: false,
-      };
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
+    try {
+      this.fotoPerfilTexto = await achicarImagen(archivo, 256, 0.8);
+      this.fotoPerfilNombre = archivo.name;
+      this.errorRegistro = "";
+    } catch {
+      this.errorRegistro = "No se pudo leer esa foto. Prueba con otra.";
+    }
   }
 
-  quitarImagen(clave: ClaveImagen): void {
-    this.imagenes[clave] = { archivo: null, previewUrl: null, arrastrando: false };
+  // foto del documento: lado "frente" o "reverso". Se achica a 1600 px para que se lea
+  async documentoSeleccionado(event: Event, lado: string): Promise<void> {
+    const input: any = event.target;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+    const archivo = input.files[0];
+
+    if (!this.tiposPermitidos.includes(archivo.type)) {
+      this.errorRegistro = "La foto del documento debe ser JPG o PNG.";
+      return;
+    }
+    if (archivo.size > this.tamanoMaximoBytes) {
+      this.errorRegistro = "La foto del documento supera el máximo de 5MB.";
+      return;
+    }
+
+    try {
+      const texto = await achicarImagen(archivo, 1600, 0.8);
+      if (lado === "frente") {
+        this.docFrente = texto;
+      } else {
+        this.docReverso = texto;
+      }
+      this.errorRegistro = "";
+    } catch {
+      this.errorRegistro = "No se pudo leer esa foto. Prueba con otra.";
+    }
   }
 
-  // ---------------------------------------------------------
-  // Paso 1: solo el correo. Si el formato es válido y no está ya
-  // registrado, sigue a verificar.
-  // ---------------------------------------------------------
-  continuarConCorreo(): void {
+  // true si la persona lleno algo del documento
+  get quiereSubirDocumento(): boolean {
+    return !!(this.tipoDocumento || this.numeroDocumento.trim() || this.docFrente || this.docReverso);
+  }
+
+  quitarFotoPerfil(): void {
+    this.fotoPerfilTexto = "";
+    this.fotoPerfilNombre = "";
+  }
+
+  // paso 1: solo el correo. Se manda el PIN y, si ya tiene cuenta, se avisa
+  async continuarConCorreo(): Promise<void> {
+    if (this.enviandoCorreo) {
+      return;
+    }
     this.errorRegistro = "";
     const correo = this.modelo.email.trim().toLowerCase();
 
@@ -213,7 +203,16 @@ export class FormularioCrearUsuarioComponent {
       this.errorRegistro = "Ingresa un correo válido.";
       return;
     }
-    if (this.servicio.correoRegistrado(correo)) {
+
+    this.enviandoCorreo = true;
+    const problema = await this.auth.enviarPin(correo, 'registro');
+    this.enviandoCorreo = false;
+    if (problema) {
+      this.errorRegistro = problema;
+      return;
+    }
+
+    if (!this.auth.requiereRegistro()) {
       this.errorRegistro = "Ese correo ya tiene una cuenta. Inicia sesión en vez de registrarte.";
       return;
     }
@@ -222,38 +221,70 @@ export class FormularioCrearUsuarioComponent {
     this.paso.set('verificar');
   }
 
-  // Paso 2: código verificado, ahora sí se llena el resto de los datos.
-  onCodigoVerificado(): void {
+  // paso 2: PIN verificado, ahora si se llena el resto de los datos
+  codigoVerificado(): void {
     this.paso.set('formulario');
   }
 
-  // Paso 3: formulario completo, ya se registra de verdad.
-  onSubmit(): void {
+  // paso 3: formulario completo, ya se registra de verdad
+  async enviarFormulario(): Promise<void> {
     this.errorRegistro = "";
 
-    if (!this.imagenes.perfil.archivo) {
-      this.errorRegistro = "Sube tu foto de perfil antes de continuar.";
+    const nombre = this.modelo.nombres.trim();
+    const apellido = this.modelo.apellidos.trim();
+    const direccion = this.modelo.direccion.trim();
+    const barrio = this.modelo.barrio.trim();
+
+    if (!nombre) {
+      this.errorRegistro = "Escribe tu nombre.";
       return;
     }
-    if (this.modelo.tipoDocumento && !this.imagenes.documentoFrente.archivo) {
-      this.errorRegistro = "Sube la foto del frente de tu documento.";
+    if (!apellido) {
+      this.errorRegistro = "Escribe tu apellido.";
       return;
     }
-    if (this.modelo.tipoDocumento && !this.imagenes.documentoReverso.archivo) {
-      this.errorRegistro = "Sube la foto del reverso de tu documento.";
+    if (!this.modelo.fechaNacimiento) {
+      this.errorRegistro = "Elige tu fecha de nacimiento.";
+      return;
+    }
+    if (this.modelo.fechaNacimiento > this.fechaMaxima) {
+      this.errorRegistro = "Debes ser mayor de 18 años para registrarte.";
+      return;
+    }
+    if (!direccion) {
+      this.errorRegistro = "Escribe tu dirección.";
+      return;
+    }
+    if (!barrio) {
+      this.errorRegistro = "Escribe tu barrio.";
       return;
     }
 
-    const nombre = (this.modelo.nombres + " " + this.modelo.apellidos).trim();
+    if (
+      this.quiereSubirDocumento &&
+      !(this.tipoDocumento && this.numeroDocumento.trim() && this.docFrente && this.docReverso)
+    ) {
+      this.errorRegistro =
+        "Para enviar tu documento completa el tipo, el número y las fotos de los dos lados (o déjalo vacío).";
+      return;
+    }
 
-    // TODO: confirmar si TruequesService.registrar acepta los archivos
-    // (fotoPerfil / documentoFrente / documentoReverso) o si hace falta
-    // subirlos aparte (ej. a un storage) antes de llamar a registrar().
-    const mensaje = this.servicio.registrar({
+    const celular = limpiarCelular(this.modelo.telefono);
+    if (!celular) {
+      this.errorRegistro = MENSAJE_CELULAR;
+      return;
+    }
+
+    const mensaje = await this.servicio.registrar({
       nombre: nombre,
+      apellido: apellido,
+      fechaNacimiento: this.modelo.fechaNacimiento,
       email: this.modelo.email,
-      telefono: this.modelo.telefono,
+      telefono: celular,
       ubicacion: this.modelo.ciudad || "Yopal",
+      direccion: direccion,
+      barrio: barrio,
+      avatar: this.fotoPerfilTexto,
     });
 
     if (mensaje) {
@@ -261,7 +292,22 @@ export class FormularioCrearUsuarioComponent {
       return;
     }
 
-    // Ya quedó registrado y con la sesión abierta.
+    // ya quedo registrado y con la sesion abierta. Si puso el documento, se manda ahora
+    if (this.quiereSubirDocumento) {
+      const problema = await this.documentos.subir(
+        this.tipoDocumento,
+        this.numeroDocumento,
+        this.docFrente,
+        this.docReverso,
+      );
+
+      if (problema) {
+        // la cuenta ya existe; se lleva a la pantalla donde puede volver a intentarlo
+        this.router.navigate(["/perfil/verificacion"], { queryParams: { aviso: "documento" } });
+        return;
+      }
+    }
+
     this.router.navigate(["/home"]);
   }
 }
