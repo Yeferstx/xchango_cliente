@@ -1,42 +1,24 @@
+<!-- navbar -->
+
 <header class="navbar">
 
-    <a class="marca" routerLink="/home">
-        <img src="Logo-xchango/chango.png" alt="XchanGo" class="logo" />
-        <img src="Logo-xchango/letras-chango.png" alt="XchanGo" class="logo" />
-    </a>
+    <div class="marca">
+        <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
+    </div>
 
     <nav class="nav-pill">
-
-        <a routerLink="/home" class="nav-item activo">
+        <a routerLink="/home" class="nav-item">
             <app-icono nombre="home"></app-icono>
             Inicio
         </a>
-
-        <a routerLink="/explorar" class="nav-item">
-            <app-icono nombre="search"></app-icono>
-            Explorar
-        </a>
-
         <a routerLink="/mis-trueques" class="nav-item">
             <app-icono nombre="swap_horiz"></app-icono>
             Mis trueques
         </a>
-
-        <a routerLink="/servicios" class="nav-item">
+        <a routerLink="/mis-publicaciones" class="nav-item">
             <app-icono nombre="apps"></app-icono>
-            Servicios
+            Mis publicaciones
         </a>
-
-        <a routerLink="/mensajes" class="nav-item">
-            <app-icono nombre="chat_bubble_outline"></app-icono>
-            Mensajes
-        </a>
-
-        <a routerLink="/favoritos" class="nav-item">
-            <app-icono nombre="favorite_border"></app-icono>
-            Favoritos
-        </a>
-
     </nav>
 
     <div class="nav-derecha">
@@ -45,8 +27,8 @@
             <app-icono nombre="notifications_none"></app-icono>
         </button>
 
-        <div class="avatar-nav">
-            <img src="https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Carlos Ospina" />
+        <div class="avatar-nav" routerLink="/perfil" title="Mi perfil" style="cursor:pointer">
+            <img [src]="avatarUrl" [alt]="nombreUsuario" />
         </div>
 
         <app-icono nombre="expand_more"></app-icono>
@@ -54,6 +36,8 @@
     </div>
 
 </header>
+
+<!-- contenedor -->
 
 <main class="contenedor">
 
@@ -63,20 +47,16 @@
 
         <aside class="columna-identidad">
 
-            <button class="btn-volver" type="button" (click)="volver()">
-                <app-icono nombre="arrow_back"></app-icono>
-
-                Volver
-            </button>
+            <a class="btn-volver enlace-volver" routerLink="/perfil"><span aria-hidden="true">&#8592;</span> Volver al perfil</a>
 
             <div class="foto-perfil">
 
-                <img src="https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Foto de Miguel Perez" />
+                <img [src]="avatarUrl" [alt]="'Foto de ' + nombreUsuario" />
 
             </div>
 
             <h2 class="nombre">
-                Miguel Perez
+                {{ nombreUsuario }}
             </h2>
 
             <h3 class="subtitulo-calif">
@@ -84,17 +64,8 @@
             </h3>
 
             <div class="estrellas">
-
-                <app-icono nombre="star"></app-icono>
-
-                <app-icono nombre="star"></app-icono>
-
-                <app-icono nombre="star"></app-icono>
-
-                <app-icono nombre="star"></app-icono>
-
-                <app-icono nombre="star"></app-icono>
-
+                <app-icono *ngFor="let n of [1, 2, 3, 4, 5]" nombre="star"
+                    [style.opacity]="n <= calificacion ? 1 : 0.3"></app-icono>
             </div>
 
             <p class="nota-calif">
@@ -104,7 +75,11 @@
 
         </aside>
 
+        <!-- contenido -->
+
         <section class="tarjeta">
+
+            <!-- ENCABEZADO -->
 
             <header class="tarjeta-encabezado">
 
@@ -119,8 +94,8 @@
                     </h1>
 
                     <p class="descripcion">
-                        Encuentra trueques cerca de ti y elige
-                        dónde realizar tus intercambios.
+                        El municipio y el barrio donde haces
+                        tus trueques.
                     </p>
 
                 </div>
@@ -136,166 +111,6 @@
                 </div>
 
             </header>
-
-            <div class="mapa-seccion">
-
-                <div class="mapa-encabezado">
-
-                    <div>
-
-                        <h2>
-                            Trueques cerca de ti
-                        </h2>
-
-                        <p>
-                            Mostrando publicaciones dentro de
-                            {{ radio() }} km.
-                        </p>
-
-                    </div>
-
-                    <button class="btn-mapa" type="button" (click)="usarUbicacionActual()"
-                        [disabled]="obteniendoUbicacion()">
-
-                        <app-icono nombre="my_location"></app-icono>
-
-                        {{
-                        obteniendoUbicacion()
-                        ? 'Buscando...'
-                        : 'Usar mi ubicación'
-                        }}
-
-                    </button>
-
-                    <!-- Nombre del trueque del marcador que se tocó -->
-                    <p class="marcador-detalle" *ngIf="truequeSeleccionado">
-                        {{ truequeSeleccionado.titulo }} · a {{ truequeSeleccionado.distancia }} km
-                    </p>
-
-                </div>
-
-                <!-- mapa visual -->
-
-                <div class="mapa-principal">
-
-                    <div class="mapa-cuadricula"></div>
-
-                    <!-- Calles -->
-
-                    <div class="calle calle-1"></div>
-                    <div class="calle calle-2"></div>
-                    <div class="calle calle-3"></div>
-                    <div class="calle calle-4"></div>
-
-                    <!-- Radio -->
-
-                    <div class="mapa-radio" [style.width.%]="radio() / 1.25" [style.height.%]="radio() / 1.25"></div>
-
-                    <!-- Usuario -->
-
-                    <div class="marcador-usuario">
-
-                        <div class="pulso"></div>
-
-                        <div class="marcador-centro">
-                            <app-icono nombre="person_pin_circle"></app-icono>
-                        </div>
-
-                    </div>
-
-                    <!-- Trueques -->
-
-                    <button class="marcador-trueque" type="button" *ngFor="let trueque of truequesCercanos()"
-                        [style.left.%]="trueque.x" [style.top.%]="trueque.y" [attr.aria-label]="trueque.titulo" (click)="verMarcador(trueque)">
-
-                        <app-icono nombre="swap_horiz"></app-icono>
-
-                    </button>
-
-                    <!-- Etiqueta ubicación -->
-
-                    <div class="etiqueta-mapa">
-
-                        <app-icono nombre="location_on"></app-icono>
-
-                        <div>
-
-                            <strong>
-                                Tu ubicación
-                            </strong>
-
-                            <small>
-                                {{ municipio() }}
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Leyenda -->
-
-                    <div class="leyenda-mapa">
-
-                        <div>
-                            <span class="leyenda-punto usuario"></span>
-                            Tu ubicación
-                        </div>
-
-                        <div>
-                            <span class="leyenda-punto trueque"></span>
-                            Trueques
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- resumen del mapa -->
-
-                <div class="resumen-mapa">
-
-                    <div class="resumen-item">
-
-                        <app-icono nombre="swap_horiz"></app-icono>
-
-                        <div>
-
-                            <strong>
-                                {{ truequesCercanos().length }}
-                                trueques cercanos
-                            </strong>
-
-                            <small>
-                                Dentro de tu radio de búsqueda
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                    <div class="separador-resumen"></div>
-
-                    <div class="resumen-item">
-
-                        <app-icono nombre="explore"></app-icono>
-
-                        <div>
-
-                            <strong>
-                                {{ radio() }} km
-                            </strong>
-
-                            <small>
-                                Radio actual
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
 
             <!-- ubicación principal -->
 
@@ -314,15 +129,14 @@
                         </strong>
 
                         <small>
-                            Se utiliza para mostrarte trueques
-                            cercanos.
+                            Son los datos de ubicación de tu cuenta.
                         </small>
 
                     </span>
 
                 </div>
 
-                <!-- vista normal -->
+                <!-- VISTA NORMAL -->
 
                 <div class="ubicacion-actual" *ngIf="!editando()">
 
@@ -342,12 +156,8 @@
                             Barrio {{ barrio() }}
                         </span>
 
-                        <span class="dato" *ngIf="referencia()">
-                            {{ referencia() }}
-                        </span>
-
-                        <span class="dato sin-dato" *ngIf="!barrio() && !referencia()">
-                            Sin barrio ni referencia registrados.
+                        <span class="dato sin-dato" *ngIf="!barrio()">
+                            Sin barrio registrado.
                         </span>
 
                     </div>
@@ -358,7 +168,13 @@
 
                 </div>
 
+                <!-- FORMULARIO -->
+
                 <div class="formulario" *ngIf="editando()">
+
+                    <p class="ayuda" *ngIf="errorUbicacion()" style="color:#a8453b;grid-column:1/-1;margin:0;">
+                        {{ errorUbicacion() }}
+                    </p>
 
                     <div class="campo">
 
@@ -388,30 +204,15 @@
 
                     </div>
 
-                    <div class="campo campo--ancho">
-
-                        <label for="referencia">
-                            Punto de referencia
-                        </label>
-
-                        <input id="referencia" class="entrada" type="text" placeholder="Ej: Cerca al parque principal"
-                            [ngModel]="tempReferencia()" (ngModelChange)="tempReferencia.set($event)" />
-
-                        <small class="ayuda">
-                            Tu dirección exacta nunca se mostrará
-                            públicamente.
-                        </small>
-
-                    </div>
-
                     <div class="acciones-formulario">
 
                         <button class="btn-secundario" type="button" (click)="cancelarEdicion()">
                             Cancelar
                         </button>
 
-                        <button class="btn-mini" type="button" (click)="guardarUbicacion()">
-                            Guardar ubicación
+                        <button class="btn-mini" type="button" [disabled]="guardandoUbicacion()"
+                            (click)="guardarUbicacion()">
+                            {{ guardandoUbicacion() ? 'Guardando...' : 'Guardar ubicación' }}
                         </button>
 
                     </div>
@@ -419,226 +220,6 @@
                 </div>
 
             </div>
-
-            <!-- radio -->
-
-            <div class="grupo">
-
-                <div class="grupo-cabecera">
-
-                    <span class="icono-caja">
-                        <app-icono nombre="my_location"></app-icono>
-                    </span>
-
-                    <span class="acordeon-texto">
-
-                        <strong>
-                            Radio de búsqueda
-                        </strong>
-
-                        <small>
-                            Define qué tan lejos quieres buscar
-                            trueques.
-                        </small>
-
-                    </span>
-
-                </div>
-
-                <div class="bloque-radio">
-
-                    <div class="radio-valor">
-
-                        <span class="numero">
-                            {{ radio() }}
-                        </span>
-
-                        <span class="unidad">
-                            km a la redonda
-                        </span>
-
-                    </div>
-
-                    <input class="deslizador" type="range" min="5" max="100" step="5" [value]="radio()"
-                        (input)="cambiarRadio($any($event.target).value)" />
-
-                    <div class="radio-limites">
-
-                        <span>
-                            5 km
-                        </span>
-
-                        <span>
-                            100 km
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- puntos de encuentro -->
-
-            <div class="grupo">
-
-                <div class="grupo-cabecera">
-
-                    <span class="icono-caja">
-                        <app-icono nombre="handshake"></app-icono>
-                    </span>
-
-                    <span class="acordeon-texto">
-
-                        <strong>
-                            Puntos de encuentro
-                        </strong>
-
-                        <small>
-                            Lugares públicos recomendados para
-                            realizar tus trueques.
-                        </small>
-
-                    </span>
-
-                </div>
-
-                <ul class="filas">
-
-                    <li class="fila" *ngFor="let p of puntos()">
-
-                        <app-icono nombre="pin_drop"></app-icono>
-
-                        <span class="fila-texto">
-
-                            <strong>
-                                {{ p.nombre }}
-                            </strong>
-
-                            <small>
-                                {{ p.detalle }}
-                            </small>
-
-                        </span>
-
-                        <button class="btn-ruta" type="button" (click)="abrirGoogleMaps(p.nombre)"
-                            title="Abrir en Google Maps">
-
-                            <app-icono nombre="directions"></app-icono>
-
-                        </button>
-
-                        <button class="btn-icono" type="button" (click)="eliminarPunto(p.id)" title="Eliminar punto">
-
-                            <app-icono nombre="delete_outline"></app-icono>
-
-                        </button>
-
-                    </li>
-
-                    <li class="fila" *ngIf="puntos().length === 0">
-
-                        <span class="fila-texto">
-
-                            <small>
-                                Aún no has agregado puntos de encuentro.
-                            </small>
-
-                        </span>
-
-                    </li>
-
-                </ul>
-
-                <div class="agregar-punto">
-
-                    <input class="entrada" type="text" placeholder="Ej: Parque de la Iglesia" [ngModel]="nuevoPunto()"
-                        (ngModelChange)="nuevoPunto.set($event)" (keyup.enter)="agregarPunto()" />
-
-                    <button class="btn-mini" type="button" (click)="agregarPunto()">
-
-                        <app-icono nombre="add"></app-icono>
-
-                        Agregar
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <!-- preferencias -->
-
-            <div class="grupo">
-
-                <div class="grupo-cabecera">
-
-                    <span class="icono-caja">
-                        <app-icono nombre="tune"></app-icono>
-                    </span>
-
-                    <span class="acordeon-texto">
-
-                        <strong>
-                            Privacidad y preferencias
-                        </strong>
-
-                        <small>
-                            Controla cómo XchanGo utiliza tu ubicación.
-                        </small>
-
-                    </span>
-
-                </div>
-
-                <ul class="filas">
-
-                    <li class="fila" *ngFor="let p of preferencias()">
-
-                        <span class="fila-texto">
-
-                            <strong>
-                                {{ p.titulo }}
-                            </strong>
-
-                            <small>
-                                {{ p.detalle }}
-                            </small>
-
-                        </span>
-
-                        <button class="switch" type="button" [class.on]="p.activo" [attr.aria-pressed]="p.activo"
-                            (click)="togglePreferencia(p.id)">
-
-                            <span class="bolita"></span>
-
-                        </button>
-
-                    </li>
-
-                </ul>
-
-            </div>
-
-            <footer class="tarjeta-pie">
-
-                <div class="mensaje-guardado" *ngIf="guardado()">
-
-                    <app-icono nombre="check_circle"></app-icono>
-
-                    Cambios guardados
-
-                </div>
-
-                <button class="btn-guardar" type="button" (click)="guardarCambios()">
-
-                    <app-icono nombre="save"></app-icono>
-
-                    Guardar cambios
-
-                </button>
-
-            </footer>
 
         </section>
 
