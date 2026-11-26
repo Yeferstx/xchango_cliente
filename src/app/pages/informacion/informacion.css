@@ -1,32 +1,25 @@
 /* XchanGo · Tu información */
 
 :host {
-    --bg-app: var(--xg-bg);
-    --bg-nav: var(--xg-superficie);
-    --bg-card: var(--xg-crema);
+    --bg-app: var(--color-background);
+    --bg-nav: var(--color-surface);
+    --bg-card: var(--color-cream);
     --bg-option: var(--xg-crema-fuerte);
-    --bg-option-hover: var(--xg-borde);
-    --accent: var(--xg-acento);
-    --accent-dark: var(--xg-acento-oscuro);
-    --text-primary: var(--xg-texto);
-    --text-secondary: var(--xg-texto-tenue);
-    --border-soft: var(--xg-borde);
-    --star-filled: var(--xg-acento);
-    --star-empty: var(--xg-borde);
-    --navy: #1f1b16;
-    --navy-dark: #322b23;
+    --bg-option-hover: var(--color-border-solid);
+    --accent: var(--color-accent);
+    --accent-dark: var(--color-accent-dark);
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-muted);
+    --border-soft: var(--color-border-solid);
+    --star-filled: var(--color-accent);
+    --star-empty: var(--color-border-solid);
+    --navy: var(--color-primary);
+    --navy-dark: var(--color-primary-dark);
 
     display: block;
-    font-family: var(--xg-fuente-texto);
+    font-family: var(--xg-fuente-texto, 'Nunito', 'Segoe UI', Roboto, Arial, sans-serif);
     background: var(--bg-app);
     min-height: 100vh;
-}
-
-h1,
-h2,
-h3 {
-    font-family: var(--xg-fuente-titulo);
-    color: var(--text-primary);
 }
 
 * {
@@ -42,77 +35,63 @@ h3 {
 /* NAVBAR (igual que en /perfil) */
 
 .navbar {
-    position: relative;
-    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
-    min-height: 64px;
     margin-bottom: 32px;
 }
 
 .navbar__brand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    height: 52px;
-    margin-left: -12px;
+    gap: 10px;
     flex-shrink: 0;
 }
 
 .navbar__logo {
-    width: 90px;
+    width: 34px;
     height: 34px;
     object-fit: contain;
-    display: block;
-    flex-shrink: 0;
+    border-radius: 6px;
+}
+
+.navbar__brand-name {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--text-primary);
 }
 
 .navbar__pill {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px;
-    background: rgba(255, 255, 255, 0.54);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 20px;
-    box-shadow: var(--xg-sombra-suave);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    gap: 4px;
+    background: var(--bg-nav);
+    border-radius: 999px;
+    padding: 8px 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .navbar__link {
-    min-height: 40px;
-    padding: 0 15px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 7px;
-    border-radius: 14px;
-    color: var(--xg-texto-suave);
-    font-size: 14px;
-    font-weight: 700;
-    white-space: nowrap;
-    text-decoration: none;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.navbar__link:hover {
-    background: rgba(255, 255, 255, 0.72);
-    color: var(--xg-texto-fuerte);
-    transform: translateY(-1px);
+    white-space: nowrap;
 }
 
 .navbar__link app-icono {
-    color: var(--text-secondary);
     font-size: 18px;
 }
 
-.navbar__link:first-child {
-    background: var(--text-primary);
-    color: var(--xg-card);
+.navbar__link:hover {
+    background: var(--bg-option);
+    color: var(--text-primary);
 }
 
 .navbar__actions {
@@ -133,26 +112,6 @@ h3 {
     justify-content: center;
     cursor: pointer;
     color: var(--text-primary);
-    transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.navbar__icon-btn:hover {
-    background: var(--bg-option);
-    transform: scale(1.05);
-}
-
-.navbar__perfil-wrap {
-    position: relative;
-}
-
-.navbar__avatar-btn {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    border: 0;
-    background: transparent;
-    padding: 0;
-    cursor: pointer;
 }
 
 .navbar__avatar {
@@ -161,7 +120,6 @@ h3 {
     border-radius: 50%;
     overflow: hidden;
     border: 2px solid var(--accent);
-    background: var(--bg-option);
     flex-shrink: 0;
 }
 
@@ -172,61 +130,8 @@ h3 {
     display: block;
 }
 
-.navbar__menu {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    z-index: 300;
-    width: 250px;
-    padding: 12px;
-    background: var(--bg-nav);
-    border: 1px solid var(--border-soft);
-    border-radius: 16px;
-    box-shadow: 0 16px 34px rgba(31, 27, 22, 0.14);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.navbar__menu-nombre {
-    margin: 0 0 6px;
-    padding: 0 8px;
-    font-family: var(--xg-fuente-titulo);
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.navbar__menu-link,
-.navbar__menu-salir {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 8px;
-    border: 0;
-    border-radius: 10px;
-    background: transparent;
-    font: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    text-align: left;
-    text-decoration: none;
+.navbar__chevron {
     color: var(--text-secondary);
-    cursor: pointer;
-}
-
-.navbar__menu-link:hover,
-.navbar__menu-salir:hover {
-    background: var(--bg-option);
-    color: var(--text-primary);
-}
-
-.navbar__menu-salir {
-    margin-top: 4px;
-    border-top: 1px solid var(--border-soft);
-    border-radius: 0;
-    padding-top: 12px;
-    color: #b4453a;
 }
 
 /* tarjeta principal */
@@ -274,6 +179,7 @@ h3 {
     color: var(--text-primary);
 }
 
+/* FOTO DE PERFIL: tamaño corregido + contenida en el círculo */
 .perfil__avatar-wrap {
     width: 160px;
     height: 160px;
@@ -335,104 +241,191 @@ h3 {
 
 .info-panel {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    background: #fff;
+    flex-direction: column;
+    gap: 22px;
+    background: var(--color-surface);
     border: 1px solid var(--border-soft);
     border-radius: 22px;
-    padding: 36px 40px;
-    gap: 24px;
-}
-
-.info-panel__form {
-    flex: 1;
-    max-width: 420px;
+    padding: 32px 36px;
+    box-shadow: 0 2px 10px rgba(60, 40, 10, 0.05);
 }
 
 .info-panel__title {
-    font-size: 1.3rem;
-    font-weight: 700;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
     color: var(--text-primary);
-    margin: 0 0 24px;
+}
+
+.info-panel__sub {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* foto de perfil */
+.info-foto {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--bg-app);
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+}
+
+.info-foto__img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bg-option);
+    border: 2px solid #fff;
+    flex-shrink: 0;
+}
+
+.info-foto__texto {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.info-foto__texto strong {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.info-foto__texto small {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.info-foto__boton {
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border-soft);
+    background: var(--oscuro-fondo, #fff);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+
+.info-foto__boton:hover {
+    background: var(--bg-option);
+}
+
+.info-foto__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.info-foto__input:focus-visible + .info-foto__boton,
+.info-foto__boton:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+}
+
+/* campos en dos columnas */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
 }
 
 .info-field {
-    display: block;
-    margin-bottom: 20px;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.info-field--ancho {
+    grid-column: 1 / -1;
 }
 
 .info-field__label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.82rem;
+    font-weight: 800;
     color: var(--text-primary);
-    margin-bottom: 8px;
+}
+
+.info-field__label em {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
 }
 
 .info-field__input {
     width: 100%;
     background: var(--bg-app);
     border: 1px solid var(--border-soft);
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 12px 14px;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     font-family: inherit;
     color: var(--text-primary);
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.info-field__input::placeholder {
+    color: #a89e8a;
 }
 
 .info-field__input:focus {
-    border-color: var(--accent);
+    border-color: var(--accent-dark);
+    background: var(--oscuro-fondo, #fff);
 }
 
-.upload-box {
+textarea.info-field__input {
+    resize: vertical;
+    min-height: 84px;
+}
+
+/* pie con el botón */
+.info-pie {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 160px;
-    height: 130px;
-    background: var(--bg-app);
-    border: 1px dashed var(--border-soft);
-    border-radius: 12px;
-    cursor: pointer;
-    overflow: hidden;
+    justify-content: flex-end;
+    gap: 16px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-soft);
 }
 
-.upload-box__hint {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+.info-pie__error {
+    margin: 0 auto 0 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-error);
 }
 
-.upload-box__preview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.upload-box__input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+.info-pie__ok {
+    margin: 0 auto 0 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--oscuro-texto-suave, #2f7a4d);
 }
 
 .btn-guardar {
-    margin-top: 8px;
     background: var(--navy);
     color: #fff;
     border: none;
     border-radius: 999px;
-    padding: 12px 32px;
-    font-size: 0.9rem;
-    font-weight: 700;
+    padding: 12px 30px;
+    font-size: 0.92rem;
+    font-weight: 800;
     font-family: inherit;
     cursor: pointer;
     transition: background 0.15s ease;
@@ -442,12 +435,7 @@ h3 {
     background: var(--navy-dark);
 }
 
-.info-panel__mascota {
-    width: 130px;
-    flex-shrink: 0;
-    align-self: center;
-    object-fit: contain;
-}
+/* responsive */
 
 @media (max-width: 1024px) {
     .navbar__pill {
@@ -463,43 +451,11 @@ h3 {
         text-align: center;
     }
 
-    .info-panel {
-        flex-direction: column-reverse;
-        align-items: center;
-    }
-
-    .info-panel__form {
-        max-width: none;
-        width: 100%;
-    }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     .perfil-page {
         padding: 16px;
-    }
-
-    .navbar {
-        gap: 10px;
-    }
-
-    .navbar__brand {
-        gap: 5px;
-        margin-left: 0;
-    }
-
-    .navbar__actions {
-        gap: 6px;
-    }
-
-    .navbar__icon-btn {
-        width: 36px;
-        height: 36px;
-    }
-
-    .navbar__avatar {
-        width: 34px;
-        height: 34px;
     }
 
     .perfil__hero {
@@ -508,11 +464,49 @@ h3 {
     }
 
     .info-panel {
-        padding: 24px 20px;
+        padding: 22px 18px;
+    }
+
+    .info-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .info-foto {
+        flex-wrap: wrap;
+    }
+
+    .info-foto__texto {
+        flex: 1 1 120px;
+    }
+
+    .info-foto__boton {
+        order: 3;
+        width: 100%;
+        text-align: center;
+    }
+
+    .info-pie {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .btn-guardar {
+        width: 100%;
     }
 
     .perfil__avatar-wrap {
         width: 130px;
         height: 130px;
     }
+}
+/* los enlaces del menú no llevan subrayado */
+.navbar__link {
+    text-decoration: none;
+}
+
+/* los títulos usan la misma letra que en las demás pantallas de cuenta */
+.info-panel__title,
+.perfil__name,
+.perfil__rating-title {
+    font-family: var(--xg-fuente-titulo, 'Baloo 2', 'Nunito', sans-serif);
 }

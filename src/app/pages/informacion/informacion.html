@@ -1,9 +1,9 @@
 <div class="perfil-page">
 
+    <!-- NAVBAR -->
     <header class="navbar">
         <div class="navbar__brand">
-        <img src="Logo-xchango/chango.png" alt="XchanGo" class="navbar__logo" />
-        <img src="Logo-xchango/letras-chango.png" alt="XchanGo" class="navbar__logo" />
+            <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
         </div>
 
         <nav class=" navbar__pill">
@@ -16,13 +16,14 @@
             <button class="navbar__icon-btn" aria-label="Notificaciones" routerLink="/notificaciones">
                 <app-icono nombre="notifications_none"></app-icono>
             </button>
-            <div class="navbar__avatar">
+            <div class="navbar__avatar" routerLink="/perfil" title="Mi perfil" style="cursor:pointer">
                 <img [src]="avatarUrl" [alt]="nombreUsuario" />
             </div>
             <app-icono nombre="expand_more"></app-icono>
         </div>
     </header>
 
+    <!-- CONTENIDO -->
     <main class="perfil">
         <section class="perfil__card perfil__hero">
 
@@ -58,43 +59,79 @@
 
             <!-- Columna derecha: formulario de "Tu información" -->
             <div class="info-panel">
-                <div class="info-panel__form">
+
+                <header class="info-panel__cabeza">
                     <h2 class="info-panel__title">Tu información</h2>
+                    <p class="info-panel__sub">Estos datos se ven en tu perfil y sirven para contactarte por WhatsApp.</p>
+                </header>
+
+                <!-- Foto -->
+                <div class="info-foto">
+                    <img class="info-foto__img" [src]="avatarUrl" [alt]="'Foto de perfil de ' + nombreUsuario" />
+                    <div class="info-foto__texto">
+                        <strong>Foto de perfil</strong>
+                        <small>JPG o PNG. Se ajusta sola.</small>
+                    </div>
+                    <label class="info-foto__boton" for="fotoInput">Cambiar foto</label>
+                    <input id="fotoInput" type="file" accept="image/*" class="info-foto__input"
+                        (change)="archivoSeleccionado($event)" />
+                </div>
+
+                <!-- Campos -->
+                <div class="info-grid">
 
                     <label class="info-field">
-                        <span class="info-field__label">Nombre elegido</span>
+                        <span class="info-field__label">Nombre</span>
                         <input class="info-field__input" type="text" name="nombreElegido" [(ngModel)]="nombreElegido"
                             placeholder="Escribe tu nombre" />
                     </label>
 
                     <label class="info-field">
-                        <span class="info-field__label">Número de Teléfono</span>
+                        <span class="info-field__label">Apellido</span>
+                        <input class="info-field__input" type="text" name="apellidoElegido" [(ngModel)]="apellidoElegido"
+                            placeholder="Escribe tu apellido" />
+                    </label>
+
+                    <label class="info-field">
+                        <span class="info-field__label">Número de teléfono</span>
                         <input class="info-field__input" type="tel" name="numeroTelefono" [(ngModel)]="numeroTelefono"
                             placeholder="Ej: 3001234567" />
                     </label>
 
-                    <div class="info-field">
-                        <span class="info-field__label">Cambiar foto de Perfil</span>
+                    <label class="info-field">
+                        <span class="info-field__label">Barrio</span>
+                        <input class="info-field__input" type="text" name="barrio" [(ngModel)]="barrio"
+                            placeholder="Ej: El Centro" />
+                    </label>
 
-                        <label class="upload-box" for="fotoInput">
-                            <ng-container *ngIf="!fotoPreviewUrl">
-                                <span class="upload-box__hint">Subir foto</span>
-                                <app-icono nombre="south"></app-icono>
-                            </ng-container>
+                    <label class="info-field info-field--ancho">
+                        <span class="info-field__label">Dirección</span>
+                        <input class="info-field__input" type="text" name="direccion" [(ngModel)]="direccion"
+                            placeholder="Ej: Calle 10 # 5-20" />
+                    </label>
 
-                            <img *ngIf="fotoPreviewUrl" class="upload-box__preview" [src]="fotoPreviewUrl"
-                                alt="Vista previa de la nueva foto de perfil" />
-                        </label>
-                        <input id="fotoInput" type="file" accept="image/*" class="upload-box__input"
-                            (change)="onArchivoSeleccionado($event)" />
-                    </div>
+                    <label class="info-field info-field--ancho">
+                        <span class="info-field__label">
+                            Descripción de tu perfil
+                            <em>{{ descripcion.length }}/300</em>
+                        </span>
+                        <textarea class="info-field__input" name="descripcion" rows="3" maxlength="300"
+                            [(ngModel)]="descripcion"
+                            placeholder="Cuéntale a los demás qué te gusta intercambiar"></textarea>
+                    </label>
 
-                    <button class="btn-guardar" type="button" (click)="guardarCambios()">
-                        Guardar
-                    </button>
                 </div>
 
-                <img class="info-panel__mascota" src="Logo-xchango/chango.png" alt="Mascota de XchanGo" />
+                <!-- Pie -->
+                <footer class="info-pie">
+                    <p class="info-pie__error" *ngIf="errorGuardado">{{ errorGuardado }}</p>
+                    <p class="info-pie__ok" *ngIf="guardado">Cambios guardados.</p>
+
+                    <button class="btn-guardar" type="button" (click)="guardarCambios()">
+                        Guardar cambios
+                    </button>
+                </footer>
+
             </div>
 
         </section>
