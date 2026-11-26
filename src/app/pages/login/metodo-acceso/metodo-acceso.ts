@@ -1,5 +1,5 @@
+import { LogoXchangoComponent } from '../../../components/logo-xchango/logo-xchango';
 import {
-  ChangeDetectionStrategy,
   Component,
   EventEmitter,
   HostListener,
@@ -9,14 +9,12 @@ import {
 
 export type ModoAuth = 'login' | 'registro';
 
-export type MetodoAuth = 'google' | 'apple' | 'correo';
-
 @Component({
+  imports: [LogoXchangoComponent],
   selector: 'app-metodo-acceso',
   templateUrl: './metodo-acceso.html',
   styleUrl: './metodo-acceso.css',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MetodoAcceso {
 
@@ -26,17 +24,15 @@ export class MetodoAcceso {
 
   @Input() modo: ModoAuth = 'login';
 
-
   // salidas
 
   @Output() cerrar = new EventEmitter<void>();
 
   @Output() cambiarModo = new EventEmitter<ModoAuth>();
 
-  @Output() seleccionarMetodo = new EventEmitter<MetodoAuth>();
+  @Output() seleccionarMetodo = new EventEmitter<void>();
 
-
-  // textos según modo
+  // textos segun modo
 
   get titulo(): string {
 
@@ -70,7 +66,6 @@ export class MetodoAcceso {
 
   }
 
-
   // acciones
 
   cerrarModal(): void {
@@ -79,10 +74,10 @@ export class MetodoAcceso {
 
   }
 
-  onOverlayClick(event: MouseEvent): void {
+  clicFondo(event: MouseEvent): void {
 
-    // Solo cierra si el clic fue exactamente sobre el overlay,
-    // no si vino de un elemento hijo (el propio modal).
+    // solo cierra si el clic fue exactamente sobre el overlay,
+    // no si vino de un elemento hijo (el propio modal)
     if (event.target === event.currentTarget) {
 
       this.cerrarModal();
@@ -91,35 +86,24 @@ export class MetodoAcceso {
 
   }
 
-  toggleModo(): void {
+  alternarModo(): void {
 
-    const nuevoModo: ModoAuth =
-      this.modo === 'registro' ? 'login' : 'registro';
-
-    this.cambiarModo.emit(nuevoModo);
-
-  }
-
-  elegirGoogle(): void {
-
-    this.seleccionarMetodo.emit('google');
-
-  }
-
-  elegirApple(): void {
-
-    this.seleccionarMetodo.emit('apple');
+    if (this.modo === 'registro') {
+      this.cambiarModo.emit('login');
+    } else {
+      this.cambiarModo.emit('registro');
+    }
 
   }
 
   elegirCorreo(): void {
 
-    this.seleccionarMetodo.emit('correo');
+    this.seleccionarMetodo.emit();
 
   }
 
   @HostListener('document:keydown.escape')
-  onEscape(): void {
+  teclaEscape(): void {
 
     if (this.abierto) {
 
