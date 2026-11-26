@@ -1,80 +1,126 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import {
-  Comparativa,
-  MetricasData,
-  MetricasResumen,
-  SerieGrafico,
-} from '../../models/admin/metrica';
+import { API_URL } from '../../config/api';
+import { Comparativa, MetricasData, MetricasResumen, SerieGrafico } from '../../models/admin/metrica';
 
 export type Periodo = '1d' | '7d' | '30d' | '90d' | 'anio';
 
-// Estas interfaces se redeclaraban aquí, duplicando `models/admin/metrica.ts`.
-// Ahora se importan de allí y se reexportan para no romper a quien las
-// importaba desde este archivo.
+// se exportan otra vez para los archivos que las importaban desde aqui
 export type { MetricasData, MetricasResumen, SerieGrafico };
 export type MetricaComparativa = Comparativa;
 
-const RESUMEN_VACIO: MetricasResumen = {
-  usuarios: 0,
-  usuariosActivos: 0,
-  publicaciones: 0,
-  intercambios: 0,
-  publicacionesReportadas: 0,
-  usuariosSuspendidos: 0,
-};
-
 @Injectable({ providedIn: 'root' })
 export class MetricasAdminService {
-  private readonly http = inject(HttpClient);
-  private readonly datos = signal<MetricasData | null>(null);
-  private readonly _cargando = signal(false);
-  private readonly _error = signal<string | null>(null);
+  private http = inject(HttpClient);
+  private datos = signal<MetricasData | null>(null);
+  private estaCargando = signal(false);
+  private mensajeError = signal('');
   private cargado = false;
-  private temporizador: ReturnType<typeof setInterval> | null = null;
+  private temporizador: any = null;
 
-  readonly cargando = this._cargando.asReadonly();
-  readonly error = this._error.asReadonly();
-  readonly resumen = signal<MetricasResumen>({ ...RESUMEN_VACIO });
-  readonly comparativas = signal<Record<string, Comparativa>>({});
+  cargando = this.estaCargando.asReadonly();
+  error = this.mensajeError.asReadonly();
+
+  resumen = signal<MetricasResumen>({
+    usuarios: 0,
+    usuariosActivos: 0,
+    publicaciones: 0,
+    intercambios: 0,
+    publicacionesReportadas: 0,
+    usuariosSuspendidos: 0,
+  });
+
+  comparativas = signal<any>({});
 
   cargar(): void {
-    if (this.cargado) return;
+    if (this.cargado) {
+      return;
+    }
     this.cargado = true;
-    this._cargando.set(true);
-    this.http.get<MetricasData>('data/metricas.json').subscribe({
-      next: (datos) => {
+    this.estaCargando.set(true);
+
+    this.http.get(API_URL + '/admin/metricas').subscribe({
+      next: (datos: any) => {
         this.aplicar(datos);
-        this._cargando.set(false);
+        this.estaCargando.set(false);
       },
       error: () => {
         this.cargado = false;
-        this._error.set('No se pudieron cargar las métricas.');
-        this._cargando.set(false);
+        this.mensajeError.set('No se pudieron cargar las métricas.');
+        this.estaCargando.set(false);
       },
     });
   }
 
-  actividadUsuarios(periodo: Periodo): SerieGrafico[] { return this.recortar(this.datos()?.actividadMensual ?? [], periodo); }
-  intercambiosPorMes(periodo: Periodo): SerieGrafico[] { return this.recortar(this.datos()?.intercambiosPorMes ?? [], periodo); }
-  publicacionesPorCategoria(): SerieGrafico[] { return this.datos()?.publicacionesPorCategoria ?? []; }
-  actividadPorUbicacion(): SerieGrafico[] { return this.datos()?.actividadPorUbicacion ?? []; }
-  crecimientoCategorias(): SerieGrafico[] { return this.datos()?.crecimientoCategorias ?? []; }
-  categoriasMasUsadas(limite = 6): SerieGrafico[] { return [...this.publicacionesPorCategoria()].sort((a, b) => b.valor - a.valor).slice(0, limite); }
-  ubicacionesMasActivas(limite = 7): SerieGrafico[] { return [...this.actividadPorUbicacion()].sort((a, b) => b.valor - a.valor).slice(0, limite); }
+  actividadUsuarios(periodo: Periodo): SerieGrafico[] {
+    const d = this.datos();
+    if (!d) {
+      return [];
+    }
+    return this.recortar(d.actividadMensual, periodo);
+  }
 
+  intercambiosPorMes(periodo: Periodo): SerieGrafico[] {
+    const d = this.datos();
+    if (!d) {
+      return [];
+    }
+    return this.recortar(d.intercambiosPorMes, periodo);
+  }
+
+  publicacionesPorCategoria(): SerieGrafico[] {
+    const d = this.datos();
+    if (!d) {
+      return [];
+    }
+    return d.publicacionesPorCategoria;
+  }
+
+  actividadPorUbicacion(): SerieGrafico[] {
+    const d = this.datos();
+    if (!d) {
+      return [];
+    }
+    return d.actividadPorUbicacion;
+  }
+
+  crecimientoCategorias(): SerieGrafico[] {
+    const d = this.datos();
+    if (!d) {
+      return [];
+    }
+    return d.crecimientoCategorias;
+  }
+
+  categoriasMasUsadas(limite = 6): SerieGrafico[] {
+    const lista = this.publicacionesPorCategoria().slice();
+    lista.sort((a, b) => b.valor - a.valor);
+    return lista.slice(0, limite);
+  }
+
+  ubicacionesMasActivas(limite = 7): SerieGrafico[] {
+    const lista = this.actividadPorUbicacion().slice();
+    lista.sort((a, b) => b.valor - a.valor);
+    return lista.slice(0, limite);
+  }
+
+  // cada cierto tiempo vuelve a pedir las metricas
   iniciarTiempoReal(intervalo = 6000): void {
-    if (this.temporizador === null) this.temporizador = setInterval(() => this.recargar(), intervalo);
+    if (this.temporizador === null) {
+      this.temporizador = setInterval(() => this.recargar(), intervalo);
+    }
   }
 
   detenerTiempoReal(): void {
-    if (this.temporizador !== null) clearInterval(this.temporizador);
+    if (this.temporizador !== null) {
+      clearInterval(this.temporizador);
+    }
     this.temporizador = null;
   }
 
   private recargar(): void {
-    this.http.get<MetricasData>('data/metricas.json').subscribe((datos) => this.aplicar(datos));
+    this.http.get(API_URL + '/admin/metricas').subscribe((datos: any) => this.aplicar(datos));
   }
 
   private aplicar(datos: MetricasData): void {
@@ -83,8 +129,22 @@ export class MetricasAdminService {
     this.comparativas.set(datos.comparativas);
   }
 
+  // deja solo los ultimos datos segun el periodo
   private recortar(datos: SerieGrafico[], periodo: Periodo): SerieGrafico[] {
-    const limites: Record<Periodo, number> = { '1d': 1, '7d': 7, '30d': 30, '90d': 90, anio: datos.length };
-    return datos.slice(-Math.min(limites[periodo], datos.length));
+    let cantidad = datos.length;
+    if (periodo === '1d') {
+      cantidad = 1;
+    } else if (periodo === '7d') {
+      cantidad = 7;
+    } else if (periodo === '30d') {
+      cantidad = 30;
+    } else if (periodo === '90d') {
+      cantidad = 90;
+    }
+
+    if (cantidad > datos.length) {
+      cantidad = datos.length;
+    }
+    return datos.slice(datos.length - cantidad);
   }
 }
