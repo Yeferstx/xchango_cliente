@@ -9,8 +9,8 @@ import { DocumentoVista } from '../../../models/admin/documento';
 
 type Filtro = 'pendiente' | 'aprobado' | 'rechazado' | 'todos';
 
-// Verificación de documentos.
-// El usuario sube su documento y aquí se aprueba o se rechaza.
+// verificacion de documentos
+// el usuario sube su documento y aqui se aprueba o se rechaza
 @Component({
   selector: 'app-documentos',
   standalone: true,
@@ -24,15 +24,31 @@ export class DocumentosComponent implements OnInit {
 
   filtro = signal<Filtro>('pendiente');
 
-  // Observación que escribe el revisor, guardada por id de documento.
-  observaciones: Record<string, string> = {};
+  // foto que se esta viendo en grande (null = ninguna)
+  ampliada = signal<string | null>(null);
+
+  esImagen(texto: string | undefined): boolean {
+    if (texto && texto.startsWith('data:image/')) {
+      return true;
+    }
+    return false;
+  }
+
+  ampliar(foto: string): void {
+    this.ampliada.set(foto);
+  }
+
+  // observacion que escribe el revisor, guardada por id de documento
+  observaciones: any = {};
 
   cargando = this.srv.cargando;
   pendientes = this.srv.pendientes;
 
-  listado = computed<DocumentoVista[]>(() => {
+  listado = computed(() => {
     const f = this.filtro();
-    if (f === 'todos') return this.srv.documentos();
+    if (f === 'todos') {
+      return this.srv.documentos();
+    }
     return this.srv.documentos().filter((d) => d.estado === f);
   });
 
@@ -46,7 +62,9 @@ export class DocumentosComponent implements OnInit {
   }
 
   contar(estado: Filtro): number {
-    if (estado === 'todos') return this.srv.documentos().length;
+    if (estado === 'todos') {
+      return this.srv.documentos().length;
+    }
     return this.srv.documentos().filter((d) => d.estado === estado).length;
   }
 
@@ -61,8 +79,12 @@ export class DocumentosComponent implements OnInit {
   }
 
   claseEstado(estado: string): string {
-    if (estado === 'aprobado') return 'doc__chip doc__chip--ok';
-    if (estado === 'rechazado') return 'doc__chip doc__chip--no';
+    if (estado === 'aprobado') {
+      return 'doc__chip doc__chip--ok';
+    }
+    if (estado === 'rechazado') {
+      return 'doc__chip doc__chip--no';
+    }
     return 'doc__chip doc__chip--pend';
   }
 }

@@ -1,7 +1,6 @@
 <section class="doc">
   <header class="doc__top">
     <div>
-      <h1 class="doc__title">Verificación de documentos</h1>
       <p class="doc__sub">
         Revisa el documento que subió cada usuario y aprueba o rechaza su cuenta.
       </p>
@@ -43,9 +42,21 @@
         <div><dt>Subido</dt><dd>{{ d.fechaSubida }}</dd></div>
       </dl>
 
-      <div class="doc__archivo">
-        <app-icono nombre="description"></app-icono>
-        <span>{{ d.archivo }}</span>
+      <div class="doc__fotos">
+        <button type="button" class="doc__foto" *ngIf="esImagen(d.archivo)" (click)="ampliar(d.archivo)"
+          title="Ver el frente más grande">
+          <img [src]="d.archivo" alt="Frente del documento" />
+          <span>Frente</span>
+        </button>
+        <button type="button" class="doc__foto" *ngIf="esImagen(d.archivoReverso)" (click)="ampliar(d.archivoReverso)"
+          title="Ver la parte de atrás más grande">
+          <img [src]="d.archivoReverso" alt="Parte de atrás del documento" />
+          <span>Atrás</span>
+        </button>
+        <p class="doc__sin-foto" *ngIf="!esImagen(d.archivo)">Este documento no tiene foto guardada.</p>
+        <p class="doc__sin-foto" *ngIf="esImagen(d.archivo) && !esImagen(d.archivoReverso)">
+          Este documento se subió solo por el frente.
+        </p>
       </div>
 
       <ng-container *ngIf="d.estado === 'pendiente'">
@@ -69,3 +80,8 @@
     </li>
   </ul>
 </section>
+
+<div class="doc__visor" *ngIf="ampliada()" (click)="ampliada.set(null)">
+  <img [src]="ampliada()" alt="Documento ampliado" (click)="$event.stopPropagation()" />
+  <button type="button" class="doc__visor-cerrar" (click)="ampliada.set(null)">Cerrar</button>
+</div>

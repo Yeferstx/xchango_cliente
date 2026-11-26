@@ -1,27 +1,26 @@
 :host {
-  --doc-card: var(--admin-surface, #fffdf8);
-  --doc-line: var(--admin-border, #e5dcc8);
-  --doc-ink: var(--admin-text, #1f1b16);
-  --doc-soft: var(--admin-text-2, #7a6f5d);
-  --doc-acc: var(--admin-accent, #c8a86b);
-  --doc-ok: var(--admin-ok, #3f7d52);
-  --doc-no: var(--admin-danger, #a8453b);
+  --doc-card: var(--admin-surface, var(--color-surface));
+  --doc-line: var(--admin-border, var(--color-border-solid));
+  --doc-ink: var(--admin-text, var(--color-text));
+  --doc-soft: var(--admin-text-2, var(--color-text-muted));
+  --doc-acc: var(--admin-accent, var(--color-accent));
+  --doc-ok: var(--admin-ok, var(--color-ok));
+  --doc-no: var(--admin-danger, var(--color-error));
   display: block;
 }
 
 .doc { padding: 4px 0 40px; }
 
 .doc__top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
-.doc__title { margin: 0; font-family: "Baloo 2", sans-serif; font-size: 1.5rem; color: var(--doc-ink); }
 .doc__sub { margin: 4px 0 0; color: var(--doc-soft); font-size: .9rem; }
-.doc__contador { margin-left: auto; color: var(--admin-warn, #8a6b1f);
+.doc__contador { margin-left: auto; color: var(--admin-warn, var(--color-warn));
   font-size: .8rem; font-weight: 700; }
 
 .doc__filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
 .doc__filtro { border: 1px solid var(--doc-line); background: var(--doc-card);
   color: var(--doc-soft); border-radius: 999px; padding: 8px 16px; cursor: pointer; font: inherit; }
 .doc__filtro:hover { border-color: var(--doc-acc); }
-.doc__filtro--on { background: var(--doc-ink); color: var(--xg-papel); border-color: var(--doc-ink); }
+.doc__filtro--on { background: var(--doc-ink); color: var(--color-surface); border-color: var(--doc-ink); }
 
 .doc__vacio { color: var(--doc-soft); background: var(--doc-card);
   border: 1px dashed var(--doc-line); border-radius: 14px; padding: 26px; text-align: center; }
@@ -38,7 +37,7 @@
 
 .doc__chip { padding: 0; font-size: .76rem;
   font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
-.doc__chip--pend { color: var(--admin-warn, #8a6b1f); }
+.doc__chip--pend { color: var(--admin-warn, var(--color-warn)); }
 .doc__chip--ok { color: var(--doc-ok); }
 .doc__chip--no { color: var(--doc-no); }
 
@@ -47,7 +46,7 @@
 .doc__datos dd { margin: 2px 0 0; color: var(--doc-ink); }
 
 .doc__archivo { display: flex; align-items: center; gap: 8px; color: var(--doc-soft);
-  background: var(--xg-papel-crema); border-radius: 10px; padding: 10px 12px; font-size: .88rem; margin-bottom: 12px; }
+  background: var(--color-surface-raised); border-radius: 10px; padding: 10px 12px; font-size: .88rem; margin-bottom: 12px; }
 
 .doc__obs { width: 100%; border: 1px solid var(--doc-line); border-radius: 10px;
   padding: 10px 12px; font: inherit; margin-bottom: 10px; background: #fff; color: var(--doc-ink); }
@@ -60,4 +59,18 @@
 .doc__btn--no { background: #fff; border-color: var(--doc-no); color: var(--doc-no); }
 
 .doc__obs-texto { margin: 0; color: var(--doc-soft); font-size: .88rem;
-  background: var(--xg-papel-crema); border-radius: 10px; padding: 10px 12px; }
+  background: var(--color-surface-raised); border-radius: 10px; padding: 10px 12px; }
+
+.doc__fotos { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.doc__foto { display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 6px;
+  background: var(--color-surface-raised); border: 1px solid var(--doc-line); border-radius: 10px; cursor: zoom-in; font: inherit;
+  color: var(--doc-soft); }
+.doc__foto img { display: block; width: 190px; max-width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
+.doc__foto span { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+.doc__sin-foto { margin: 0; align-self: center; color: var(--doc-soft); font-size: .85rem; }
+
+.doc__visor { position: fixed; inset: 0; z-index: 50; background: rgba(20, 16, 10, .8); display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; }
+.doc__visor img { max-width: min(92vw, 1100px); max-height: 80vh; object-fit: contain; background: #fff; border-radius: 10px; }
+.doc__visor-cerrar { border: none; border-radius: 999px; padding: 9px 22px; font: inherit; font-weight: 700;
+  cursor: pointer; background: #fff; color: var(--color-text); }
