@@ -1,0 +1,77 @@
+<div class="verificar">
+  <a class="verificar__volver" [routerLink]="destinoVolver"><span aria-hidden="true">&#8592;</span> {{ textoVolver }}</a>
+
+  <h1 class="verificar__titulo">Verificar mi cuenta</h1>
+  <p class="verificar__texto">
+    Sube tu documento de identidad. Un moderador lo revisa y, si todo está bien, tu cuenta queda
+    verificada.
+  </p>
+
+  <p class="verificar__aviso verificar__aviso--error" *ngIf="avisoRegistro && !verificada">
+    Tu cuenta ya se creó, pero no pudimos enviar tu documento. Vuelve a intentarlo aquí.
+  </p>
+
+  <p class="verificar__aviso verificar__aviso--ok" *ngIf="verificada">
+    Tu cuenta ya está verificada.
+  </p>
+
+  <section class="verificar__tarjeta" *ngIf="puedeSubir">
+    <h2>Subir documento</h2>
+
+    <label class="verificar__campo">
+      <span>Tipo de documento</span>
+      <select name="tipoDocumento" [(ngModel)]="tipoDocumento">
+        <option value="" disabled>Selecciona</option>
+        <option *ngFor="let tipo of tiposDocumento" [value]="tipo">{{ tipo }}</option>
+      </select>
+    </label>
+
+    <label class="verificar__campo">
+      <span>Número de documento</span>
+      <input name="numero" type="text" maxlength="30" placeholder="Ej: 1118543210" [(ngModel)]="numero" />
+    </label>
+
+    <div class="verificar__fotos">
+      <div class="verificar__campo">
+        <span>Foto por el frente (JPG o PNG)</span>
+        <input type="file" accept="image/png, image/jpeg" (change)="fotoSeleccionada($event, 'frente')" />
+        <img class="verificar__vista" *ngIf="fotoFrente" [src]="fotoFrente" alt="Vista previa del frente del documento" />
+      </div>
+
+      <div class="verificar__campo">
+        <span>Foto por atrás (JPG o PNG)</span>
+        <input type="file" accept="image/png, image/jpeg" (change)="fotoSeleccionada($event, 'reverso')" />
+        <img class="verificar__vista" *ngIf="fotoReverso" [src]="fotoReverso" alt="Vista previa de atrás del documento" />
+      </div>
+    </div>
+
+    <p class="verificar__aviso verificar__aviso--error" *ngIf="error">{{ error }}</p>
+    <p class="verificar__aviso verificar__aviso--ok" *ngIf="exito">{{ exito }}</p>
+
+    <button class="verificar__boton" type="button" (click)="enviar()" [disabled]="enviando">
+      {{ enviando ? 'Enviando...' : 'Enviar documento' }}
+    </button>
+  </section>
+
+  <p class="verificar__aviso" *ngIf="hayPendiente && !verificada">
+    Ya tienes un documento en revisión. Cuando lo revisen podrás ver aquí el resultado.
+  </p>
+
+  <section class="verificar__tarjeta">
+    <h2>Mis documentos</h2>
+
+    <p *ngIf="cargando">Cargando...</p>
+    <p *ngIf="!cargando && misDocumentos.length === 0">Todavía no has subido ningún documento.</p>
+
+    <article class="verificar__documento" *ngFor="let documento of misDocumentos">
+      <div>
+        <strong>{{ documento.tipoDocumento }}</strong>
+        <span>N.° {{ documento.numero }} · subido el {{ documento.fechaSubida | date: 'd MMM y' }}</span>
+        <em *ngIf="documento.observacion">{{ documento.observacion }}</em>
+      </div>
+      <span class="verificar__estado" [ngClass]="'verificar__estado--' + documento.estado">
+        {{ textoEstado(documento.estado) }}
+      </span>
+    </article>
+  </section>
+</div>
