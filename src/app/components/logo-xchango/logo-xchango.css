@@ -35,7 +35,7 @@
 }
 
 .logo--md .logo__letras {
-  width: 96px;
+  width: 95px;
 }
 
 .logo--lg .logo__chango {
@@ -44,7 +44,7 @@
 }
 
 .logo--lg .logo__letras {
-  width: 112px;
+  width: 118px;
 }
 
 @media (max-width: 600px) {
@@ -54,7 +54,7 @@
   }
 
   .logo--lg .logo__letras {
-    width: 96px;
+    width: 95px;
   }
 }
 
@@ -82,6 +82,12 @@
 
 @media (max-width: 480px) {
   .logo--apilado.logo--md .logo__completo {
-    width: 96px;
+    width: 95px;
+  }
+}
+
+@media (max-width: 620px) {
+  .logo--compacto-movil .logo__letras {
+    display: none;
   }
 }
