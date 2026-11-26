@@ -1,16 +1,14 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { TruequesService } from '../../services/trueques';
 import { TruequeVista, ETIQUETA_ESTADO_TRUEQUE } from '../../models/trueque.model';
 
 type Pestana = 'recibidos' | 'enviados';
 
-/**
- * HU45-HU53: bandeja de solicitudes de trueque.
- * Aceptar, rechazar, confirmar, calificar y contactar por WhatsApp.
- */
+// HU45-HU53: bandeja de solicitudes de trueque
+// aceptar, rechazar, confirmar, calificar y contactar por WhatsApp
 @Component({
   selector: 'app-mis-trueques',
   standalone: true,
@@ -19,30 +17,58 @@ type Pestana = 'recibidos' | 'enviados';
   styleUrl: './mis_trueques.css',
 })
 export class MisTruequesComponent implements OnInit {
-  private readonly srv = inject(TruequesService);
-  private readonly location = inject(Location);
+  private srv = inject(TruequesService);
 
-  readonly pestana = signal<Pestana>('recibidos');
-  readonly etiquetas = ETIQUETA_ESTADO_TRUEQUE;
-  readonly notas = [1, 2, 3, 4, 5];
-  readonly aviso = signal('');
+  private route = inject(ActivatedRoute);
+  private parametros = this.route.snapshot.queryParamMap;
+  desdeNotificaciones = this.parametros.get('desde') === 'notificaciones';
+  destacado = signal<string | null>(null);
 
-  readonly recibidos = this.srv.truequesRecibidos;
-  readonly enviados = this.srv.truequesEnviados;
+  pestana = signal('recibidos');
+  etiquetas = ETIQUETA_ESTADO_TRUEQUE;
+  notas = [1, 2, 3, 4, 5];
+  aviso = signal('');
 
-  readonly listado = computed<TruequeVista[]>(() =>
-    this.pestana() === 'recibidos' ? this.recibidos() : this.enviados(),
-  );
+  recibidos = this.srv.truequesRecibidos;
+  enviados = this.srv.truequesEnviados;
 
-  readonly pendientes = this.srv.solicitudesPendientes;
+  listado = computed(() => {
+    if (this.pestana() === 'recibidos') {
+      return this.recibidos();
+    }
+    return this.enviados();
+  });
 
-  ngOnInit(): void {
-    this.srv.cargar();
+  pendientes = this.srv.solicitudesPendientes;
+
+  async ngOnInit(): Promise<void> {
+    await this.srv.esperarDatos();
+    const id = this.parametros.get('trueque');
+    if (!id) {
+      return;
+    }
+    // se busca si el trueque de la notificacion es enviado o recibido
+    let pestana = '';
+    for (const t of this.enviados()) {
+      if (t.id === id) {
+        pestana = 'enviados';
+      }
+    }
+    for (const t of this.recibidos()) {
+      if (t.id === id) {
+        pestana = 'recibidos';
+      }
+    }
+
+    if (!pestana) {
+      this.aviso.set('El trueque de esta notificación ya no está disponible.');
+      return;
+    }
+
+    this.pestana.set(pestana);
+    this.destacado.set(id);
   }
 
-  volver(): void {
-    this.location.back();
-  }
 
   cambiarPestana(p: Pestana): void {
     this.pestana.set(p);
@@ -68,24 +94,27 @@ export class MisTruequesComponent implements OnInit {
     return this.srv.miCalificacion(t);
   }
 
-  /** true si ya confirmé mi parte y falta la contraparte. */
+  // true si ya confirme mi parte y falta la contraparte
   esperandoContraparte(t: TruequeVista): boolean {
     const yo = this.srv.usuarioActualId();
-    if (t.estado !== 'aceptado') return false;
-    return t.solicitanteId === yo ? t.confirmadoSolicitante : t.confirmadoPropietario;
+    if (t.estado !== 'aceptado') {
+      return false;
+    }
+    if (t.solicitanteId === yo) {
+      return t.confirmadoSolicitante;
+    }
+    return t.confirmadoPropietario;
   }
 
   contactar(t: TruequeVista): void {
     this.srv.abrirWhatsApp(this.srv.enlaceWhatsAppTrueque(t));
   }
 
-  claseEstado(estado: TruequeVista['estado']): string {
-    const mapa: Record<TruequeVista['estado'], string> = {
-      pendiente: 'chip chip--pendiente',
-      aceptado: 'chip chip--aceptado',
-      rechazado: 'chip chip--rechazado',
-      completado: 'chip chip--completado',
-    };
-    return mapa[estado];
+  claseEstado(estado: string): string {
+    // cancelado usa el mismo color de rechazado
+    if (estado === 'cancelado') {
+      return 'chip chip--rechazado';
+    }
+    return 'chip chip--' + estado;
   }
 }

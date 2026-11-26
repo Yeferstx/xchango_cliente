@@ -1,6 +1,6 @@
 <div class="mt">
   <header class="mt__top">
-    <button class="mt__back" type="button" (click)="volver()">← Volver</button>
+    <a class="mt__back enlace-volver" [routerLink]="desdeNotificaciones ? '/notificaciones' : '/home'"><span aria-hidden="true">&#8592;</span> {{ desdeNotificaciones ? 'Volver a Notificaciones' : 'Volver al inicio' }}</a>
     <h1 class="mt__title">Mis trueques</h1>
     <a class="mt__link" routerLink="/mis-publicaciones">Mis publicaciones</a>
   </header>
@@ -33,12 +33,16 @@
   </p>
 
   <ul class="mt__list">
-    <li class="mt__card" *ngFor="let t of listado()">
+    <li class="mt__card" *ngFor="let t of listado()" [class.mt__card--destacada]="destacado() === t.id" [attr.tabindex]="destacado() === t.id ? -1 : null">
       <div class="mt__head">
-        <img class="mt__avatar" [src]="t.solicitanteAvatar" alt="" />
+        <img
+          class="mt__avatar"
+          [src]="pestana() === 'recibidos' ? t.solicitanteAvatar : t.propietarioAvatar"
+          alt=""
+        />
         <div class="mt__who">
           <strong>{{ pestana() === 'recibidos' ? t.solicitanteNombre : t.propietarioNombre }}</strong>
-          <a class="mt__pub" [routerLink]="['/trueque', t.publicacionId]">{{ t.publicacionTitulo }}</a>
+          <a class="mt__pub" [routerLink]="['/trueque', t.publicacionId]" [queryParams]="{ desde: 'mis-trueques', trueque: t.id, bandeja: desdeNotificaciones ? 'notificaciones' : null }">{{ t.publicacionTitulo }}</a>
         </div>
         <span [class]="claseEstado(t.estado)">{{ etiquetas[t.estado] }}</span>
       </div>
@@ -46,7 +50,7 @@
       <dl class="mt__deal">
         <div><dt>Ofrece</dt><dd>{{ t.ofrece }}</dd></div>
         <div><dt>Busca</dt><dd>{{ t.busca }}</dd></div>
-        <div><dt>Fecha</dt><dd>{{ t.fechaSolicitud }}</dd></div>
+        <div><dt>Fecha</dt><dd>{{ t.fechaSolicitud | date: 'd MMM y' }}</dd></div>
       </dl>
 
       <div class="mt__actions">
