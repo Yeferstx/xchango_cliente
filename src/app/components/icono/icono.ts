@@ -2,14 +2,8 @@ import { Component, Input } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 
-// Icono de XchanGo.
-// Antes había dos estilos mezclados: la fuente Material Icons en unas páginas
-// y SVG de línea en otras. Se dejó el estilo del login (SVG con trazo de 2 y
-// puntas redondeadas) porque es el que mejor se ve, y este componente lo aplica
-// en toda la app.
-// Uso:  <app-icono nombre="home"></app-icono>
-//       <app-icono nombre="search" [tamano]="20"></app-icono>
-// El color se hereda del texto (currentColor), así que se cambia con CSS.
+// iconos svg de la app, el color sale del texto (currentColor)
+// uso: <app-icono nombre="home" [tamano]="20"></app-icono>
 @Component({
   selector: 'app-icono',
   standalone: true,
@@ -18,20 +12,19 @@ import { CommonModule } from '@angular/common';
   styleUrl: './icono.css',
 })
 export class IconoComponent {
-  // Angular borra las etiquetas SVG cuando se pintan con innerHTML, por eso hay
-  // que marcarlas como seguras. Aquí no hay riesgo: los trazos son textos fijos
-  // escritos por nosotros, nunca vienen del usuario.
+  // angular borra el svg del innerHTML si no se marca como seguro
+  // (los trazos son fijos, no vienen del usuario)
   constructor(private sanitizer: DomSanitizer) {}
 
-  // Nombre del icono. Si no existe, se muestra un punto.
+  // nombre del icono. Si no existe, se muestra un punto
   @Input() nombre = '';
 
-
+  // tamaño en pixeles
   @Input() tamano = 20;
 
-  // Dibujo de cada icono. Son trazos SVG sobre una caja de 24x24.
-  // Para agregar uno nuevo, se pone su nombre y su trazo en esta lista.
-  private dibujos: Record<string, string> = {
+  // dibujo de cada icono. Son trazos SVG sobre una caja de 24x24
+  // para agregar uno nuevo, se pone su nombre y su trazo en esta lista
+  private dibujos: any = {
     home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
     apps: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
@@ -107,9 +100,7 @@ export class IconoComponent {
     logout: '<path d="M14 4H6v16h8"/><path d="M18 12H10"/><path d="m15 9 3 3-3 3"/>',
   };
 
-  /** Devuelve el trazo del icono pedido (o un punto si no existe), ya marcado
-   *  como HTML seguro: sin esto, Angular borra las etiquetas SVG del binding
-   *  [innerHTML] y el ícono queda en blanco. */
+  // devuelve el trazo del icono o un punto si no existe
   get trazo(): SafeHtml {
     const svg = this.dibujos[this.nombre] || '<circle cx="12" cy="12" r="2"/>';
     return this.sanitizer.bypassSecurityTrustHtml(svg);
