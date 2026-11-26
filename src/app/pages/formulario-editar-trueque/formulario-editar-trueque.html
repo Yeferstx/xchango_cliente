@@ -1,8 +1,9 @@
 <div class="pagina">
-
+  <!-- encabezado -->
   <header class="encabezado">
-    <button type="button" class="boton-volver" (click)="volver()">
-      <app-icono nombre="arrow_back"></app-icono>
+    <button type="button" class="boton-volver enlace-volver" (click)="volver()">
+      <app-icono nombre="arrow_back" aria-hidden="true"></app-icono>
+      {{ destinoVolver === '/mis-publicaciones' ? 'Volver a Mis publicaciones' : 'Volver al inicio' }}
     </button>
     <div>
       <h1>Editar Trueque</h1>
@@ -10,7 +11,7 @@
     </div>
   </header>
 
-  <!-- ===================== ESTADO DE CARGA ===================== -->
+  <!-- estado de carga -->
   <div class="estado-carga" *ngIf="cargandoTrueque">
     <app-icono nombre="progress_activity"></app-icono>
     Cargando la información de tu publicación...
@@ -23,7 +24,7 @@
 
   <form
     [formGroup]="form"
-    (ngSubmit)="onSubmit()"
+    (ngSubmit)="enviarFormulario()"
     class="contenedor-principal"
     *ngIf="!cargandoTrueque && !errorCarga"
   >
@@ -66,15 +67,15 @@
         <div class="fila-campos">
           <div class="campo">
             <label>Nombre del intercambio <span class="requerido">*</span></label>
-            <input type="text" formControlName="nombre" placeholder="Ej: Bicicleta montaña" />
+            <input type="text" formControlName="nombre" maxlength="120" placeholder="Ej: Bicicleta montaña" />
           </div>
 
           <div class="campo">
             <label>Categoría <span class="requerido">*</span></label>
             <select formControlName="categoria">
               <option value="" disabled>Selecciona una categoría</option>
-              <option *ngFor="let categoria of categorias" [value]="categoria">
-                {{ categoria }}
+              <option *ngFor="let categoria of categorias()" [value]="categoria.id">
+                {{ categoria.nombre }}
               </option>
             </select>
           </div>
@@ -101,20 +102,21 @@
         <div class="fila-campos">
           <div class="campo">
             <label>¿Qué ofreces exactamente?</label>
-            <input type="text" formControlName="ofreces" placeholder="Explica lo que ofreces..." />
+            <input type="text" formControlName="ofreces" maxlength="200" placeholder="Explica lo que ofreces..." />
           </div>
 
           <div class="campo">
-            <label>¿Qué buscas a cambio?</label>
+            <label>¿Qué buscas a cambio? <span class="requerido">*</span></label>
             <input
               type="text"
               formControlName="buscas"
+              maxlength="200"
               placeholder="Ej: Clases de inglés, servicios de diseño, otro producto..."
             />
           </div>
         </div>
 
-        <div class="fila-campos">
+        <div class="fila-campos" *ngIf="llevaUbicacion">
           <div class="campo">
             <label>Disponibilidad <span class="requerido">*</span></label>
             <div class="input-con-icono">
@@ -135,6 +137,7 @@
               <input
                 type="text"
                 formControlName="cantidad"
+                maxlength="40"
                 placeholder="Ej: 1 unidad / Horas / Sesiones"
               />
             </div>
@@ -149,15 +152,15 @@
               <span class="slider"></span>
             </label>
             <div>
-              <strong>Activo</strong>
-              <p>Tu intercambio será visible para otros usuarios</p>
+              <strong>{{ form.get('estado')?.value ? 'Activo' : 'Pausado' }}</strong>
+              <p>{{ form.get('estado')?.value ? 'Tu intercambio será visible para otros usuarios' : 'Se guarda, pero nadie podrá pedirte un trueque hasta que lo actives' }}</p>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Paso 4: Ubicación -->
-      <section class="seccion">
+      <section class="seccion" *ngIf="llevaUbicacion">
         <h2 class="titulo-seccion">4. Ubicación</h2>
 
         <div class="fila-campos fila-tres">
@@ -182,11 +185,11 @@
             </div>
           </div>
 
-          <div class="campo">
-            <label>Barrio</label>
+          <div class="campo" *ngIf="llevaBarrio">
+            <label>Barrio <span class="requerido">*</span></label>
             <div class="input-con-icono">
               <app-icono nombre="place"></app-icono>
-              <input type="text" formControlName="barrio" placeholder="Ej: 20 de Julio" />
+              <input type="text" formControlName="barrio" maxlength="80" placeholder="Ej: 20 de Julio" />
             </div>
           </div>
         </div>
@@ -194,14 +197,14 @@
 
       <!-- Paso 5: Imágenes -->
       <section class="seccion">
-        <h2 class="titulo-seccion">5. Imágenes del intercambio</h2>
+        <h2 class="titulo-seccion">{{ llevaUbicacion ? '5.' : '4.' }} Imágenes del intercambio</h2>
 
         <div
           class="zona-carga"
           [class.arrastrando]="arrastrandoArchivo"
-          (dragover)="onDragOver($event)"
-          (dragleave)="onDragLeave($event)"
-          (drop)="onDrop($event)"
+          (dragover)="arrastrarEncima($event)"
+          (dragleave)="salirArrastre($event)"
+          (drop)="soltarArchivo($event)"
           (click)="inputArchivo.click()"
         >
           <app-icono nombre="cloud_upload"></app-icono>
@@ -215,7 +218,7 @@
             accept="image/jpeg,image/png"
             multiple
             hidden
-            (change)="onFileSelected($event)"
+            (change)="escogerArchivos($event)"
           />
         </div>
 
@@ -224,8 +227,8 @@
           <span>{{ totalImagenes }}/{{ maxImagenes }}</span>
         </div>
 
-        <div class="miniaturas" *ngIf="imagenesPreviewUrls.length">
-          <div class="miniatura" *ngFor="let url of imagenesPreviewUrls; let i = index">
+        <div class="miniaturas" *ngIf="imagenesVistaPrevia.length">
+          <div class="miniatura" *ngFor="let url of imagenesVistaPrevia; let i = index">
             <img [src]="url" alt="Vista previa de imagen" />
             <button type="button" (click)="eliminarImagen(i)">
               <app-icono nombre="close"></app-icono>
@@ -234,10 +237,7 @@
         </div>
       </section>
 
-      <button type="button" class="boton-ubicacion" (click)="seleccionarUbicacionEnMapa()">
-        <app-icono nombre="location_on"></app-icono>
-        Seleccionar ubicación en el mapa
-      </button>
+      <p class="mensaje-error" *ngIf="errorGuardado">{{ errorGuardado }}</p>
 
       <button type="submit" class="boton-publicar">Guardar cambios</button>
     </div>
@@ -253,9 +253,9 @@
           </div>
         </div>
 
-        <div class="banner-vista-previa" [class.con-imagen]="imagenesPreviewUrls.length">
+        <div class="banner-vista-previa" [class.con-imagen]="imagenesVistaPrevia.length">
           <!-- Sin imágenes: se muestra el ícono del tipo de intercambio -->
-          <ng-container *ngIf="!imagenesPreviewUrls.length">
+          <ng-container *ngIf="!imagenesVistaPrevia.length">
             <div class="icono-circulo icono-banner" [ngClass]="tipoSeleccionado?.colorClase">
               <app-icono [nombre]="tipoSeleccionado?.icono || 'inventory_2'"></app-icono>
             </div>
@@ -263,21 +263,21 @@
           </ng-container>
 
           <!-- Con imágenes: se muestra la foto seleccionada (existentes o nuevas) -->
-          <ng-container *ngIf="imagenesPreviewUrls.length">
+          <ng-container *ngIf="imagenesVistaPrevia.length">
             <img
               class="imagen-banner"
-              [src]="imagenesPreviewUrls[indiceImagenVistaPrevia]"
+              [src]="imagenesVistaPrevia[indiceImagenVistaPrevia]"
               alt="Imagen del intercambio"
             />
 
-            <span class="contador-imagenes" *ngIf="imagenesPreviewUrls.length > 1">
-              {{ indiceImagenVistaPrevia + 1 }}/{{ imagenesPreviewUrls.length }}
+            <span class="contador-imagenes" *ngIf="imagenesVistaPrevia.length > 1">
+              {{ indiceImagenVistaPrevia + 1 }}/{{ imagenesVistaPrevia.length }}
             </span>
 
             <button
               type="button"
               class="flecha-imagen flecha-izquierda"
-              *ngIf="imagenesPreviewUrls.length > 1"
+              *ngIf="imagenesVistaPrevia.length > 1"
               (click)="imagenAnterior()"
             >
               <app-icono nombre="chevron_left"></app-icono>
@@ -286,7 +286,7 @@
             <button
               type="button"
               class="flecha-imagen flecha-derecha"
-              *ngIf="imagenesPreviewUrls.length > 1"
+              *ngIf="imagenesVistaPrevia.length > 1"
               (click)="imagenSiguiente()"
             >
               <app-icono nombre="chevron_right"></app-icono>
@@ -315,19 +315,21 @@
           <app-icono nombre="check_circle"></app-icono>
           <strong>Estado</strong>
           <span class="etiqueta-activo" *ngIf="form.get('estado')?.value">Activo</span>
-          <span class="etiqueta-inactivo" *ngIf="!form.get('estado')?.value">Inactivo</span>
+          <span class="etiqueta-inactivo" *ngIf="!form.get('estado')?.value">Pausado</span>
         </div>
 
         <div class="fila-datos">
           <app-icono nombre="event"></app-icono>
           <strong>Disponibilidad</strong>
-          <span>{{ form.get('disponibilidad')?.value || 'Ej: Fines de semana' }}</span>
+          <span *ngIf="llevaUbicacion">{{ form.get('disponibilidad')?.value || 'Ej: Fines de semana' }}</span>
+          <span *ngIf="!llevaUbicacion">No aplica</span>
         </div>
 
         <div class="fila-datos">
           <app-icono nombre="place"></app-icono>
           <strong>Ubicación</strong>
-          <span> {{ form.get('municipio')?.value || 'Ej: Yopal' }}, {{ departamento }} </span>
+          <span *ngIf="llevaUbicacion"> {{ form.get('municipio')?.value || 'Ej: Yopal' }}, {{ departamento }} </span>
+          <span *ngIf="!llevaUbicacion">Entrega digital</span>
         </div>
 
         <div class="fila-datos">
