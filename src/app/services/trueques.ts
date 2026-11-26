@@ -1,8 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 
-import { Usuario } from '../models/usuario.model';
+import { API_URL, borrarToken, guardarToken, mensajeDeError } from '../config/api';
+import { Usuario, nombreCompleto } from '../models/usuario.model';
 import { Categoria } from '../models/categoria.model';
 import {
   CLASE_BADGE_TIPO,
@@ -12,25 +13,14 @@ import {
   TipoPublicacion,
 } from '../models/publicacion.model';
 import { Trueque, TruequeVista } from '../models/trueque.model';
-import { Notificacion, TipoNotificacion } from '../models/notificacion.model';
+import { Notificacion } from '../models/notificacion.model';
 import { AvisoUbicacion } from '../models/aviso-ubicacion.model';
 
-const CLAVE_DATOS = 'xchango_datos';
 const CLAVE_SESION = 'xchango_sesion';
-// Si se cambian los JSON, subir este número para que se vuelvan a leer.
-const VERSION = 9;
 
 const IMAGEN_RESPALDO = 'https://placehold.co/600x450/ece2c9/1f1b16?text=Sin+imagen';
 
-interface DatosGuardados {
-  version: number;
-  usuarios: Usuario[];
-  categorias: Categoria[];
-  publicaciones: Publicacion[];
-  trueques: Trueque[];
-  notificaciones: Notificacion[];
-  favoritos: string[];
-}
+const AVATAR_DEFECTO = '/Logo-xchango/avatar-defecto.png';
 
 export interface CategoriaSidebar {
   id: string;
@@ -38,7 +28,7 @@ export interface CategoriaSidebar {
   icono: string;
 }
 
-// Lo que mandan los formularios de crear y editar publicación.
+// lo que mandan los formularios de crear y editar publicacion
 export interface DatosPublicacion {
   tipo: TipoPublicacion;
   categoriaId: string;
@@ -51,14 +41,11 @@ export interface DatosPublicacion {
   cantidadDisponible?: string;
   disponibilidad?: string;
   imagenes?: string[];
+  // solo al crear: la publicacion puede salir activa o pausada
+  estado?: 'activa' | 'pausada';
 }
 
-// Servicio principal de XchanGo.
-// La primera vez lee los archivos de src/app/data y de ahí en adelante trabaja
-// con localStorage, así los cambios no se pierden al recargar la página.
-// Mientras no exista la API, esto hace las veces del servidor.
-// Los JSON guardan solo los ids (usuarioId, categoriaId). Aquí se unen para
-// mostrar el nombre del autor, la categoría, la ciudad, etc.
+// servicio principal, todo viene del MID
 @Injectable({ providedIn: 'root' })
 export class TruequesService {
   private http = inject(HttpClient);
@@ -69,11 +56,12 @@ export class TruequesService {
   private listaTrueques = signal<Trueque[]>([]);
   private listaNotificaciones = signal<Notificacion[]>([]);
   private listaAvisos = signal<AvisoUbicacion[]>([]);
-  private favoritos = signal<Set<string>>(new Set<string>());
+  private favoritos = signal<string[]>([]);
   private estaCargando = signal(false);
-  private mensajeError = signal<string | null>(null);
+  private mensajeError = signal('');
   private datosListos = signal(false);
   private pidiendo = false;
+  private carga: Promise<void> | null = null;
 
   cargando = this.estaCargando.asReadonly();
   error = this.mensajeError.asReadonly();
@@ -81,118 +69,106 @@ export class TruequesService {
   usuarios = this.listaUsuarios.asReadonly();
   categorias = this.listaCategorias.asReadonly();
 
-  // Id del usuario que inició sesión. null = nadie.
+  // id del usuario que inicio sesion. null = nadie
   usuarioActualId = signal<string | null>(this.leerSesion());
 
-  usuarioActual = computed<Usuario | null>(
-    () => this.listaUsuarios().find((u) => u.id === this.usuarioActualId()) ?? null,
-  );
+  usuarioActual = computed(() => {
+    const lista = this.listaUsuarios();
+    for (const u of lista) {
+      if (u.id === this.usuarioActualId()) {
+        return u;
+      }
+    }
+    return null;
+  });
 
-  autenticado = computed(() => this.usuarioActual() !== null);
+  autenticado = computed(() => this.usuarioActualId() !== null);
 
-  categoriasSidebar = computed<CategoriaSidebar[]>(() => [
-    { id: 'todos', nombre: 'Todos', icono: 'grid' },
-    ...this.listaCategorias().map((c) => ({ id: c.id, nombre: c.nombre, icono: c.icono })),
-  ]);
+  categoriasSidebar = computed(() => {
+    const lista: CategoriaSidebar[] = [{ id: 'todos', nombre: 'Todos', icono: 'grid' }];
+    for (const c of this.listaCategorias()) {
+      lista.push({ id: c.id, nombre: c.nombre, icono: c.icono });
+    }
+    return lista;
+  });
 
-  // Cargar y guardar
+  // cargar datos del MID
 
-  // Se llama desde el ngOnInit de cada página. Solo carga una vez.
+  // se llama desde el ngOnInit de cada pagina, solo carga una vez
   cargar(): void {
-    if (this.datosListos() || this.pidiendo) return;
+    if (this.datosListos() || this.pidiendo) {
+      return;
+    }
+    this.carga = this.cargarTodo();
+  }
 
-    const guardados = this.leerGuardado();
-    if (guardados) {
-      this.aplicar(guardados);
+  // para las pantallas que necesitan los datos listos antes de seguir
+  async esperarDatos(): Promise<void> {
+    this.cargar();
+    if (this.carga) {
+      await this.carga;
+    }
+  }
+
+  private async cargarTodo(): Promise<void> {
+    this.pidiendo = true;
+    this.estaCargando.set(true);
+    this.mensajeError.set('');
+
+    try {
+      await this.traerDatos();
       this.datosListos.set(true);
+    } catch (e) {
+      this.mensajeError.set('No se pudieron cargar los datos. Revisa que el MID esté encendido.');
+      console.log('error cargando datos del MID', e);
+    }
+
+    this.estaCargando.set(false);
+    this.pidiendo = false;
+  }
+
+  // vuelve a pedir los datos sin mostrar el cargando (despues de cambios)
+  async refrescar(): Promise<void> {
+    try {
+      await this.traerDatos();
+    } catch {
+      // si falla se quedan los datos que ya habia
+    }
+  }
+
+  private async traerDatos(): Promise<void> {
+    const publicos: any = await firstValueFrom(
+      forkJoin({
+        usuarios: this.http.get(API_URL + '/usuarios'),
+        categorias: this.http.get(API_URL + '/categorias'),
+        publicaciones: this.http.get(API_URL + '/publicaciones'),
+        avisos: this.http.get(API_URL + '/avisos-ubicacion'),
+      }),
+    );
+
+    this.listaUsuarios.set(publicos.usuarios);
+    this.listaCategorias.set(publicos.categorias);
+    this.listaPublicaciones.set(publicos.publicaciones);
+    this.listaAvisos.set(publicos.avisos);
+
+    if (!this.usuarioActualId()) {
+      this.listaTrueques.set([]);
+      this.listaNotificaciones.set([]);
+      this.favoritos.set([]);
       return;
     }
 
-    this.pidiendo = true;
-    this.estaCargando.set(true);
-    this.mensajeError.set(null);
+    const privados: any = await firstValueFrom(
+      forkJoin({
+        trueques: this.http.get(API_URL + '/trueques'),
+        notificaciones: this.http.get(API_URL + '/notificaciones'),
+        favoritos: this.http.get(API_URL + '/favoritos'),
+      }),
+    );
 
-    forkJoin({
-      usuarios: this.http.get<Usuario[]>('data/usuarios.json'),
-      categorias: this.http.get<Categoria[]>('data/categorias.json'),
-      publicaciones: this.http.get<Publicacion[]>('data/publicaciones.json'),
-      trueques: this.http.get<Trueque[]>('data/trueques.json'),
-      notificaciones: this.http.get<Notificacion[]>('data/notificaciones.json'),
-      avisos: this.http.get<AvisoUbicacion[]>('data/avisos-ubicacion.json'),
-    }).subscribe({
-      next: (datos) => {
-        this.listaUsuarios.set(datos.usuarios);
-        this.listaCategorias.set(datos.categorias);
-        this.listaPublicaciones.set(datos.publicaciones);
-        this.listaTrueques.set(datos.trueques);
-        this.listaNotificaciones.set(datos.notificaciones);
-        this.listaAvisos.set(datos.avisos);
-        this.guardar();
-        this.estaCargando.set(false);
-        this.pidiendo = false;
-        this.datosListos.set(true);
-      },
-      error: (e) => {
-        this.pidiendo = false;
-        this.mensajeError.set(
-          'No se pudieron cargar los datos. Revisa que src/app/data esté ' +
-            'publicada como asset en angular.json (debe servirse en /data).',
-        );
-        this.estaCargando.set(false);
-        console.error('[XchanGo] Error cargando data/*.json:', e);
-      },
-    });
-  }
-
-  // Borra lo guardado y vuelve a los JSON originales.
-  reiniciarDatos(): void {
-    try {
-      localStorage.removeItem(CLAVE_DATOS);
-      localStorage.removeItem(CLAVE_SESION);
-    } catch {
-      // El navegador puede tener bloqueado el almacenamiento.
-    }
-    this.datosListos.set(false);
-    this.usuarioActualId.set(null);
-    this.cargar();
-  }
-
-  private aplicar(d: DatosGuardados): void {
-    this.listaUsuarios.set(d.usuarios);
-    this.listaCategorias.set(d.categorias);
-    this.listaPublicaciones.set(d.publicaciones);
-    this.listaTrueques.set(d.trueques);
-    this.listaNotificaciones.set(d.notificaciones);
-    this.favoritos.set(new Set(d.favoritos || []));
-  }
-
-  private leerGuardado(): DatosGuardados | null {
-    try {
-      const texto = localStorage.getItem(CLAVE_DATOS);
-      if (!texto) return null;
-      const datos = JSON.parse(texto) as DatosGuardados;
-      if (datos.version !== VERSION) return null;
-      return datos;
-    } catch {
-      return null;
-    }
-  }
-
-  private guardar(): void {
-    try {
-      const datos: DatosGuardados = {
-        version: VERSION,
-        usuarios: this.listaUsuarios(),
-        categorias: this.listaCategorias(),
-        publicaciones: this.listaPublicaciones(),
-        trueques: this.listaTrueques(),
-        notificaciones: this.listaNotificaciones(),
-        favoritos: Array.from(this.favoritos()),
-      };
-      localStorage.setItem(CLAVE_DATOS, JSON.stringify(datos));
-    } catch {
-      // Si no se puede guardar, la aplicación igual sigue funcionando.
-    }
+    this.listaTrueques.set(privados.trueques);
+    this.listaNotificaciones.set(privados.notificaciones);
+    this.favoritos.set(privados.favoritos);
   }
 
   private leerSesion(): string | null {
@@ -211,355 +187,344 @@ export class TruequesService {
         localStorage.removeItem(CLAVE_SESION);
       }
     } catch {
-      // Sin almacenamiento la sesión dura hasta recargar.
+      // sin almacenamiento la sesion dura hasta recargar
     }
   }
 
-  // Sesión
+  // sesion
 
-  // Devuelve null si entró bien, o el mensaje de error.
-  // Simulación de práctica: aquí no se usan contraseñas, solo el correo +
-  // el código de verificación (pantalla previa a esta llamada). Si el
-  // correo no existe todavía, se crea la cuenta al vuelo.
-  iniciarSesion(email: string): string | null {
-    const correo = email.trim().toLowerCase();
+  // se llama despues de verificar el PIN, pide el perfil al MID
+  // devuelve null si entro bien, o el mensaje de error
+  async iniciarSesion(): Promise<string | null> {
+    try {
+      const usuario: any = await firstValueFrom(this.http.get(API_URL + '/auth/perfil'));
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      return 'Ingresa un correo válido.';
+      if (usuario.estado === 'suspendido') {
+        borrarToken();
+        return 'Tu cuenta está suspendida.';
+      }
+
+      await this.abrirSesion(usuario);
+      return null;
+    } catch (e) {
+      borrarToken();
+      return mensajeDeError(e);
     }
-
-    let usuario = this.listaUsuarios().find((u) => u.email.toLowerCase() === correo);
-
-    if (usuario) {
-      if (usuario.estado === 'suspendido') return 'Tu cuenta está suspendida.';
-    } else {
-      usuario = {
-        id: this.siguienteId('u', this.listaUsuarios()),
-        nombre: correo.split('@')[0],
-        email: correo,
-        telefono: '',
-        password: '',
-        estado: 'activo',
-        verificacion: 'verificado',
-        descripcion: '',
-        fechaRegistro: this.hoy(),
-        ubicacion: 'Yopal',
-        nivelActividad: 'bajo',
-        avatar: this.avatarAleatorio(),
-        publicaciones: 0,
-        intercambios: 0,
-        reportes: 0,
-        calificacion: 0,
-        totalCalificaciones: 0,
-      };
-      this.listaUsuarios.update((lista) => [...lista, usuario as Usuario]);
-      this.guardar();
-    }
-
-    this.usuarioActualId.set(usuario.id);
-    this.guardarSesion(usuario.id);
-    return null;
   }
 
-  // Foto de perfil para una cuenta nueva. Se elige de una lista curada de
-  // fotos de pravatar.cc (las mismas que ya usan los usuarios de prueba),
-  // en vez de generar una al azar por hash de correo, que a veces salía
-  // una imagen rara o poco presentable.
-  private avatarAleatorio(): string {
-    const fotos = [12, 5, 15, 33, 44, 45, 47, 48, 60, 65, 68, 47, 32, 20, 25];
-    const numero = fotos[Math.floor(Math.random() * fotos.length)];
-    return `https://i.pravatar.cc/80?img=${numero}`;
-  }
-
-  cerrarSesion(): void {
-    this.usuarioActualId.set(null);
-    this.guardarSesion(null);
-  }
-
-  // Devuelve null si registró bien, o el mensaje de error.
-  // true si ya existe una cuenta con ese correo (para el paso 1 del registro).
-  correoRegistrado(email: string): boolean {
-    const correo = email.trim().toLowerCase();
-    return this.listaUsuarios().some((u) => u.email.toLowerCase() === correo);
-  }
-
-  registrar(datos: {
+  // devuelve null si registro bien, o el mensaje de error
+  async registrar(datos: {
     nombre: string;
+    apellido: string;
+    fechaNacimiento: string;
     email: string;
     telefono: string;
     ubicacion: string;
-  }): string | null {
-    const correo = datos.email.trim().toLowerCase();
-
-    if (!datos.nombre.trim()) return 'El nombre es obligatorio.';
-    if (this.listaUsuarios().some((u) => u.email.toLowerCase() === correo)) {
-      return 'Ese correo ya está registrado.';
+    direccion: string;
+    barrio: string;
+    avatar?: string;
+  }): Promise<string | null> {
+    if (!datos.nombre.trim()) {
+      return 'El nombre es obligatorio.';
+    }
+    if (!datos.apellido.trim()) {
+      return 'El apellido es obligatorio.';
     }
 
-    const nuevo: Usuario = {
-      id: this.siguienteId('u', this.listaUsuarios()),
+    let ubicacion = datos.ubicacion;
+    if (!ubicacion) {
+      ubicacion = 'Yopal';
+    }
+
+    const cuerpo: any = {
       nombre: datos.nombre.trim(),
-      email: correo,
+      apellido: datos.apellido.trim(),
+      fechaNacimiento: datos.fechaNacimiento,
+      email: datos.email.trim().toLowerCase(),
       telefono: datos.telefono.replace(/\D/g, ''),
-      password: '',
-      estado: 'activo',
-      verificacion: 'no_verificado',
-      descripcion: '',
-      fechaRegistro: this.hoy(),
-      ubicacion: datos.ubicacion || 'Yopal',
-      nivelActividad: 'bajo',
-      avatar: this.avatarAleatorio(),
-      publicaciones: 0,
-      intercambios: 0,
-      reportes: 0,
-      calificacion: 0,
-      totalCalificaciones: 0,
+      ubicacion: ubicacion,
+      direccion: datos.direccion.trim(),
+      barrio: datos.barrio.trim(),
     };
 
-    this.listaUsuarios.update((lista) => [...lista, nuevo]);
-    this.usuarioActualId.set(nuevo.id);
-    this.guardarSesion(nuevo.id);
-    this.guardar();
-    return null;
-  }
-
-  // Actualiza los datos del perfil del usuario que tiene la sesión.
-  actualizarPerfil(cambios: {
-    nombre?: string;
-    telefono?: string;
-    ubicacion?: string;
-    descripcion?: string;
-    avatar?: string;
-  }): boolean {
-    const id = this.usuarioActualId();
-    if (!id) return false;
-
-    this.listaUsuarios.update((lista) =>
-      lista.map((u) => (u.id === id ? { ...u, ...cambios } : u)),
-    );
-    this.guardar();
-    return true;
-  }
-
-  // Devuelve null si cambió bien, o el mensaje de error.
-  cambiarPassword(actual: string, nueva: string): string | null {
-    const usuario = this.usuarioActual();
-    if (!usuario) return 'No hay sesión activa.';
-    if (usuario.password !== actual) return 'La contraseña actual no coincide.';
-    if (nueva.length < 8) return 'La nueva contraseña debe tener al menos 8 caracteres.';
-
-    this.listaUsuarios.update((lista) =>
-      lista.map((u) => (u.id === usuario.id ? { ...u, password: nueva } : u)),
-    );
-    this.guardar();
-    return null;
-  }
-
-  verificarCuenta(): void {
-    const id = this.usuarioActualId();
-    if (!id) return;
-    this.listaUsuarios.update((lista) =>
-      lista.map((u) => (u.id === id ? { ...u, verificacion: 'verificado' as const } : u)),
-    );
-    this.guardar();
-  }
-
-  // Publicaciones
-
-  todas = computed<PublicacionVista[]>(() => {
-    const usuarios = new Map(this.listaUsuarios().map((u) => [u.id, u]));
-    const categorias = new Map(this.listaCategorias().map((c) => [c.id, c]));
-    const marcados = this.favoritos();
-
-    // Cuántas solicitudes tiene cada publicación.
-    const propuestas = new Map<string, number>();
-    for (const t of this.listaTrueques()) {
-      propuestas.set(t.publicacionId, (propuestas.get(t.publicacionId) ?? 0) + 1);
+    if (datos.avatar) {
+      cuerpo.avatar = datos.avatar;
     }
 
-    return this.listaPublicaciones().map((p) => {
-      const autor = usuarios.get(p.usuarioId);
-      const nombreCategoria = categorias.get(p.categoriaId)?.nombre ?? 'Sin categoría';
-      const esDigital = p.tipo === 'bien_digital';
+    try {
+      const respuesta: any = await firstValueFrom(this.http.post(API_URL + '/auth/registro', cuerpo));
 
-      return {
-        ...p,
-        autor: autor?.nombre ?? 'Usuario desconocido',
-        avatar: autor?.avatar ?? '',
-        telefono: autor?.telefono ?? '',
-        // Un bien digital no tiene ubicación porque se entrega de una vez.
-        ciudad: esDigital ? 'Entrega digital' : p.municipio,
-        categoria: nombreCategoria,
-        imagen: p.imagenes[0] ?? IMAGEN_RESPALDO,
-        favorito: marcados.has(p.id),
-        tipoEtiqueta: ETIQUETA_TIPO[p.tipo],
-        claseBadge: CLASE_BADGE_TIPO[p.tipo],
-        caracteristicas: this.fichaTecnica(p, nombreCategoria),
-        interesesCambio: this.separarIntereses(p.buscas),
-        publicadoHace: this.textoRelativo(p.fechaCreacion),
-        propuestas: propuestas.get(p.id) ?? 0,
-      } as PublicacionVista;
-    });
+      guardarToken(respuesta.token);
+      await this.abrirSesion(respuesta.usuario);
+      return null;
+    } catch (e) {
+      return mensajeDeError(e);
+    }
+  }
+
+  private async abrirSesion(usuario: Usuario): Promise<void> {
+    this.usuarioActualId.set(usuario.id);
+    this.guardarSesion(usuario.id);
+    await this.cargarTodo();
+  }
+
+  // elimina la cuenta del usuario, devuelve null si salio bien o el mensaje de error
+  async eliminarCuenta(): Promise<string | null> {
+    try {
+      await firstValueFrom(this.http.delete(API_URL + '/usuarios/perfil'));
+      this.cerrarSesion();
+      return null;
+    } catch (e) {
+      return mensajeDeError(e);
+    }
+  }
+
+  // reporta una publicacion para que el administrador la revise
+  async reportarPublicacion(publicacionId: string, motivo: string): Promise<string | null> {
+    try {
+      await firstValueFrom(
+        this.http.post(API_URL + '/reportes', { publicacionId: publicacionId, motivo: motivo }),
+      );
+      return null;
+    } catch (e) {
+      return mensajeDeError(e);
+    }
+  }
+
+  cerrarSesion(): void {
+    borrarToken();
+    this.usuarioActualId.set(null);
+    this.guardarSesion(null);
+    this.listaTrueques.set([]);
+    this.listaNotificaciones.set([]);
+    this.favoritos.set([]);
+  }
+
+  // actualiza los datos del perfil, devuelve null si guardo bien o el mensaje de error
+  async actualizarPerfil(cambios: {
+    nombre?: string;
+    apellido?: string;
+    telefono?: string;
+    ubicacion?: string;
+    direccion?: string;
+    barrio?: string;
+    descripcion?: string;
+    avatar?: string;
+  }): Promise<string | null> {
+    const id = this.usuarioActualId();
+    if (!id) {
+      return 'Inicia sesión para cambiar tu perfil.';
+    }
+
+    try {
+      const usuario: any = await firstValueFrom(this.http.put(API_URL + '/usuarios/perfil', cambios));
+
+      const nuevaLista: Usuario[] = [];
+      for (const u of this.listaUsuarios()) {
+        if (u.id === id) {
+          nuevaLista.push(usuario);
+        } else {
+          nuevaLista.push(u);
+        }
+      }
+      this.listaUsuarios.set(nuevaLista);
+      return null;
+    } catch (e) {
+      return mensajeDeError(e);
+    }
+  }
+
+  // busca un usuario por su id
+  private buscarUsuario(id: string): Usuario | null {
+    for (const u of this.listaUsuarios()) {
+      if (u.id === id) {
+        return u;
+      }
+    }
+    return null;
+  }
+
+  // publicaciones
+
+  // une cada publicacion con su autor y su categoria para mostrarla
+  todas = computed(() => {
+    const lista: PublicacionVista[] = [];
+
+    for (const p of this.listaPublicaciones()) {
+      const vista: any = Object.assign({}, p);
+      const autor = this.buscarUsuario(p.usuarioId);
+
+      let nombreCategoria = 'Sin categoría';
+      for (const c of this.listaCategorias()) {
+        if (c.id === p.categoriaId) {
+          nombreCategoria = c.nombre;
+        }
+      }
+
+      // cuantas solicitudes de trueque tiene la publicacion
+      let propuestas = 0;
+      for (const t of this.listaTrueques()) {
+        if (t.publicacionId === p.id) {
+          propuestas = propuestas + 1;
+        }
+      }
+
+      vista.autor = 'Usuario desconocido';
+      vista.avatar = AVATAR_DEFECTO;
+      vista.telefono = '';
+      if (autor) {
+        vista.autor = nombreCompleto(autor);
+        if (autor.avatar) {
+          vista.avatar = autor.avatar;
+        }
+        if (autor.telefono) {
+          vista.telefono = autor.telefono;
+        }
+      }
+
+      // un bien digital no tiene ubicacion porque se entrega de una vez
+      if (p.tipo === 'bien_digital') {
+        vista.ciudad = 'Entrega digital';
+      } else {
+        vista.ciudad = p.municipio;
+      }
+
+      vista.imagen = IMAGEN_RESPALDO;
+      if (p.imagenes.length > 0) {
+        vista.imagen = p.imagenes[0];
+      }
+
+      vista.categoria = nombreCategoria;
+      vista.favorito = this.favoritos().includes(p.id);
+      vista.tipoEtiqueta = ETIQUETA_TIPO[p.tipo];
+      vista.claseBadge = CLASE_BADGE_TIPO[p.tipo];
+      vista.caracteristicas = this.fichaTecnica(p, nombreCategoria);
+      vista.interesesCambio = this.separarIntereses(p.buscas);
+      vista.publicadoHace = this.textoRelativo(p.fechaCreacion);
+      vista.propuestas = propuestas;
+
+      lista.push(vista);
+    }
+
+    return lista;
   });
 
-  publicaciones = computed<PublicacionVista[]>(() =>
-    this.todas().filter((p) => p.estado !== 'eliminada'),
-  );
+  publicaciones = computed(() => this.todas().filter((p) => p.estado !== 'eliminada'));
 
-  misPublicaciones = computed<PublicacionVista[]>(() => {
+  misPublicaciones = computed(() => {
     const id = this.usuarioActualId();
-    if (!id) return [];
+    if (!id) {
+      return [];
+    }
     return this.todas().filter((p) => p.usuarioId === id && p.estado !== 'eliminada');
   });
 
-  publicacionesFavoritas = computed<PublicacionVista[]>(() =>
-    this.publicaciones().filter((p) => p.favorito),
-  );
+  publicacionesFavoritas = computed(() => this.publicaciones().filter((p) => p.favorito));
 
   obtenerPorId(id: string): PublicacionVista | undefined {
     return this.todas().find((p) => p.id === id);
   }
 
-  // Crea la publicación y devuelve su id, o null si no hay sesión.
-  crearPublicacion(datos: DatosPublicacion): string | null {
-    const usuario = this.usuarioActual();
-    if (!usuario) return null;
-
-    const id = this.siguienteId('pub', this.listaPublicaciones());
-    const nueva = this.armarPublicacion(
-      {
-        id: id,
-        usuarioId: usuario.id,
-        categoriaId: datos.categoriaId,
-        titulo: datos.titulo.trim(),
-        descripcion: datos.descripcion.trim(),
-        ofreces: datos.ofreces.trim() || datos.titulo.trim(),
-        buscas: datos.buscas.trim(),
-        imagenes: datos.imagenes && datos.imagenes.length ? datos.imagenes : [],
-        estado: 'activa',
-        vistas: 0,
-        fechaCreacion: this.hoy(),
-        fechaModificacion: this.hoy(),
-      },
-      datos,
-    );
-
-    this.listaPublicaciones.update((lista) => [nueva, ...lista]);
-    this.contarPublicaciones(usuario.id);
-    this.guardar();
-    return id;
-  }
-
-  actualizarPublicacion(id: string, datos: DatosPublicacion): boolean {
-    const actual = this.listaPublicaciones().find((p) => p.id === id);
-    if (!actual) return false;
-    if (actual.usuarioId !== this.usuarioActualId()) return false;
-
-    const nuevasImagenes =
-      datos.imagenes && datos.imagenes.length ? datos.imagenes : actual.imagenes;
-
-    const editada = this.armarPublicacion(
-      {
-        id: actual.id,
-        usuarioId: actual.usuarioId,
-        categoriaId: datos.categoriaId,
-        titulo: datos.titulo.trim(),
-        descripcion: datos.descripcion.trim(),
-        ofreces: datos.ofreces.trim() || datos.titulo.trim(),
-        buscas: datos.buscas.trim(),
-        imagenes: nuevasImagenes,
-        estado: actual.estado,
-        vistas: actual.vistas,
-        fechaCreacion: actual.fechaCreacion,
-        fechaModificacion: this.hoy(),
-      },
-      datos,
-    );
-
-    this.listaPublicaciones.update((lista) => lista.map((p) => (p.id === id ? editada : p)));
-    this.guardar();
-    return true;
-  }
-
-  // No borra el registro: le cambia el estado a eliminada.
-  eliminarPublicacion(id: string): boolean {
-    const p = this.listaPublicaciones().find((x) => x.id === id);
-    if (!p || p.usuarioId !== this.usuarioActualId()) return false;
-
-    this.listaPublicaciones.update((lista) =>
-      lista.map((x) => (x.id === id ? { ...x, estado: 'eliminada' as const } : x)),
-    );
-    this.contarPublicaciones(p.usuarioId);
-    this.guardar();
-    return true;
-  }
-
-  // Pausa una publicación activa, o reactiva una pausada.
-  alternarEstadoPublicacion(id: string): void {
-    this.listaPublicaciones.update((lista) =>
-      lista.map((p) => {
-        if (p.id !== id || p.usuarioId !== this.usuarioActualId()) return p;
-        if (p.estado === 'activa') return { ...p, estado: 'pausada' as const };
-        if (p.estado === 'pausada') return { ...p, estado: 'activa' as const };
-        return p;
-      }),
-    );
-    this.guardar();
-  }
-
-  // Arma la publicación según el tipo. Aquí está la regla principal:
-  // el bien físico lleva municipio y barrio, el servicio solo municipio,
-  // y el bien digital no lleva ubicación ni cantidad ni disponibilidad.
-  private armarPublicacion(
-    base: Record<string, unknown>,
-    datos: DatosPublicacion,
-  ): Publicacion {
-    if (datos.tipo === 'bien_fisico') {
-      return {
-        ...base,
-        tipo: 'bien_fisico',
-        municipio: datos.municipio || '',
-        barrio: datos.barrio || '',
-        cantidadDisponible: datos.cantidadDisponible || '1 unidad',
-        disponibilidad: datos.disponibilidad || 'Por acordar',
-      } as unknown as Publicacion;
+  // crea la publicacion, devuelve su id o el mensaje de error
+  async crearPublicacion(datos: DatosPublicacion): Promise<{ id: string } | { error: string }> {
+    if (!this.usuarioActualId()) {
+      return { error: 'Inicia sesión para publicar.' };
     }
 
-    if (datos.tipo === 'servicio') {
-      return {
-        ...base,
-        tipo: 'servicio',
-        municipio: datos.municipio || '',
-        cantidadDisponible: datos.cantidadDisponible || '1 sesión',
-        disponibilidad: datos.disponibilidad || 'Por acordar',
-      } as unknown as Publicacion;
-    }
+    try {
+      const nueva: any = await firstValueFrom(this.http.post(API_URL + '/publicaciones', datos));
 
-    return { ...base, tipo: 'bien_digital' } as unknown as Publicacion;
+      const nuevaLista: Publicacion[] = [nueva];
+      for (const p of this.listaPublicaciones()) {
+        nuevaLista.push(p);
+      }
+      this.listaPublicaciones.set(nuevaLista);
+
+      this.refrescar();
+      return { id: nueva.id };
+    } catch (e) {
+      return { error: mensajeDeError(e) };
+    }
   }
 
-  // Vuelve a contar cuántas publicaciones tiene el usuario.
-  private contarPublicaciones(usuarioId: string): void {
-    const total = this.listaPublicaciones().filter(
-      (p) => p.usuarioId === usuarioId && p.estado !== 'eliminada',
-    ).length;
+  // devuelve null si guardo bien, o el mensaje de error
+  async actualizarPublicacion(id: string, datos: DatosPublicacion): Promise<string | null> {
+    try {
+      const editada: any = await firstValueFrom(this.http.put(API_URL + '/publicaciones/' + id, datos));
+      this.cambiarPublicacion(id, editada);
+      return null;
+    } catch (e) {
+      return mensajeDeError(e);
+    }
+  }
 
-    this.listaUsuarios.update((lista) =>
-      lista.map((u) => (u.id === usuarioId ? { ...u, publicaciones: total } : u)),
-    );
+  // el MID no borra el registro, le cambia el estado a eliminada
+  async eliminarPublicacion(id: string): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.delete(API_URL + '/publicaciones/' + id));
+      this.cambiarEstado(id, 'eliminada');
+      this.refrescar();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // pausa una publicacion activa, o reactiva una pausada
+  async alternarEstadoPublicacion(id: string): Promise<void> {
+    try {
+      const respuesta: any = await firstValueFrom(
+        this.http.patch(API_URL + '/publicaciones/' + id + '/estado', {}),
+      );
+      this.cambiarEstado(id, respuesta.estado);
+    } catch {
+      this.refrescar();
+    }
+  }
+
+  // reemplaza una publicacion de la lista por la que mando el MID
+  private cambiarPublicacion(id: string, nueva: Publicacion): void {
+    const nuevaLista: Publicacion[] = [];
+    for (const p of this.listaPublicaciones()) {
+      if (p.id === id) {
+        nuevaLista.push(nueva);
+      } else {
+        nuevaLista.push(p);
+      }
+    }
+    this.listaPublicaciones.set(nuevaLista);
+  }
+
+  // cambia solo el estado de una publicacion
+  private cambiarEstado(id: string, estado: string): void {
+    for (const p of this.listaPublicaciones()) {
+      if (p.id === id) {
+        const copia: any = Object.assign({}, p);
+        copia.estado = estado;
+        this.cambiarPublicacion(id, copia);
+      }
+    }
   }
 
   etiquetaTipo(tipo: TipoPublicacion): string {
     return ETIQUETA_TIPO[tipo];
   }
 
-  // Usa solo clases que ya existen en el CSS del proyecto.
+  // usa solo clases que ya existen en el CSS del proyecto
   claseBadge(tipo: TipoPublicacion): string {
-    return CLASE_BADGE_TIPO[tipo] ?? 'badge';
+    const clase = CLASE_BADGE_TIPO[tipo];
+    if (clase) {
+      return clase;
+    }
+    return 'badge';
   }
 
   calificacionDe(usuarioId: string): number {
-    return this.listaUsuarios().find((u) => u.id === usuarioId)?.calificacion ?? 0;
+    const usuario = this.buscarUsuario(usuarioId);
+    if (usuario && usuario.calificacion) {
+      return usuario.calificacion;
+    }
+    return 0;
   }
 
   private fichaTecnica(p: Publicacion, categoria: string): { label: string; valor: string }[] {
@@ -586,359 +551,276 @@ export class TruequesService {
     return filas;
   }
 
-  // Parte el texto de "buscas" para mostrarlo como etiquetas.
-  // OJO con la ñ: en una expresión regular \b la trata como si NO fuera letra,
-  // así que /\bo\b/ partía "Diseño" en "Diseñ" + "o". Por eso aquí se separa
-  // solo por coma o por " o " con espacios reales a los lados.
+  // separa lo que busca por coma o por " o "
+  // no se usa \b porque no reconoce la ñ y partia "Diseño"
   private separarIntereses(buscas: string): string[] {
-    const partes = buscas
-      .split(/\s*,\s*|\s+o\s+/i)
-      .map((x) => x.trim())
-      .filter((x) => x.length > 0);
-    return partes.length ? partes : ['Abierto a propuestas'];
+    const partes: string[] = [];
+    for (const parte of buscas.split(/\s*,\s*|\s+o\s+/i)) {
+      if (parte.trim().length > 0) {
+        partes.push(parte.trim());
+      }
+    }
+    if (partes.length === 0) {
+      partes.push('Abierto a propuestas');
+    }
+    return partes;
   }
 
   private textoRelativo(fecha: string): string {
     const dias = Math.floor((Date.now() - new Date(fecha).getTime()) / 86400000);
-    if (dias <= 0) return 'Publicado hoy';
-    if (dias === 1) return 'Publicado ayer';
+    if (dias <= 0) {
+      return 'Publicado hoy';
+    }
+    if (dias === 1) {
+      return 'Publicado ayer';
+    }
     return 'Publicado hace ' + dias + ' días';
   }
 
-  // Trueques
+  // trueques
 
-  trueques = computed<TruequeVista[]>(() => {
-    const usuarios = new Map(this.listaUsuarios().map((u) => [u.id, u]));
-    const publicaciones = new Map(this.listaPublicaciones().map((p) => [p.id, p]));
+  // une cada trueque con los nombres de las dos personas
+  trueques = computed(() => {
+    const lista: TruequeVista[] = [];
 
-    return this.listaTrueques().map((t) => {
-      const solicitante = usuarios.get(t.solicitanteId);
-      const propietario = usuarios.get(t.propietarioId);
+    for (const t of this.listaTrueques()) {
+      const vista: any = Object.assign({}, t);
+      const solicitante = this.buscarUsuario(t.solicitanteId);
+      const propietario = this.buscarUsuario(t.propietarioId);
 
-      return {
-        ...t,
-        solicitanteNombre: solicitante?.nombre ?? 'Usuario desconocido',
-        solicitanteAvatar: solicitante?.avatar ?? '',
-        solicitanteTelefono: solicitante?.telefono ?? '',
-        propietarioNombre: propietario?.nombre ?? 'Usuario desconocido',
-        propietarioTelefono: propietario?.telefono ?? '',
-        publicacionTitulo:
-          publicaciones.get(t.publicacionId)?.titulo ?? 'Publicación no disponible',
-      };
-    });
+      vista.solicitanteNombre = 'Usuario desconocido';
+      vista.solicitanteAvatar = AVATAR_DEFECTO;
+      vista.solicitanteTelefono = '';
+      if (solicitante) {
+        vista.solicitanteNombre = nombreCompleto(solicitante);
+        if (solicitante.avatar) {
+          vista.solicitanteAvatar = solicitante.avatar;
+        }
+        if (solicitante.telefono) {
+          vista.solicitanteTelefono = solicitante.telefono;
+        }
+      }
+
+      vista.propietarioNombre = 'Usuario desconocido';
+      vista.propietarioAvatar = AVATAR_DEFECTO;
+      vista.propietarioTelefono = '';
+      if (propietario) {
+        vista.propietarioNombre = nombreCompleto(propietario);
+        if (propietario.avatar) {
+          vista.propietarioAvatar = propietario.avatar;
+        }
+        if (propietario.telefono) {
+          vista.propietarioTelefono = propietario.telefono;
+        }
+      }
+
+      vista.publicacionTitulo = 'Publicación no disponible';
+      for (const p of this.listaPublicaciones()) {
+        if (p.id === t.publicacionId) {
+          vista.publicacionTitulo = p.titulo;
+        }
+      }
+
+      lista.push(vista);
+    }
+
+    return lista;
   });
 
-  truequesRecibidos = computed<TruequeVista[]>(() =>
+  truequesRecibidos = computed(() =>
     this.trueques().filter((t) => t.propietarioId === this.usuarioActualId()),
   );
 
-  truequesEnviados = computed<TruequeVista[]>(() =>
+  truequesEnviados = computed(() =>
     this.trueques().filter((t) => t.solicitanteId === this.usuarioActualId()),
   );
 
-  solicitudesPendientes = computed(
-    () => this.truequesRecibidos().filter((t) => t.estado === 'pendiente').length,
-  );
+  solicitudesPendientes = computed(() => {
+    let total = 0;
+    for (const t of this.truequesRecibidos()) {
+      if (t.estado === 'pendiente') {
+        total = total + 1;
+      }
+    }
+    return total;
+  });
 
-  // Total de trueques en 'pendiente', contando tanto los que enviaste como
-  // los que recibiste. Se usa para el número junto a "Mis trueques" en el menú.
-  misTruequesPendientes = computed(
-    () => this.trueques().filter(
-      (t) =>
-        t.estado === 'pendiente' &&
-        (t.solicitanteId === this.usuarioActualId() || t.propietarioId === this.usuarioActualId()),
-    ).length,
-  );
+  // devuelve null si la solicitud se envio, o el mensaje de error
+  async solicitarTrueque(publicacionId: string, ofrece: string): Promise<string | null> {
+    if (!this.usuarioActualId()) {
+      return 'Inicia sesión para proponer un trueque.';
+    }
 
-  // Devuelve null si la solicitud se envió, o el mensaje de error.
-  solicitarTrueque(publicacionId: string, ofrece: string): string | null {
-    const yo = this.usuarioActual();
-    if (!yo) return 'Inicia sesión para proponer un trueque.';
+    let texto = ofrece.trim();
+    if (!texto) {
+      texto = 'Propuesta por acordar';
+    }
 
-    const pub = this.listaPublicaciones().find((p) => p.id === publicacionId);
-    if (!pub) return 'La publicación ya no existe.';
-    if (pub.usuarioId === yo.id) return 'Esta publicación es tuya.';
-    if (pub.estado !== 'activa') return 'Esta publicación no está disponible.';
-
-    const yaLaPedi = this.listaTrueques().some(
-      (t) =>
-        t.publicacionId === publicacionId &&
-        t.solicitanteId === yo.id &&
-        (t.estado === 'pendiente' || t.estado === 'aceptado'),
-    );
-    if (yaLaPedi) return 'Ya tienes una propuesta abierta para esta publicación.';
-
-    const nuevo: Trueque = {
-      id: this.siguienteId('tr', this.listaTrueques()),
-      solicitanteId: yo.id,
-      propietarioId: pub.usuarioId,
-      publicacionId: publicacionId,
-      ofrece: ofrece.trim() || 'Propuesta por acordar',
-      busca: pub.titulo,
-      estado: 'pendiente',
-      fechaSolicitud: this.hoy(),
-      fechaCierre: null,
-      confirmadoSolicitante: false,
-      confirmadoPropietario: false,
-      calificacionSolicitante: null,
-      calificacionPropietario: null,
-    };
-
-    this.listaTrueques.update((lista) => [nuevo, ...lista]);
-    this.crearNotificacion(
-      pub.usuarioId,
-      'solicitud',
-      'Nueva solicitud de trueque',
-      yo.nombre + ' quiere truequear por tu publicación "' + pub.titulo + '".',
-      nuevo.id,
-    );
-    // Confirmación para quien ENVÍA la solicitud (antes solo se avisaba
-    // al dueño de la publicación, que es una cuenta distinta a la tuya,
-    // por eso no aparecía nada en tu propia campana).
-    this.crearNotificacion(
-      yo.id,
-      'enviada',
-      'Solicitud enviada',
-      'Le enviaste una solicitud de trueque a ' + this.nombreDe(pub.usuarioId) +
-        ' por "' + pub.titulo + '".',
-      nuevo.id,
-    );
-    this.guardar();
-    return null;
-  }
-
-  aceptarTrueque(truequeId: string): void {
-    const t = this.listaTrueques().find((x) => x.id === truequeId);
-    if (!t || t.propietarioId !== this.usuarioActualId()) return;
-
-    this.cambiarEstadoTrueque(truequeId, 'aceptado', null);
-    this.crearNotificacion(
-      t.solicitanteId,
-      'aceptada',
-      'Tu solicitud fue aceptada',
-      'Aceptaron tu propuesta. Continúa la negociación por WhatsApp.',
-      truequeId,
-    );
-    this.guardar();
-  }
-
-  rechazarTrueque(truequeId: string): void {
-    const t = this.listaTrueques().find((x) => x.id === truequeId);
-    if (!t || t.propietarioId !== this.usuarioActualId()) return;
-
-    this.cambiarEstadoTrueque(truequeId, 'rechazado', this.hoy());
-    this.crearNotificacion(
-      t.solicitanteId,
-      'rechazada',
-      'Tu solicitud fue rechazada',
-      'Tu propuesta por "' + this.tituloDe(t.publicacionId) + '" fue rechazada.',
-      truequeId,
-    );
-    this.guardar();
-  }
-
-  // Cada parte confirma. Cuando confirman las dos, queda completado.
-  confirmarTrueque(truequeId: string): void {
-    const yo = this.usuarioActualId();
-    if (!yo) return;
-
-    this.listaTrueques.update((lista) =>
-      lista.map((t) => {
-        if (t.id !== truequeId) return t;
-        if (t.estado !== 'aceptado') return t;
-
-        const soySolicitante = t.solicitanteId === yo;
-        const soyPropietario = t.propietarioId === yo;
-        if (!soySolicitante && !soyPropietario) return t;
-
-        const actualizado: Trueque = {
-          ...t,
-          confirmadoSolicitante: soySolicitante ? true : t.confirmadoSolicitante,
-          confirmadoPropietario: soyPropietario ? true : t.confirmadoPropietario,
-        };
-
-        if (actualizado.confirmadoSolicitante && actualizado.confirmadoPropietario) {
-          actualizado.estado = 'completado';
-          actualizado.fechaCierre = this.hoy();
-        }
-        return actualizado;
-      }),
-    );
-
-    const t = this.listaTrueques().find((x) => x.id === truequeId);
-    if (t && t.estado === 'completado') {
-      // La publicación queda finalizada, menos los digitales que son ilimitados.
-      this.listaPublicaciones.update((lista) =>
-        lista.map((p) =>
-          p.id === t.publicacionId && p.tipo !== 'bien_digital'
-            ? { ...p, estado: 'finalizada' as const }
-            : p,
-        ),
+    try {
+      const nuevo: any = await firstValueFrom(
+        this.http.post(API_URL + '/trueques', { publicacionId: publicacionId, ofrece: texto }),
       );
 
-
-      this.contarIntercambios(t.solicitanteId);
-      this.contarIntercambios(t.propietarioId);
+      const nuevaLista: Trueque[] = [nuevo];
+      for (const t of this.listaTrueques()) {
+        nuevaLista.push(t);
+      }
+      this.listaTrueques.set(nuevaLista);
+      return null;
+    } catch (e) {
+      return mensajeDeError(e);
     }
-    this.guardar();
   }
 
-  // Nota de 1 a 5 que pone el usuario que tiene la sesión.
-  calificarTrueque(truequeId: string, nota: number): void {
-    const yo = this.usuarioActualId();
-    if (!yo || nota < 1 || nota > 5) return;
-
-    this.listaTrueques.update((lista) =>
-      lista.map((t) => {
-        if (t.id !== truequeId || t.estado !== 'completado') return t;
-        if (t.solicitanteId === yo) return { ...t, calificacionSolicitante: nota };
-        if (t.propietarioId === yo) return { ...t, calificacionPropietario: nota };
-        return t;
-      }),
-    );
-    this.calcularCalificaciones();
-    this.guardar();
+  async aceptarTrueque(truequeId: string): Promise<void> {
+    await this.accionTrueque(truequeId, 'aceptar', {});
   }
 
-  // Nota que ya puso el usuario en ese trueque (0 si todavía no califica).
+  async rechazarTrueque(truequeId: string): Promise<void> {
+    await this.accionTrueque(truequeId, 'rechazar', {});
+  }
+
+  // cada parte confirma, cuando confirman las dos queda completado
+  async confirmarTrueque(truequeId: string): Promise<void> {
+    const actualizado = await this.accionTrueque(truequeId, 'confirmar', {});
+
+    // al completarse cambian la publicacion y los contadores del usuario
+    if (actualizado && actualizado.estado === 'completado') {
+      this.refrescar();
+    }
+  }
+
+  // nota de 1 a 5 que pone el usuario que tiene la sesion
+  async calificarTrueque(truequeId: string, nota: number): Promise<void> {
+    if (nota < 1 || nota > 5) {
+      return;
+    }
+
+    await this.accionTrueque(truequeId, 'calificar', { nota: nota });
+    this.refrescar();
+  }
+
+  // nota que ya puso el usuario en ese trueque (0 si todavia no califica)
   miCalificacion(t: TruequeVista): number {
     const yo = this.usuarioActualId();
-    if (t.solicitanteId === yo) return t.calificacionSolicitante ?? 0;
-    if (t.propietarioId === yo) return t.calificacionPropietario ?? 0;
+    if (t.solicitanteId === yo && t.calificacionSolicitante) {
+      return t.calificacionSolicitante;
+    }
+    if (t.propietarioId === yo && t.calificacionPropietario) {
+      return t.calificacionPropietario;
+    }
     return 0;
   }
 
-  private cambiarEstadoTrueque(
-    id: string,
-    estado: Trueque['estado'],
-    cierre: string | null,
-  ): void {
-    this.listaTrueques.update((lista) =>
-      lista.map((t) =>
-        t.id === id ? { ...t, estado: estado, fechaCierre: cierre ?? t.fechaCierre } : t,
-      ),
-    );
-  }
+  // manda la accion al MID y cambia el trueque con lo que responde
+  private async accionTrueque(truequeId: string, accion: string, cuerpo: object): Promise<Trueque | null> {
+    try {
+      const actualizado: any = await firstValueFrom(
+        this.http.patch(API_URL + '/trueques/' + truequeId + '/' + accion, cuerpo),
+      );
 
-  private tituloDe(publicacionId: string): string {
-    const p = this.listaPublicaciones().find((x) => x.id === publicacionId);
-    return p ? p.titulo : 'la publicación';
-  }
-
-  // Nombre del dueño de la publicación, para el texto de "Solicitud enviada".
-  private nombreDe(usuarioId: string): string {
-    return this.listaUsuarios().find((u) => u.id === usuarioId)?.nombre ?? 'ese usuario';
-  }
-
-  private contarIntercambios(usuarioId: string): void {
-    const total = this.listaTrueques().filter(
-      (t) =>
-        t.estado === 'completado' &&
-        (t.solicitanteId === usuarioId || t.propietarioId === usuarioId),
-    ).length;
-
-    this.listaUsuarios.update((lista) =>
-      lista.map((u) => (u.id === usuarioId ? { ...u, intercambios: total } : u)),
-    );
-  }
-
-  // Saca el promedio de las notas que recibió cada usuario.
-  private calcularCalificaciones(): void {
-    const notasPorUsuario = new Map<string, number[]>();
-
-    const agregar = (id: string, nota: number) => {
-      const notas = notasPorUsuario.get(id) ?? [];
-      notas.push(nota);
-      notasPorUsuario.set(id, notas);
-    };
-
-    for (const t of this.listaTrueques()) {
-      // La nota que pone el solicitante la recibe el propietario, y al revés.
-      if (t.calificacionSolicitante !== null) agregar(t.propietarioId, t.calificacionSolicitante);
-      if (t.calificacionPropietario !== null) agregar(t.solicitanteId, t.calificacionPropietario);
-    }
-
-    this.listaUsuarios.update((lista) =>
-      lista.map((u) => {
-        const notas = notasPorUsuario.get(u.id) ?? [];
-        if (notas.length === 0) {
-          return { ...u, calificacion: 0, totalCalificaciones: 0 };
+      const nuevaLista: Trueque[] = [];
+      for (const t of this.listaTrueques()) {
+        if (t.id === truequeId) {
+          nuevaLista.push(actualizado);
+        } else {
+          nuevaLista.push(t);
         }
-        const suma = notas.reduce((a, b) => a + b, 0);
-        return {
-          ...u,
-          calificacion: Math.round((suma / notas.length) * 10) / 10,
-          totalCalificaciones: notas.length,
-        };
-      }),
-    );
+      }
+      this.listaTrueques.set(nuevaLista);
+      return actualizado;
+    } catch {
+      this.refrescar();
+      return null;
+    }
   }
 
-  // Notificaciones (avisos de una sola vía, no es un chat)
+  // notificaciones (avisos de una sola via, no es un chat)
 
-  notificaciones = computed<Notificacion[]>(() => {
+  notificaciones = computed(() => {
     const id = this.usuarioActualId();
-    if (!id) return [];
-    return this.listaNotificaciones()
-      .filter((n) => n.usuarioId === id)
-      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+    if (!id) {
+      return [];
+    }
+    const lista = this.listaNotificaciones().filter((n) => n.usuarioId === id);
+    lista.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+    return lista;
   });
 
-  notificacionesSinLeer = computed(
-    () => this.notificaciones().filter((n) => !n.leida).length,
-  );
+  notificacionesSinLeer = computed(() => {
+    let total = 0;
+    for (const n of this.notificaciones()) {
+      if (!n.leida) {
+        total = total + 1;
+      }
+    }
+    return total;
+  });
 
-  // Aviso del municipio elegido. Sale de data/avisos-ubicacion.json y es
-  // solo para mostrar: no se guarda ni se marca como leído.
+  // aviso del municipio elegido, viene del MID (/avisos-ubicacion)
+  // solo es para mostrar, no se guarda ni se marca como leido
   avisoDeUbicacion(municipio: string): AvisoUbicacion | undefined {
-    const lista = this.listaAvisos();
-    return lista.find((a) => a.municipio === municipio) ?? lista.find((a) => a.municipio === '');
+    let general: AvisoUbicacion | undefined = undefined;
+    for (const a of this.listaAvisos()) {
+      if (a.municipio === municipio) {
+        return a;
+      }
+      if (a.municipio === '' && !general) {
+        general = a;
+      }
+    }
+    return general;
   }
 
   marcarNotificacionLeida(id: string): void {
-    this.listaNotificaciones.update((lista) =>
-      lista.map((n) => (n.id === id ? { ...n, leida: true } : n)),
-    );
-    this.guardar();
+    const nuevaLista: Notificacion[] = [];
+    for (const n of this.listaNotificaciones()) {
+      const copia = Object.assign({}, n);
+      if (n.id === id) {
+        copia.leida = true;
+      }
+      nuevaLista.push(copia);
+    }
+    this.listaNotificaciones.set(nuevaLista);
+
+    this.http.patch(API_URL + '/notificaciones/' + id + '/leida', {}).subscribe({
+      error: () => this.refrescar(),
+    });
   }
 
   marcarTodasLeidas(): void {
     const yo = this.usuarioActualId();
-    this.listaNotificaciones.update((lista) =>
-      lista.map((n) => (n.usuarioId === yo ? { ...n, leida: true } : n)),
-    );
-    this.guardar();
+    const nuevaLista: Notificacion[] = [];
+    for (const n of this.listaNotificaciones()) {
+      const copia = Object.assign({}, n);
+      if (n.usuarioId === yo) {
+        copia.leida = true;
+      }
+      nuevaLista.push(copia);
+    }
+    this.listaNotificaciones.set(nuevaLista);
+
+    this.http.patch(API_URL + '/notificaciones/leidas', {}).subscribe({
+      error: () => this.refrescar(),
+    });
   }
 
-  private crearNotificacion(
-    usuarioId: string,
-    tipo: TipoNotificacion,
-    titulo: string,
-    mensaje: string,
-    referenciaId: string | null,
-  ): void {
-    this.listaNotificaciones.update((lista) => [
-      {
-        id: this.siguienteId('not', lista),
-        usuarioId: usuarioId,
-        tipo: tipo,
-        titulo: titulo,
-        mensaje: mensaje,
-        referenciaId: referenciaId,
-        leida: false,
-        fecha: new Date().toISOString(),
-      },
-      ...lista,
-    ]);
-  }
-
-  // WhatsApp: XchanGo no tiene chat interno
+  // whatsapp: XchanGo no tiene chat interno
 
   enlaceWhatsApp(publicacion: PublicacionVista): string | null {
-    if (!publicacion.telefono) return null;
-    if (publicacion.usuarioId === this.usuarioActualId()) return null;
+    if (!publicacion.telefono) {
+      return null;
+    }
+    if (publicacion.usuarioId === this.usuarioActualId()) {
+      return null;
+    }
 
-    const yo = this.usuarioActual()?.nombre ?? 'un usuario de XchanGo';
+    let yo = 'un usuario de XchanGo';
+    const actual = this.usuarioActual();
+    if (actual) {
+      yo = nombreCompleto(actual);
+    }
+
     const texto =
       'Hola ' + publicacion.autor + ', soy ' + yo + '. ' +
       'Vi tu publicación "' + publicacion.titulo + '" en XchanGo y quiero proponerte un trueque. ' +
@@ -948,11 +830,17 @@ export class TruequesService {
   }
 
   enlaceWhatsAppTrueque(t: TruequeVista): string | null {
-    const yo = this.usuarioActualId();
-    const soyPropietario = t.propietarioId === yo;
-    const telefono = soyPropietario ? t.solicitanteTelefono : t.propietarioTelefono;
-    const destino = soyPropietario ? t.solicitanteNombre : t.propietarioNombre;
-    if (!telefono) return null;
+    // si yo soy el dueño le escribo al que pidio, si no al dueño
+    let telefono = t.propietarioTelefono;
+    let destino = t.propietarioNombre;
+    if (t.propietarioId === this.usuarioActualId()) {
+      telefono = t.solicitanteTelefono;
+      destino = t.solicitanteNombre;
+    }
+
+    if (!telefono) {
+      return null;
+    }
 
     const texto =
       'Hola ' + destino + ', te escribo desde XchanGo por el trueque de "' +
@@ -967,45 +855,38 @@ export class TruequesService {
     }
   }
 
-  // Le pone el indicativo de Colombia al número.
+  // le pone el indicativo de Colombia al numero
   private armarEnlace(telefono: string, texto: string): string {
-    const numeros = telefono.replace(/\D/g, '');
-    const conIndicativo = numeros.startsWith('57') ? numeros : '57' + numeros;
-    return 'https://wa.me/' + conIndicativo + '?text=' + encodeURIComponent(texto);
+    let numero = telefono.replace(/\D/g, '');
+    if (!numero.startsWith('57')) {
+      numero = '57' + numero;
+    }
+    return 'https://wa.me/' + numero + '?text=' + encodeURIComponent(texto);
   }
 
-  // Favoritos
+  // favoritos
 
   alternarFavorito(publicacion: { id: string }): void {
-    const copia = new Set(this.favoritos());
-    if (copia.has(publicacion.id)) {
-      copia.delete(publicacion.id);
+    const copia = this.favoritos().slice();
+    const posicion = copia.indexOf(publicacion.id);
+    if (posicion >= 0) {
+      copia.splice(posicion, 1);
     } else {
-      copia.add(publicacion.id);
+      copia.push(publicacion.id);
     }
     this.favoritos.set(copia);
-    this.guardar();
+
+    // sin sesion el favorito solo queda en pantalla
+    if (!this.usuarioActualId()) {
+      return;
+    }
+
+    this.http.post(API_URL + '/favoritos/' + publicacion.id, {}).subscribe({
+      error: () => this.refrescar(),
+    });
   }
 
   esFavorito(id: string): boolean {
-    return this.favoritos().has(id);
-  }
-
-  // Ayudas
-
-  // Busca el número más alto y devuelve el siguiente: pub13 -> pub14
-  private siguienteId(prefijo: string, lista: { id: string }[]): string {
-    let mayor = 0;
-    for (const item of lista) {
-      const numero = Number(item.id.replace(prefijo, ''));
-      if (!Number.isNaN(numero) && numero > mayor) {
-        mayor = numero;
-      }
-    }
-    return prefijo + (mayor + 1);
-  }
-
-  private hoy(): string {
-    return new Date().toISOString().slice(0, 10);
+    return this.favoritos().includes(id);
   }
 }
