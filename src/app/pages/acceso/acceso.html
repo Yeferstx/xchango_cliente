@@ -1,11 +1,9 @@
 <div class="ac">
 
-  <a routerLink="/login" class="ac__marca">
-    <img src="Logo-xchango/chango.png" alt="Logo XchanGo" class="ac__marca-chango" />
-    <img src="Logo-xchango/letras-chango.png" alt="XchanGo" class="ac__marca-wordmark" />
-  </a>
+  <app-logo-xchango class="ac__marca" tamano="md" enlace="/login" *ngIf="!mostrarVerificacion()"></app-logo-xchango>
 
   <form class="ac__card" (ngSubmit)="entrar()" *ngIf="!mostrarVerificacion()">
+    <a class="enlace-volver" routerLink="/login"><span aria-hidden="true">&#8592;</span> Volver al inicio</a>
     <h1 class="ac__title">Entrar a XchanGo</h1>
     <p class="ac__sub">Intercambia bienes y servicios en Casanare. Solo necesitas tu correo.</p>
 
@@ -19,15 +17,14 @@
 
     <p class="ac__foot">
       ¿No tienes cuenta? <a routerLink="/formulario">Regístrate</a>
-      · <a routerLink="/login">Volver al inicio</a>
     </p>
   </form>
 
   <app-verificar-codigo
     *ngIf="mostrarVerificacion()"
     [correo]="email"
-    (verificado)="onCodigoVerificado()"
-    (volver)="mostrarVerificacion.set(false)"
+    (verificado)="codigoVerificado()"
+    (volver)="volverAlCorreo()"
   ></app-verificar-codigo>
 
 </div>

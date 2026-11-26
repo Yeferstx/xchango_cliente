@@ -1,64 +1,87 @@
+import { LogoXchangoComponent } from '../../components/logo-xchango/logo-xchango';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { TruequesService } from '../../services/trueques';
+import { AuthPinService } from '../../services/auth-pin';
 import { VerificarCodigoComponent } from '../../layout/verificar-codigo/verificar-codigo';
 
-// Pantalla de inicio de sesión, solo con correo (sin contraseña: no se usa
-// en este proyecto). Se entra con un código de verificación simulado que
-// "llega" al correo — ver TruequesService.iniciarSesion.
+// inicio de sesion solo con correo (sin contraseña). El MID manda un PIN
+// al correo y con ese PIN se entra
 @Component({
   selector: 'app-acceso',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, VerificarCodigoComponent],
+  imports: [LogoXchangoComponent, CommonModule, FormsModule, RouterLink, VerificarCodigoComponent],
   templateUrl: './acceso.html',
   styleUrl: './acceso.css',
 })
 export class AccesoComponent implements OnInit {
+  volverAlCorreo(): void {
+    this.mostrarVerificacion.set(false);
+    setTimeout(() => {
+      const campo = document.getElementById('ac-email');
+      if (campo) {
+        campo.focus();
+      }
+    });
+  }
+
   private servicio = inject(TruequesService);
+  private auth = inject(AuthPinService);
   private router = inject(Router);
   private ruta = inject(ActivatedRoute);
 
   email = '';
   error = signal('');
 
-  readonly mostrarVerificacion = signal(false);
+  mostrarVerificacion = signal(false);
 
-  // A dónde volver después de entrar (lo pone el guard).
+  // a donde volver despues de entrar (lo pone el guard)
   private volverA = '/home';
 
   ngOnInit(): void {
     this.servicio.cargar();
-    this.volverA = this.ruta.snapshot.queryParamMap.get('volverA') ?? '/home';
+    const destino = this.ruta.snapshot.queryParamMap.get('volverA');
+    // solo se aceptan rutas de la misma pagina, que empiecen con una sola /
+    if (destino && destino.startsWith('/') && !destino.startsWith('//')) {
+      this.volverA = destino;
+    }
   }
 
-  entrar(): void {
+  async entrar(): Promise<void> {
     this.error.set('');
-
-    if (!this.servicio.listo()) {
-      this.error.set('Los datos todavía se están cargando, intenta en un segundo.');
-      return;
-    }
 
     if (!this.email.trim()) {
       this.error.set('Completa tu correo.');
       return;
     }
 
-    // El correo se valida de verdad solo después del código (onCodigoVerificado).
+    const problema = await this.auth.enviarPin(this.email, 'entrar');
+    if (problema) {
+      this.error.set(problema);
+      return;
+    }
+
     this.mostrarVerificacion.set(true);
   }
 
-  onCodigoVerificado(): void {
-    const mensaje = this.servicio.iniciarSesion(this.email);
+  async codigoVerificado(): Promise<void> {
+    if (this.auth.requiereRegistro()) {
+      this.auth.limpiarVerificacion();
+      this.mostrarVerificacion.set(false);
+      this.error.set('Ese correo todavía no tiene cuenta. Regístrate primero.');
+      return;
+    }
+
+    const mensaje = await this.servicio.iniciarSesion();
     if (mensaje) {
       this.mostrarVerificacion.set(false);
       this.error.set(mensaje);
       return;
     }
 
-    this.router.navigateByUrl(this.volverA);
+    this.router.navigateByUrl(this.volverA, { replaceUrl: true });
   }
 }

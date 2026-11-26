@@ -1,10 +1,10 @@
 :host {
-  --ac-bg: #f7f3ea;
-  --ac-card: #fffdf8;
-  --ac-line: #e5dcc8;
-  --ac-ink: #1f1b16;
-  --ac-soft: #7a6f5d;
-  --ac-acc: #c8a86b;
+  --ac-bg: var(--color-background);
+  --ac-card: var(--color-surface);
+  --ac-line: var(--color-border-solid);
+  --ac-ink: var(--color-text);
+  --ac-soft: var(--color-text-muted);
+  --ac-acc: var(--color-accent);
   display: block;
   background: var(--ac-bg);
   min-height: 100vh;
@@ -35,18 +35,20 @@
   flex-direction: column;
 }
 
+.ac__logo { display: flex; justify-content: center; margin-bottom: 14px; }
+.ac__logo-chango { width: 46px; height: 46px; object-fit: contain; }
 
 .ac__title { margin: 0 0 4px; font-family: "Baloo 2", sans-serif; font-size: 1.7rem; color: var(--ac-ink); }
 .ac__sub { margin: 0 0 24px; color: var(--ac-soft); font-size: .92rem; }
 
 .ac__label { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ac-soft); margin-bottom: 6px; }
-.ac__input { border: 1px solid var(--ac-line); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font: inherit; background: #fff; color: var(--ac-ink); }
+.ac__input { border: 1px solid var(--ac-line); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font: inherit; background: var(--oscuro-fondo, #fff); color: var(--ac-ink); }
 .ac__input:focus { outline: none; border-color: var(--ac-acc); }
 
-.ac__error { background: #f6e2e0; color: var(--xg-rojo); border-radius: 8px; padding: 10px 12px; margin: 0 0 14px; font-size: .88rem; }
+.ac__error { background: var(--color-error-soft); color: var(--color-error); border-radius: 8px; padding: 10px 12px; margin: 0 0 14px; font-size: .88rem; }
 
-.ac__btn { background: var(--ac-ink); color: var(--xg-papel); border: 0; border-radius: 10px; padding: 13px; font: inherit; font-weight: 600; cursor: pointer; }
-.ac__btn:hover { background: #322b23; }
+.ac__btn { background: var(--color-primary); color: var(--color-on-primary); border: 0; border-radius: 10px; padding: 13px; font: inherit; font-weight: 600; cursor: pointer; }
+.ac__btn:hover { background: var(--color-primary-dark); }
 
 .ac__foot { margin: 20px 0 0; text-align: center; color: var(--ac-soft); font-size: .86rem; }
 .ac__foot a { color: var(--ac-ink); }
