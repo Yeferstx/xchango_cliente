@@ -1,10 +1,7 @@
-// Catálogo único de municipios de Casanare.
-// XchanGo opera exclusivamente en este departamento, por lo que la lista es fija
-// y no necesita ser un JSON. Antes estaba duplicada en `pages/ubicacion` y en
-// `pages/formulario-crear-trueques`; ambos deben importarla desde aquí.
+// municipios de Casanare, la app solo funciona en este departamento
 export const DEPARTAMENTO = 'Casanare';
 
-export const MUNICIPIOS_CASANARE: readonly string[] = [
+export const MUNICIPIOS_CASANARE: string[] = [
   'Yopal',
   'Aguazul',
   'Chámeza',
