@@ -14,9 +14,7 @@ interface RolUsuario {
   colorClase: string;
 }
 
-// Crear usuarios internos (moderadores).
-// Solo el administrador puede entrar aquí. El moderador no crea usuarios,
-// por eso la ruta usa el guard `soloAdminGuard`.
+// crear moderadores, solo entra el admin (soloAdminGuard)
 @Component({
   selector: 'app-formulario-crear-usuario-admin',
   standalone: true,
@@ -29,7 +27,7 @@ export class FormularioCrearUsuarioAdminComponent implements OnInit {
   private router = inject(Router);
   private adminsSrv = inject(AdminsAdminService);
 
-  // Tarjetas de rol que se pueden elegir.
+  // tarjetas de rol que se pueden elegir
   roles: RolUsuario[] = [
     {
       id: 'moderador',
@@ -49,13 +47,13 @@ export class FormularioCrearUsuarioAdminComponent implements OnInit {
     },
   ];
 
-  form!: FormGroup;
+  form: FormGroup = new FormGroup({});
   mostrarContrasena = false;
   mostrarConfirmarContrasena = false;
   mensajeError = '';
 
-  readonly maxNotas = 200;
-  readonly fechaCreacion = new Date();
+  maxNotas = 200;
+  fechaCreacion = new Date();
 
   ngOnInit(): void {
     this.adminsSrv.cargar();
@@ -73,18 +71,23 @@ export class FormularioCrearUsuarioAdminComponent implements OnInit {
     });
   }
 
-  // Ayudas para la plantilla
+  // ayudas para la plantilla
 
-  seleccionarRol(id: 'administrador' | 'moderador'): void {
-    this.form.get('rol')?.setValue(id);
+  seleccionarRol(id: string): void {
+    this.form.patchValue({ rol: id });
   }
 
   get rolSeleccionado(): RolUsuario | undefined {
-    return this.roles.find((r) => r.id === this.form.get('rol')?.value);
+    for (const r of this.roles) {
+      if (r.id === this.form.value.rol) {
+        return r;
+      }
+    }
+    return undefined;
   }
 
-  seleccionarEstado(estado: 'activo' | 'inactivo'): void {
-    this.form.get('estado')?.setValue(estado);
+  seleccionarEstado(estado: string): void {
+    this.form.patchValue({ estado: estado });
   }
 
   get fechaCreacionFormateada(): string {
@@ -94,34 +97,47 @@ export class FormularioCrearUsuarioAdminComponent implements OnInit {
     return dia + '/' + mes + '/' + anio;
   }
 
+  // si el campo esta vacio se muestra un ejemplo en la vista previa
   get nombreCompletoVistaPrevia(): string {
-    return this.form.get('nombreCompleto')?.value || 'Juan Pérez Gómez';
+    if (this.form.value.nombreCompleto) {
+      return this.form.value.nombreCompleto;
+    }
+    return 'Juan Pérez Gómez';
   }
 
   get correoVistaPrevia(): string {
-    return this.form.get('correo')?.value || 'juan@correo.com';
+    if (this.form.value.correo) {
+      return this.form.value.correo;
+    }
+    return 'juan@correo.com';
   }
 
   get usuarioVistaPrevia(): string {
-    return this.form.get('nombreUsuario')?.value || 'juanperez';
+    if (this.form.value.nombreUsuario) {
+      return this.form.value.nombreUsuario;
+    }
+    return 'juanperez';
   }
 
-  togglMostrarContrasena(): void {
+  verContrasena(): void {
     this.mostrarContrasena = !this.mostrarContrasena;
   }
 
-  toggleMostrarConfirmarContrasena(): void {
+  verConfirmarContrasena(): void {
     this.mostrarConfirmarContrasena = !this.mostrarConfirmarContrasena;
   }
 
-  // Revisa que la confirmación sea igual a la contraseña.
+  // revisa que la confirmacion sea igual a la contraseña
   get contrasenasNoCoinciden(): boolean {
-    const contrasena = this.form.get('contrasena')?.value;
-    const confirmar = this.form.get('confirmarContrasena')?.value;
-    return !!confirmar && contrasena !== confirmar;
+    const contrasena = this.form.value.contrasena;
+    const confirmar = this.form.value.confirmarContrasena;
+    if (confirmar && contrasena !== confirmar) {
+      return true;
+    }
+    return false;
   }
 
-  // Navegación y guardado
+  // navegacion y guardado
 
   cancelar(): void {
     this.router.navigate(['/admin/administracion']);
@@ -131,7 +147,7 @@ export class FormularioCrearUsuarioAdminComponent implements OnInit {
     this.router.navigate(['/admin/administracion']);
   }
 
-  onSubmit(): void {
+  async enviarFormulario(): Promise<void> {
     this.mensajeError = '';
 
     if (this.form.invalid || this.contrasenasNoCoinciden) {
@@ -142,12 +158,22 @@ export class FormularioCrearUsuarioAdminComponent implements OnInit {
 
     const v = this.form.getRawValue();
 
-    const error = this.adminsSrv.crearUsuarioInterno({
+    // en el formulario se llama administrador pero el MID usa admin
+    let rol: 'admin' | 'moderador' = 'moderador';
+    if (v.rol === 'administrador') {
+      rol = 'admin';
+    }
+    let estado: 'activo' | 'inactivo' = 'inactivo';
+    if (v.estado === 'activo') {
+      estado = 'activo';
+    }
+
+    const error = await this.adminsSrv.crearUsuarioInterno({
       nombre: v.nombreCompleto,
       email: v.correo,
       password: v.contrasena,
-      rol: v.rol === 'administrador' ? 'admin' : 'moderador',
-      estado: v.estado === 'activo' ? 'activo' : 'inactivo',
+      rol: rol,
+      estado: estado,
     });
 
     if (error) {

@@ -1,19 +1,19 @@
+/* base */
 :host {
-  /* Alias hacia los tokens compartidos del panel admin, para que
-     esta página no tenga su propia paleta desconectada del resto. */
+  /* usa los colores del panel admin */
   --color-page-bg: var(--admin-bg, #f5f2ec);
-  --color-card-bg: var(--admin-surface, #fffdf9);
+  --color-card-bg: var(--admin-surface, var(--color-surface));
   --color-bg-input: var(--admin-surface, #ffffff);
   --color-border: var(--admin-border, #e4d3ac);
   --color-icon-bg: var(--admin-surface-2, #f2e4c8);
-  --color-text-dark: var(--admin-text, #1f1b16);
-  --color-text-muted: var(--admin-text-2, #7a6f5d);
-  --color-accent: var(--admin-accent-claro, #c9a876);
-  --color-accent-dark: var(--admin-accent, #b08d5b);
-  --color-accent-soft: var(--admin-accent-claro, #ddc9a0);
+  --color-text-dark: var(--admin-text, var(--color-text));
+  --color-text-muted: var(--admin-text-2, var(--color-text-muted));
+  --color-accent: var(--admin-accent-claro, var(--color-accent));
+  --color-accent-dark: var(--admin-accent, var(--color-accent-dark));
+  --color-accent-soft: var(--admin-accent-claro, var(--color-accent-soft));
 
-  --verde: var(--admin-ok, #2f6d4f);
-  --verde-claro: #eafaf0;
+  --verde: var(--admin-ok, var(--color-ok));
+  --verde-claro: var(--color-ok-soft);
 
   display: block;
   font-family: var(--admin-fuente-num, 'Segoe UI', Roboto, Arial, sans-serif);
@@ -49,7 +49,7 @@ app-icono {
   font-feature-settings: 'liga';
 }
 
-
+/* encabezado */
 .encabezado {
   display: flex;
   align-items: center;
@@ -58,8 +58,10 @@ app-icono {
 }
 
 .boton-volver {
-  width: 44px;
-  height: 44px;
+  width: auto;
+  padding-inline: 10px;
+  min-height: 40px;
+  gap: 6px;
   border-radius: 14px;
   border: none;
   background: var(--color-icon-bg);
@@ -90,7 +92,7 @@ app-icono {
   align-items: start;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .contenedor-principal {
     grid-template-columns: 1fr;
   }
@@ -103,7 +105,7 @@ app-icono {
   gap: 20px;
 }
 
-
+/* secciones */
 .seccion {
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
@@ -131,7 +133,7 @@ app-icono {
   color: var(--color-text-muted);
 }
 
-
+/* campos */
 .fila-campos {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -162,7 +164,7 @@ app-icono {
 }
 
 .requerido {
-  color: var(--xg-rojo-fuerte);
+  color: #dc2626;
 }
 
 .texto-ayuda {
@@ -172,7 +174,7 @@ app-icono {
 }
 
 .texto-error {
-  color: var(--xg-rojo-fuerte);
+  color: #dc2626;
 }
 
 .input-con-icono {
@@ -266,7 +268,7 @@ textarea:focus {
   gap: 16px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .grid-roles {
     grid-template-columns: 1fr;
   }
@@ -342,7 +344,7 @@ textarea:focus {
   color: var(--verde);
 }
 
-/* ESTADO DE LA CUENTA */
+/* estado de la cuenta */
 .grupo-estado {
   display: flex;
   gap: 10px;
@@ -376,8 +378,8 @@ textarea:focus {
 }
 
 .boton-estado.inactivo-seleccionado {
-  border-color: var(--xg-rojo-fuerte);
-  background: var(--xg-rojo-fondo);
+  border-color: #dc2626;
+  background: var(--color-error-soft);
   color: #b91c1c;
 }
 
@@ -408,7 +410,7 @@ textarea:focus {
   border: none;
   border-radius: 10px;
   background: var(--color-accent);
-  color: var(--color-text-dark);
+  color: var(--color-on-accent);
   font-weight: 700;
   font-size: 14px;
   display: flex;
@@ -422,7 +424,7 @@ textarea:focus {
   background: var(--color-accent-dark);
 }
 
-
+/* vista previa */
 .tarjeta-vista-previa {
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
@@ -536,15 +538,15 @@ textarea:focus {
 }
 
 .etiqueta-inactivo {
-  background: var(--xg-rojo-fondo);
-  color: var(--xg-rojo-fuerte);
+  background: var(--color-error-soft);
+  color: #dc2626;
   font-size: 11.5px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 999px;
 }
 
-
+/* caja consejo */
 .caja-consejo {
   display: flex;
   gap: 10px;

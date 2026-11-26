@@ -1,16 +1,16 @@
 <div class="pagina">
-
+  <!-- encabezado -->
   <header class="encabezado">
-    <button type="button" class="boton-volver" (click)="volver()">
-      <app-icono nombre="arrow_back"></app-icono>
+    <button type="button" class="boton-volver enlace-volver" (click)="volver()">
+      <app-icono nombre="arrow_back" aria-hidden="true"></app-icono>
+      Volver a Administración
     </button>
     <div>
-      <h1>Crear Usuario (Moderador / Administrador)</h1>
       <p>Completa la información para crear un nuevo usuario.</p>
     </div>
   </header>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="contenedor-principal">
+  <form [formGroup]="form" (ngSubmit)="enviarFormulario()" class="contenedor-principal">
     <!-- columna izquierda (formulario) -->
     <div class="columna-formulario">
       <!-- 1. Información personal -->
@@ -69,7 +69,7 @@
                 formControlName="contrasena"
                 placeholder="Ingresa una contraseña segura"
               />
-              <button type="button" class="boton-ojo" (click)="togglMostrarContrasena()">
+              <button type="button" class="boton-ojo" (click)="verContrasena()">
                 <app-icono [nombre]="mostrarContrasena ? 'visibility' : 'visibility_off'"></app-icono>
               </button>
             </div>
@@ -85,7 +85,7 @@
                 formControlName="confirmarContrasena"
                 placeholder="Confirma la contraseña"
               />
-              <button type="button" class="boton-ojo" (click)="toggleMostrarConfirmarContrasena()">
+              <button type="button" class="boton-ojo" (click)="verConfirmarContrasena()">
                 <app-icono [nombre]="mostrarConfirmarContrasena ? 'visibility' : 'visibility_off'"></app-icono>
               </button>
             </div>
