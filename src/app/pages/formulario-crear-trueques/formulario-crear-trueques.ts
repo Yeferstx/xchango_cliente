@@ -7,6 +7,7 @@ import { DEPARTAMENTO, MUNICIPIOS_CASANARE } from '../../shared/municipios-casan
 import { Categoria } from '../../models/categoria.model';
 import { DatosPublicacion, TruequesService } from '../../services/trueques';
 import { TipoPublicacion } from '../../models/publicacion.model';
+import { achicarImagen } from '../../shared/imagenes';
 
 interface TipoIntercambio {
   id: string;
@@ -16,7 +17,6 @@ interface TipoIntercambio {
   colorClase: string; // clase css para el color del icono/tarjeta
 }
 
-
 @Component({
   selector: 'app-formulario-crear-trueques',
   standalone: true,
@@ -24,9 +24,9 @@ interface TipoIntercambio {
   templateUrl: './formulario-crear-trueques.html',
   styleUrls: ['./formulario-crear-trueques.css']
 })
-export class FormularioCrearTruequesComponent implements OnInit {
+export class formulario_crear_truequesComponent implements OnInit {
 
-  // 1. Tipos de intercambio (tarjetas seleccionables)
+  // tipos de intercambio (tarjetas seleccionables)
   tiposIntercambio: TipoIntercambio[] = [
     {
       id: 'fisico',
@@ -51,8 +51,8 @@ export class FormularioCrearTruequesComponent implements OnInit {
     }
   ];
 
-  // 2. Catálogos usados en los selects
-  // Catálogo único. Referencia estable: es un signal del servicio.
+  // catalogos usados en los selects
+  // catalogo unico. Referencia estable: es un signal del servicio
   get categorias(): Categoria[] {
     return this.truequesService.categorias();
   }
@@ -65,19 +65,19 @@ export class FormularioCrearTruequesComponent implements OnInit {
     'Por acordar'
   ];
 
-  // Departamento fijo: la plataforma solo opera en Casanare
+  // departamento fijo: la plataforma solo opera en Casanare
   errorGuardado = '';
-  readonly departamento = DEPARTAMENTO;
-  municipiosCasanare: readonly string[] = MUNICIPIOS_CASANARE;
+  departamento = DEPARTAMENTO;
+  municipiosCasanare: string[] = MUNICIPIOS_CASANARE;
 
-  // 3. Estado del formulario
-  form!: FormGroup;
+  // estado del formulario
+  form: FormGroup;
 
   imagenes: File[] = [];
-  imagenesPreviewUrls: string[] = [];
+  imagenesVistaPrevia: string[] = [];
   indiceImagenVistaPrevia = 0;
-  readonly maxImagenes = 5;
-  readonly maxDescripcion = 500;
+  maxImagenes = 5;
+  maxDescripcion = 500;
   arrastrandoArchivo = false;
 
   constructor(
@@ -86,12 +86,11 @@ export class FormularioCrearTruequesComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private truequesService: TruequesService
   ) {
+    this.form = this.fb.group({});
     this.asegurarFuenteMaterialIcons();
   }
 
-  // Inyecta el link de Google Fonts para Material Icons si el proyecto
-  // todavía no lo tiene cargado (evita que los íconos se vean como texto,
-  // ej: "inventory_2" en vez del ícono real).
+  // carga la fuente de Material Icons si no esta, si no los iconos salen como texto
   private asegurarFuenteMaterialIcons(): void {
     const idLink = 'material-icons-font';
     if (document.getElementById(idLink)) {
@@ -109,26 +108,97 @@ export class FormularioCrearTruequesComponent implements OnInit {
 
     this.form = this.fb.group({
       tipoIntercambio: ['fisico', Validators.required],
-      nombre: ['', Validators.required],
+      nombre: ['', [Validators.required, Validators.maxLength(120)]],
       categoria: ['', Validators.required],
       descripcion: ['', [Validators.required, Validators.maxLength(this.maxDescripcion)]],
-      ofreces: [''],
-      buscas: [''],
-      disponibilidad: ['', Validators.required],
-      cantidad: [''],
+      ofreces: ['', Validators.maxLength(200)],
+      buscas: ['', [Validators.required, Validators.maxLength(200)]],
+      disponibilidad: [''],
+      cantidad: ['', Validators.maxLength(40)],
       estado: [true],
-      municipio: ['', Validators.required],
-      barrio: ['']
+      municipio: [''],
+      barrio: ['', Validators.maxLength(80)]
     });
+
+    this.ajustarCampos();
   }
 
-  // Helpers de plantilla
+  // segun el tipo se piden unos campos u otros:
+  //  - bien fisico: municipio, barrio, cantidad y disponibilidad
+  //  - servicio: municipio, cantidad y disponibilidad (sin barrio)
+  //  - bien digital: nada de ubicacion, cantidad ni disponibilidad
+  private ajustarCampos(): void {
+    const tipo = this.tipoReal();
+    const llevaUbicacion = tipo !== 'bien_digital';
+
+    this.cambiarObligatorio('municipio', llevaUbicacion);
+    this.cambiarObligatorio('disponibilidad', llevaUbicacion);
+    this.cambiarObligatorio('barrio', tipo === 'bien_fisico');
+  }
+
+  // pone o quita el "obligatorio" de un campo, sin perder su largo maximo
+  private cambiarObligatorio(nombre: string, obligatorio: boolean): void {
+    const campo = this.form.get(nombre);
+    if (!campo) {
+      return;
+    }
+    const validadores = [];
+    if (obligatorio) {
+      validadores.push(Validators.required);
+    }
+    if (nombre === 'barrio') {
+      validadores.push(Validators.maxLength(80));
+    }
+    campo.setValidators(validadores);
+    campo.updateValueAndValidity();
+  }
+
+  get llevaUbicacion(): boolean {
+    return this.tipoReal() !== 'bien_digital';
+  }
+
+  get llevaBarrio(): boolean {
+    return this.tipoReal() === 'bien_fisico';
+  }
+
+  // como se llama cada campo en pantalla, para avisar cual esta mal
+  private etiquetas: any = {
+    nombre: 'Nombre del intercambio',
+    categoria: 'Categoría',
+    descripcion: 'Descripción',
+    ofreces: 'Qué ofreces',
+    buscas: 'Qué buscas a cambio',
+    disponibilidad: 'Disponibilidad',
+    cantidad: 'Cantidad disponible',
+    municipio: 'Municipio',
+    barrio: 'Barrio',
+  };
+
+  // los nombres de los campos que faltan o estan mal
+  get camposConProblema(): string[] {
+    const lista: string[] = [];
+    for (const clave of Object.keys(this.etiquetas)) {
+      const campo = this.form.get(clave);
+      if (campo && campo.invalid) {
+        lista.push(this.etiquetas[clave]);
+      }
+    }
+    return lista;
+  }
+
+  // funciones que usa el html
   seleccionarTipo(id: string): void {
-    this.form.get('tipoIntercambio')?.setValue(id);
+    this.form.patchValue({ tipoIntercambio: id });
+    this.ajustarCampos();
   }
 
   get tipoSeleccionado(): TipoIntercambio | undefined {
-    return this.tiposIntercambio.find(t => t.id === this.form.get('tipoIntercambio')?.value);
+    for (const t of this.tiposIntercambio) {
+      if (t.id === this.form.value.tipoIntercambio) {
+        return t;
+      }
+    }
+    return undefined;
   }
 
   get tituloVistaPrevia(): string {
@@ -136,106 +206,118 @@ export class FormularioCrearTruequesComponent implements OnInit {
   }
 
   get descripcionRestante(): number {
-    const valor = this.form.get('descripcion')?.value || '';
+    let valor = this.form.value.descripcion;
+    if (!valor) {
+      valor = '';
+    }
     return this.maxDescripcion - valor.length;
   }
 
-  // Manejo de imágenes (drag & drop + input)
-  onDragOver(event: DragEvent): void {
+  // manejo de imagenes (drag & drop + input)
+  arrastrarEncima(event: DragEvent): void {
     event.preventDefault();
     this.arrastrandoArchivo = true;
   }
 
-  onDragLeave(event: DragEvent): void {
+  salirArrastre(event: DragEvent): void {
     event.preventDefault();
     this.arrastrandoArchivo = false;
   }
 
-  onDrop(event: DragEvent): void {
+  soltarArchivo(event: DragEvent): void {
     event.preventDefault();
     this.arrastrandoArchivo = false;
-    if (event.dataTransfer?.files) {
+    if (event.dataTransfer && event.dataTransfer.files) {
       this.agregarImagenes(event.dataTransfer.files);
     }
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
+  escogerArchivos(event: Event): void {
+    const input: any = event.target;
     if (input.files) {
       this.agregarImagenes(input.files);
     }
     input.value = '';
   }
 
-  private agregarImagenes(files: FileList): void {
+  private async agregarImagenes(files: FileList): Promise<void> {
     const disponibles = this.maxImagenes - this.imagenes.length;
-    Array.from(files)
-      .slice(0, disponibles)
-      .forEach(file => {
-        if (!file.type.match(/image\/(jpeg|png)/)) return;
-        if (file.size > 5 * 1024 * 1024) return; // máx 5MB
+    this.errorGuardado = '';
 
-        // Reasigna el arreglo (en vez de mutar con push) para que Angular
-        // detecte el cambio incluso con estrategias de detección estrictas.
-        this.imagenes = [...this.imagenes, file];
+    for (const file of Array.from(files).slice(0, disponibles)) {
+      if (!file.type.match(/image\/(jpeg|png)/)) {
+        this.errorGuardado = 'Las fotos deben ser JPG o PNG.';
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorGuardado = 'Cada foto puede pesar máximo 5MB.';
+        continue;
+      }
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          this.imagenesPreviewUrls = [...this.imagenesPreviewUrls, reader.result as string];
-          this.cdr.detectChanges();
-        };
-        reader.readAsDataURL(file);
-      });
+      try {
+        // la foto se achica a 1024 px para que no pese tanto al enviarla
+        const texto = await achicarImagen(file, 1024, 0.8);
+
+        this.imagenes.push(file);
+        this.imagenesVistaPrevia.push(texto);
+        this.cdr.detectChanges();
+      } catch {
+        this.errorGuardado = 'No se pudo leer una de las fotos.';
+      }
+    }
   }
 
   eliminarImagen(index: number): void {
     this.imagenes = this.imagenes.filter((_, i) => i !== index);
-    this.imagenesPreviewUrls = this.imagenesPreviewUrls.filter((_, i) => i !== index);
+    this.imagenesVistaPrevia = this.imagenesVistaPrevia.filter((_, i) => i !== index);
 
-    if (this.indiceImagenVistaPrevia >= this.imagenesPreviewUrls.length) {
-      this.indiceImagenVistaPrevia = Math.max(0, this.imagenesPreviewUrls.length - 1);
+    if (this.indiceImagenVistaPrevia >= this.imagenesVistaPrevia.length) {
+      this.indiceImagenVistaPrevia = Math.max(0, this.imagenesVistaPrevia.length - 1);
     }
   }
 
   imagenAnterior(): void {
     this.indiceImagenVistaPrevia =
-      (this.indiceImagenVistaPrevia - 1 + this.imagenesPreviewUrls.length) % this.imagenesPreviewUrls.length;
+      (this.indiceImagenVistaPrevia - 1 + this.imagenesVistaPrevia.length) % this.imagenesVistaPrevia.length;
   }
 
   imagenSiguiente(): void {
     this.indiceImagenVistaPrevia =
-      (this.indiceImagenVistaPrevia + 1) % this.imagenesPreviewUrls.length;
+      (this.indiceImagenVistaPrevia + 1) % this.imagenesVistaPrevia.length;
   }
 
-  // Navegación / envío
-  seleccionarUbicacionEnMapa(): void {
-    // Aquí se integraría el selector de ubicación (Google Maps / Leaflet, etc.)
-    console.log('Abrir selector de ubicación en el mapa');
-  }
-
+  // navegacion / envio
   volver(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/home']);
   }
 
-  // Convierte el id del selector visual al tipo que usa el modelo.
+  // convierte el id del selector visual al tipo que usa el modelo
   private tipoReal(): TipoPublicacion {
-    const id = this.form.get('tipoIntercambio')?.value as string;
-    if (id === 'servicio') return 'servicio';
-    if (id === 'digital') return 'bien_digital';
+    const id = this.form.value.tipoIntercambio;
+    if (id === 'servicio') {
+      return 'servicio';
+    }
+    if (id === 'digital') {
+      return 'bien_digital';
+    }
     return 'bien_fisico';
   }
 
-  onSubmit(): void {
+  async enviarFormulario(): Promise<void> {
+    this.errorGuardado = '';
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.errorGuardado = 'Revisa estos campos: ' +
+        this.camposConProblema.join(', ') + '.';
       return;
     }
 
     const v = this.form.getRawValue();
     const tipo = this.tipoReal();
 
-    // Los campos se mandan según el tipo: el bien digital no lleva ubicación,
-    // ni cantidad, ni disponibilidad, y el servicio no lleva barrio.
+    // los campos se mandan segun el tipo: el bien digital no lleva ubicacion,
+    // ni cantidad, ni disponibilidad, y el servicio no lleva barrio
     const datos: DatosPublicacion = {
       tipo: tipo,
       categoriaId: v.categoria,
@@ -243,8 +325,14 @@ export class FormularioCrearTruequesComponent implements OnInit {
       descripcion: v.descripcion,
       ofreces: v.ofreces || v.nombre,
       buscas: v.buscas,
-      imagenes: this.imagenesPreviewUrls,
+      imagenes: this.imagenesVistaPrevia,
+      estado: 'pausada',
     };
+
+    // el interruptor dice si sale activa o pausada
+    if (v.estado) {
+      datos.estado = 'activa';
+    }
 
     if (tipo !== 'bien_digital') {
       datos.municipio = v.municipio;
@@ -255,12 +343,12 @@ export class FormularioCrearTruequesComponent implements OnInit {
       }
     }
 
-    const id = this.truequesService.crearPublicacion(datos);
-    if (!id) {
-      this.errorGuardado = 'Inicia sesión para publicar.';
+    const resultado = await this.truequesService.crearPublicacion(datos);
+    if ('error' in resultado) {
+      this.errorGuardado = resultado.error;
       return;
     }
 
-    this.router.navigate(['/trueque', id]);
+    this.router.navigate(['/trueque', resultado.id]);
   }
 }

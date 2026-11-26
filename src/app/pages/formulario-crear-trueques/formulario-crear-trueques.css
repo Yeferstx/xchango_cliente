@@ -17,21 +17,17 @@ app-icono {
   font-feature-settings: 'liga';
 }
 
-
+/* base */
 :host {
-  --color-page-bg: #f3e6d0;
-  --color-card-bg: #fffdf9;
-  --color-bg-input: #ffffff;
-  --color-border: #e4d3ac;
-  --color-icon-bg: #f2e4c8;
-  --color-text-dark: #1f1b16;
-  --color-text-muted: #7a6f5d;
-  --color-accent: #c9a876;
-  --color-accent-dark: #b08d5b;
-  --color-accent-soft: #ddc9a0;
+  --color-page-bg: var(--color-background);
+  --color-card-bg: var(--color-surface);
+  --color-bg-input: var(--color-input);
+  --color-border: var(--color-border-solid);
+  --color-icon-bg: var(--color-cream);
+  --color-text-dark: var(--color-text);
 
   --verde: #16a34a;
-  --verde-claro: #eafaf0;
+  --verde-claro: var(--color-ok-soft);
   --morado: #7c3aed;
   --morado-claro: #f3ecff;
 
@@ -48,11 +44,11 @@ app-icono {
   max-width: 1320px;
   margin: 0 auto;
   padding: 24px;
-  background: radial-gradient(circle at 20% 0%, #f8ecd8 0%, var(--color-page-bg) 60%);
+  background: var(--color-page-bg);
   border-radius: 20px;
 }
 
-
+/* encabezado */
 .encabezado {
   display: flex;
   align-items: center;
@@ -61,9 +57,12 @@ app-icono {
 }
 
 .boton-volver {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: auto;
+  padding-inline: 10px;
+  min-height: 40px;
+  gap: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
   border: none;
   background: var(--color-icon-bg);
   color: var(--color-accent-dark);
@@ -93,7 +92,7 @@ app-icono {
   align-items: start;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .contenedor-principal {
     grid-template-columns: 1fr;
   }
@@ -106,7 +105,7 @@ app-icono {
   gap: 20px;
 }
 
-
+/* secciones */
 .seccion {
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
@@ -134,7 +133,7 @@ app-icono {
   gap: 14px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .grid-tipos {
     grid-template-columns: 1fr;
   }
@@ -203,7 +202,7 @@ app-icono {
 .icono-verde { background: var(--verde-claro); color: var(--verde); }
 .icono-morado { background: var(--morado-claro); color: var(--morado); }
 
-
+/* campos */
 .fila-campos {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -215,7 +214,7 @@ app-icono {
   grid-template-columns: 1fr 1fr 1fr;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .fila-campos, .fila-tres {
     grid-template-columns: 1fr;
   }
@@ -241,7 +240,7 @@ app-icono {
 }
 
 .requerido {
-  color: var(--xg-rojo-fuerte);
+  color: #dc2626;
 }
 
 .campo input,
@@ -340,7 +339,7 @@ app-icono {
   width: 18px;
   left: 3px;
   bottom: 3px;
-  background: #fff;
+  background: var(--oscuro-fondo, #fff);
   border-radius: 50%;
   transition: .2s;
 }
@@ -367,6 +366,13 @@ app-icono {
 .zona-carga.arrastrando {
   border-color: var(--color-accent);
   background: var(--color-icon-bg);
+}
+
+.icono-carga {
+  font-size: 30px;
+  color: var(--color-accent);
+  display: block;
+  margin-bottom: 6px;
 }
 
 .zona-carga strong {
@@ -438,7 +444,7 @@ app-icono {
   border: none;
   border-radius: 10px;
   background: var(--color-accent);
-  color: var(--color-text-dark);
+  color: var(--color-on-accent);
   font-weight: 700;
   font-size: 14px;
   display: flex;
@@ -459,7 +465,7 @@ app-icono {
   border: none;
   border-radius: 10px;
   background: var(--color-accent);
-  color: var(--color-text-dark);
+  color: var(--color-on-accent);
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
@@ -470,7 +476,7 @@ app-icono {
   background: var(--color-accent-dark);
 }
 
-
+/* vista previa */
 .tarjeta-vista-previa {
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
@@ -649,15 +655,15 @@ app-icono {
 
 .etiqueta-inactivo {
   margin-left: auto;
-  background: var(--xg-rojo-fondo);
-  color: var(--xg-rojo-fuerte);
+  background: var(--color-error-soft);
+  color: #dc2626;
   font-size: 11.5px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 999px;
 }
 
-
+/* caja consejo */
 .caja-consejo {
   display: flex;
   gap: 10px;
@@ -683,4 +689,12 @@ app-icono {
   font-size: 12.5px;
   color: var(--color-text-muted);
   line-height: 1.4;
+}
+/* Mensaje cuando falta un campo o el MID rechaza la publicacion */
+.mensaje-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-error-soft);
+  color: var(--color-error);
 }
