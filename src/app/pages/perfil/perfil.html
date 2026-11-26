@@ -1,0 +1,290 @@
+<div class="perfil-page">
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="navbar__brand">
+            <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
+        </div>
+
+        <nav class="navbar__pill">
+            <a class="navbar__link" routerLink="/home">
+                <app-icono nombre="home"></app-icono>
+                Inicio
+            </a>
+
+            <a class="navbar__link" routerLink="/mis-trueques">
+                <app-icono nombre="swap_horiz"></app-icono>
+                Mis trueques
+            </a>
+
+            <a class="navbar__link" routerLink="/mis-publicaciones">
+                <app-icono nombre="grid_view"></app-icono>
+                Mis publicaciones
+            </a>
+        </nav>
+
+        <div class="navbar__actions">
+            <button class="navbar__icon-btn" aria-label="Notificaciones" routerLink="/notificaciones">
+                <app-icono nombre="notifications_none"></app-icono>
+            </button>
+
+            <div class="navbar__perfil-wrap">
+
+                <button
+                    class="navbar__avatar-btn"
+                    type="button"
+                    (click)="abrirMenu(); $event.stopPropagation()"
+                >
+                    <div class="navbar__avatar">
+                        <img [src]="avatarUrl" [alt]="nombreUsuario" />
+                    </div>
+
+                    <app-icono nombre="expand_more"></app-icono>
+                </button>
+
+                <div class="navbar__menu" *ngIf="menuAbierto()" (click)="$event.stopPropagation()">
+
+                    <p class="navbar__menu-nombre">{{ nombreUsuario }}</p>
+
+                    <a class="navbar__menu-link" routerLink="/perfil/informacion">
+                        <app-icono nombre="badge"></app-icono>
+                        Editar información personal
+                    </a>
+
+                    <a class="navbar__menu-link" routerLink="/perfil/cuenta">
+                        <app-icono nombre="account_circle"></app-icono>
+                        Datos de mi cuenta
+                    </a>
+
+                    <button class="navbar__menu-salir" type="button" (click)="cerrarSesion()">
+                        <app-icono nombre="close"></app-icono>
+                        Cerrar sesión
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO -->
+    <main class="perfil" *ngIf="listo()">
+
+        <section class="perfil__card perfil__hero">
+
+            <!-- Columna izquierda: avatar + nombre + rating -->
+            <div class="perfil__identity">
+
+                <div class="perfil__avatar-wrap">
+                    <img
+                        class="perfil__avatar"
+                        [src]="avatarUrl"
+                        [alt]="'Foto de perfil de ' + nombreUsuario"
+                    />
+                </div>
+
+                <h1 class="perfil__name">
+                    {{ nombreUsuario }}
+
+                    <span class="perfil__badge-verificado" *ngIf="verificado">
+                        <app-icono nombre="verified"></app-icono>
+                        Verificado
+                    </span>
+                </h1>
+
+                <p class="perfil__ubicacion">
+                    <app-icono nombre="location_on"></app-icono>
+                    {{ ubicacion }}
+                </p>
+
+                <p class="perfil__miembro-desde" *ngIf="fechaRegistro">
+                    Miembro desde {{ fechaRegistro | date: 'MMMM yyyy' }}
+                </p>
+
+                <p class="perfil__descripcion">
+                    {{ descripcion }}
+                </p>
+
+                <div class="perfil__stats">
+
+                    <div class="perfil__stat">
+                        <strong>{{ totalPublicaciones }}</strong>
+                        <span>Publicaciones</span>
+                    </div>
+
+                    <div class="perfil__stat">
+                        <strong>{{ totalIntercambios }}</strong>
+                        <span>Intercambios</span>
+                    </div>
+
+                </div>
+
+                <div class="perfil__rating">
+
+                    <h2 class="perfil__rating-title">
+                        Calificaciones y opiniones
+                    </h2>
+
+                    <div
+                        class="perfil__stars"
+                        [attr.aria-label]="
+                            calificacion + ' de ' + calificacionMaxima + ' estrellas'
+                        "
+                    >
+                        <app-icono
+                            *ngFor="let llena of estrellas()"
+                            class="perfil__star"
+                            [class.perfil__star--llena]="llena"
+                            nombre="star"
+                        ></app-icono>
+                    </div>
+
+                    <p class="perfil__rating-valor" *ngIf="muestraCalificacion">
+                        {{ calificacion | number: '1.0-1' }} de {{ calificacionMaxima }}
+                        <span>({{ totalCalificaciones }} calificaciones)</span>
+                    </p>
+
+                    <p class="perfil__rating-note" *ngIf="!muestraCalificacion">
+                        Llevas {{ totalCalificaciones }} de
+                        {{ totalCalificacionesRequeridas }} calificaciones.
+                        Tu promedio será público al completarlas.
+                    </p>
+
+                </div>
+            </div>
+
+            <!-- Columna derecha: grid de opciones -->
+            <div class="perfil__options">
+
+                <!-- TU INFORMACIÓN -->
+                <!-- INFORMACIÓN PERSONAL -->
+                <button
+                    class="option-card"
+                    type="button"
+                    routerLink="/perfil/informacion"
+                >
+                    <app-icono class="option-card__icon" nombre="badge"></app-icono>
+
+                    <div>
+                        <h3 class="option-card__title">
+                            Información personal
+                        </h3>
+
+                        <p class="option-card__desc">
+                            Tus datos personales dentro de XchanGo.
+                        </p>
+                    </div>
+
+                    <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
+                </button>
+
+                <!-- DATOS DE CUENTA -->
+                <button
+                    class="option-card"
+                    type="button"
+                    routerLink="/perfil/cuenta"
+                >
+                    <app-icono class="option-card__icon" nombre="account_circle"></app-icono>
+
+                    <div>
+                        <h3 class="option-card__title">
+                            Datos de tu cuenta
+                        </h3>
+
+                        <p class="option-card__desc">
+                            Datos que representan tu cuenta de XchanGo.
+                        </p>
+                    </div>
+
+                    <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
+                </button>
+
+                <!-- VERIFICAR CUENTA -->
+                <button
+                    class="option-card"
+                    type="button"
+                    routerLink="/perfil/verificacion"
+                >
+                    <app-icono class="option-card__icon" nombre="verified_user"></app-icono>
+
+                    <div>
+                        <h3 class="option-card__title">
+                            Verificar mi cuenta
+                        </h3>
+
+                        <p class="option-card__desc">
+                            Sube tu documento y consigue la insignia de cuenta verificada.
+                        </p>
+                    </div>
+
+                    <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
+                </button>
+
+                <!-- UBICACIÓN -->
+                <button
+                    class="option-card"
+                    type="button"
+                    routerLink="/perfil/ubicacion"
+                >
+                    <app-icono class="option-card__icon" nombre="location_on"></app-icono>
+
+                    <div>
+                        <h3 class="option-card__title">
+                            Ubicación
+                        </h3>
+
+                        <p class="option-card__desc">
+                            El municipio y el barrio donde haces tus trueques.
+                        </p>
+                    </div>
+
+                    <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
+                </button>
+
+                <!-- MIS TRUEQUES -->
+                <button
+                    class="option-card"
+                    type="button"
+                    routerLink="/mis-trueques"
+                >
+                    <app-icono class="option-card__icon" nombre="swap_horiz"></app-icono>
+
+                    <div>
+                        <h3 class="option-card__title">
+                            Mis trueques
+                        </h3>
+
+                        <p class="option-card__desc">
+                            Las solicitudes que enviaste y las que recibiste.
+                        </p>
+                    </div>
+
+                    <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
+                </button>
+
+                <!-- MIS PUBLICACIONES -->
+                <button
+                    class="option-card"
+                    type="button"
+                    routerLink="/mis-publicaciones"
+                >
+                    <app-icono class="option-card__icon" nombre="grid_view"></app-icono>
+
+                    <div>
+                        <h3 class="option-card__title">
+                            Mis Publicaciones
+                        </h3>
+
+                        <p class="option-card__desc">
+                            Aquí encontrarás todas tus publicaciones.
+                        </p>
+                    </div>
+
+                    <app-icono class="option-card__arrow" nombre="chevron_right"></app-icono>
+                </button>
+
+            </div>
+        </section>
+
+    </main>
+</div>

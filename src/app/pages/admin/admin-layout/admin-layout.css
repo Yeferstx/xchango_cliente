@@ -1,0 +1,82 @@
+/* variables del panel admin, misma paleta del resto de la app */
+:host {
+  --admin-bg: var(--color-background);
+  --admin-surface: var(--color-surface);
+  --admin-surface-2: var(--color-surface-raised);
+  --admin-border: var(--color-border-solid);
+  --admin-border-fuerte: var(--color-border-strong);
+  --admin-text: var(--color-text);
+  --admin-text-2: var(--color-text-secondary);
+  --admin-muted: var(--color-text-muted);
+  --admin-accent: var(--color-accent-dark);
+  --admin-accent-claro: var(--color-accent);
+  --admin-accent-soft: var(--xg-crema-fuerte);
+  --admin-dark: var(--color-text);
+  --admin-ok: var(--color-ok);
+  --admin-warn: var(--color-warn);
+  --admin-danger: var(--color-error);
+  --admin-radius: 10px;
+  --admin-radius-chico: 6px;
+  --admin-sombra: none;
+  --admin-fuente-titulo: 'Baloo 2', 'Nunito', sans-serif;
+  --admin-fuente-num: 'Nunito', 'Segoe UI', Roboto, sans-serif;
+
+  display: block;
+  min-height: 100vh;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.shell__lateral {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.shell__principal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shell__contenido {
+  flex: 1;
+  padding: 24px 28px 32px;
+  max-width: 1440px;
+  width: 100%;
+}
+
+.shell__velo {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+
+  .shell__lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 120;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 1px 0 0 var(--admin-border);
+  }
+
+  .shell__lateral--abierto { transform: none; }
+
+  .shell__velo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--color-overlay);
+    z-index: 110;
+  }
+
+  .shell__contenido { padding: 18px 16px 34px; }
+}

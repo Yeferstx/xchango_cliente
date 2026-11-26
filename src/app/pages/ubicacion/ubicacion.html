@@ -1,0 +1,228 @@
+<!-- navbar -->
+
+<header class="navbar">
+
+    <div class="marca">
+        <app-logo-xchango tamano="md" enlace="/home"></app-logo-xchango>
+    </div>
+
+    <nav class="nav-pill">
+        <a routerLink="/home" class="nav-item">
+            <app-icono nombre="home"></app-icono>
+            Inicio
+        </a>
+        <a routerLink="/mis-trueques" class="nav-item">
+            <app-icono nombre="swap_horiz"></app-icono>
+            Mis trueques
+        </a>
+        <a routerLink="/mis-publicaciones" class="nav-item">
+            <app-icono nombre="apps"></app-icono>
+            Mis publicaciones
+        </a>
+    </nav>
+
+    <div class="nav-derecha">
+
+        <button class="btn-campana" type="button" routerLink="/notificaciones" title="Ver notificaciones">
+            <app-icono nombre="notifications_none"></app-icono>
+        </button>
+
+        <div class="avatar-nav" routerLink="/perfil" title="Mi perfil" style="cursor:pointer">
+            <img [src]="avatarUrl" [alt]="nombreUsuario" />
+        </div>
+
+        <app-icono nombre="expand_more"></app-icono>
+
+    </div>
+
+</header>
+
+<!-- contenedor -->
+
+<main class="contenedor">
+
+    <div class="panel">
+
+        <!-- columna izquierda -->
+
+        <aside class="columna-identidad">
+
+            <a class="btn-volver enlace-volver" routerLink="/perfil"><span aria-hidden="true">&#8592;</span> Volver al perfil</a>
+
+            <div class="foto-perfil">
+
+                <img [src]="avatarUrl" [alt]="'Foto de ' + nombreUsuario" />
+
+            </div>
+
+            <h2 class="nombre">
+                {{ nombreUsuario }}
+            </h2>
+
+            <h3 class="subtitulo-calif">
+                Calificaciones y opiniones
+            </h3>
+
+            <div class="estrellas">
+                <app-icono *ngFor="let n of [1, 2, 3, 4, 5]" nombre="star"
+                    [style.opacity]="n <= calificacion ? 1 : 0.3"></app-icono>
+            </div>
+
+            <p class="nota-calif">
+                Solo será visible públicamente tras recibir
+                5 calificaciones.
+            </p>
+
+        </aside>
+
+        <!-- contenido -->
+
+        <section class="tarjeta">
+
+            <!-- ENCABEZADO -->
+
+            <header class="tarjeta-encabezado">
+
+                <div>
+
+                    <span class="titulo-etiqueta">
+                        PERFIL · UBICACIÓN
+                    </span>
+
+                    <h1 class="titulo">
+                        Tu ubicación
+                    </h1>
+
+                    <p class="descripcion">
+                        El municipio y el barrio donde haces
+                        tus trueques.
+                    </p>
+
+                </div>
+
+                <div class="estado-ubicacion">
+
+                    <span class="estado-punto"></span>
+
+                    <span>
+                        {{ municipio() }}, Casanare
+                    </span>
+
+                </div>
+
+            </header>
+
+            <!-- ubicación principal -->
+
+            <div class="grupo">
+
+                <div class="grupo-cabecera">
+
+                    <span class="icono-caja">
+                        <app-icono nombre="location_on"></app-icono>
+                    </span>
+
+                    <span class="acordeon-texto">
+
+                        <strong>
+                            Ubicación principal
+                        </strong>
+
+                        <small>
+                            Son los datos de ubicación de tu cuenta.
+                        </small>
+
+                    </span>
+
+                </div>
+
+                <!-- VISTA NORMAL -->
+
+                <div class="ubicacion-actual" *ngIf="!editando()">
+
+                    <div class="mapa-mini">
+
+                        <app-icono nombre="location_on"></app-icono>
+
+                    </div>
+
+                    <div class="ubicacion-datos">
+
+                        <strong class="municipio-actual">
+                            {{ municipio() }}, Casanare
+                        </strong>
+
+                        <span class="dato" *ngIf="barrio()">
+                            Barrio {{ barrio() }}
+                        </span>
+
+                        <span class="dato sin-dato" *ngIf="!barrio()">
+                            Sin barrio registrado.
+                        </span>
+
+                    </div>
+
+                    <button class="btn-secundario" type="button" (click)="iniciarEdicion()">
+                        Editar
+                    </button>
+
+                </div>
+
+                <!-- FORMULARIO -->
+
+                <div class="formulario" *ngIf="editando()">
+
+                    <p class="ayuda" *ngIf="errorUbicacion()" style="color:#a8453b;grid-column:1/-1;margin:0;">
+                        {{ errorUbicacion() }}
+                    </p>
+
+                    <div class="campo">
+
+                        <label for="municipio">
+                            Municipio
+                        </label>
+
+                        <select id="municipio" class="entrada" [ngModel]="tempMunicipio()"
+                            (ngModelChange)="tempMunicipio.set($event)">
+
+                            <option *ngFor="let m of municipios" [value]="m">
+                                {{ m }}
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="campo">
+
+                        <label for="barrio">
+                            Barrio o vereda
+                        </label>
+
+                        <input id="barrio" class="entrada" type="text" placeholder="Ej: El Triunfo"
+                            [ngModel]="tempBarrio()" (ngModelChange)="tempBarrio.set($event)" />
+
+                    </div>
+
+                    <div class="acciones-formulario">
+
+                        <button class="btn-secundario" type="button" (click)="cancelarEdicion()">
+                            Cancelar
+                        </button>
+
+                        <button class="btn-mini" type="button" [disabled]="guardandoUbicacion()"
+                            (click)="guardarUbicacion()">
+                            {{ guardandoUbicacion() ? 'Guardando...' : 'Guardar ubicación' }}
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>

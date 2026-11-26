@@ -1,0 +1,60 @@
+.stat-card {
+  position: relative;
+  background: var(--admin-surface, #fff);
+  border: 1px solid var(--admin-border, var(--color-border-solid));
+  border-left: 3px solid var(--admin-border-fuerte, #d3c4ac);
+  border-radius: var(--admin-radius-chico, 6px);
+  padding: 16px 18px;
+}
+
+.stat-card--ok { border-left-color: var(--admin-ok, var(--color-ok)); }
+.stat-card--warn { border-left-color: var(--admin-warn, var(--color-warn)); }
+.stat-card--danger { border-left-color: var(--admin-danger, #a63f33); }
+
+.stat-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stat-card__icon {
+  display: grid;
+  place-items: center;
+  color: var(--admin-muted, #9a9184);
+}
+
+.stat-card--ok .stat-card__icon { color: var(--admin-ok, var(--color-ok)); }
+.stat-card--warn .stat-card__icon { color: var(--admin-warn, var(--color-warn)); }
+.stat-card--danger .stat-card__icon { color: var(--admin-danger, #a63f33); }
+
+.stat-card__variacion {
+  color: var(--admin-ok, var(--color-ok));
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stat-card__variacion--negativa { color: var(--admin-danger, #a63f33); }
+
+.stat-card__etiqueta {
+  margin: 14px 0 2px;
+  color: var(--admin-text-2, #6f6656);
+  font-size: 12.5px;
+}
+
+.stat-card__valor {
+  display: block;
+  color: var(--admin-text, #211a16);
+  font-family: var(--admin-fuente-num, inherit);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card__detalle {
+  display: block;
+  margin-top: 5px;
+  color: var(--admin-muted, var(--color-text-muted));
+  font-size: 11.5px;
+}
