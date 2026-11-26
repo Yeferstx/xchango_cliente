@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BadgeEstado } from '../../../components/admin/badge-estado/badge-estado';
@@ -18,27 +18,26 @@ type TipoAccion = 'suspender' | 'activar' | 'advertir';
   imports: [DatePipe, FormsModule, BadgeEstado, Paginacion, ModalConfirmacion, Icon],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Usuarios implements OnInit {
-  private readonly usuariosSrv = inject(UsuariosAdminService);
-  private readonly historialSrv = inject(HistorialAdminService);
-  private readonly auth = inject(AdminsAdminService);
+  private usuariosSrv = inject(UsuariosAdminService);
+  private historialSrv = inject(HistorialAdminService);
+  private auth = inject(AdminsAdminService);
 
-  readonly cargando = this.usuariosSrv.cargando;
-  readonly error = this.usuariosSrv.error;
+  cargando = this.usuariosSrv.cargando;
+  error = this.usuariosSrv.error;
 
-  // --- Filtros ---
-  readonly busqueda = signal('');
-  readonly estado = signal<'todos' | UsuarioPlataforma['estado']>('todos');
-  readonly nivel = signal<'todos' | UsuarioPlataforma['nivelActividad']>('todos');
-  readonly ubicacion = signal<string>('todas');
-  readonly pagina = signal(1);
-  readonly porPagina = 8;
+  // filtros
+  busqueda = signal('');
+  estado = signal('todos');
+  nivel = signal('todos');
+  ubicacion = signal('todas');
+  pagina = signal(1);
+  porPagina = 8;
 
-  readonly ubicaciones = computed(() => this.usuariosSrv.ubicaciones());
+  ubicaciones = computed(() => this.usuariosSrv.ubicaciones());
 
-  readonly filtrados = computed(() =>
+  filtrados = computed(() =>
     this.usuariosSrv.filtrar({
       busqueda: this.busqueda(),
       estado: this.estado(),
@@ -47,28 +46,32 @@ export class Usuarios implements OnInit {
     })
   );
 
-  readonly visibles = computed(() =>
+  visibles = computed(() =>
     this.usuariosSrv.paginar(this.filtrados(), this.pagina(), this.porPagina)
   );
 
-  // --- Panel de detalle e historial ---
-  readonly detalle = signal<UsuarioPlataforma | null>(null);
-  readonly historial = computed(() => {
+  // panel de detalle e historial
+  detalle = signal<UsuarioPlataforma | null>(null);
+  historial = computed(() => {
     const u = this.detalle();
-    return u ? this.historialSrv.porUsuario(u.id) : [];
+    if (u) {
+      return this.historialSrv.porUsuario(u.id);
+    }
+    return [];
   });
 
-  // --- Modal de confirmación ---
-  readonly modal = signal<{ tipo: TipoAccion; usuario: UsuarioPlataforma } | null>(null);
+  // modal de confirmacion
+  modal = signal<{ tipo: TipoAccion; usuario: UsuarioPlataforma } | null>(null);
 
-  readonly configModal = computed(() => {
+  configModal = computed(() => {
     const m = this.modal();
-    if (!m) return null;
-
+    if (!m) {
+      return null;
+    }
     const config = {
       suspender: {
         titulo: 'Suspender usuario',
-        mensaje: `La cuenta de ${m.usuario.nombre} quedará bloqueada y no podrá publicar ni intercambiar.`,
+        mensaje: 'La cuenta de ' + m.usuario.nombre + ' quedará bloqueada y no podrá publicar ni intercambiar.',
         texto: 'Suspender',
         icono: 'ban',
         tono: 'danger' as const,
@@ -76,7 +79,7 @@ export class Usuarios implements OnInit {
       },
       activar: {
         titulo: 'Reactivar usuario',
-        mensaje: `${m.usuario.nombre} recuperará el acceso completo a la plataforma.`,
+        mensaje: m.usuario.nombre + ' recuperará el acceso completo a la plataforma.',
         texto: 'Reactivar',
         icono: 'check-circle',
         tono: 'neutro' as const,
@@ -84,7 +87,7 @@ export class Usuarios implements OnInit {
       },
       advertir: {
         titulo: 'Enviar advertencia',
-        mensaje: `Se notificará a ${m.usuario.nombre} sobre el mal uso de la plataforma.`,
+        mensaje: 'Se notificará a ' + m.usuario.nombre + ' sobre el mal uso de la plataforma.',
         texto: 'Enviar advertencia',
         icono: 'alert',
         tono: 'warn' as const,
@@ -100,19 +103,19 @@ export class Usuarios implements OnInit {
     this.historialSrv.cargar();
   }
 
-  // --- Filtros ---
+  // filtros
   buscar(valor: string): void {
     this.busqueda.set(valor);
     this.pagina.set(1);
   }
 
   filtrarEstado(valor: string): void {
-    this.estado.set(valor as UsuarioPlataforma['estado'] | 'todos');
+    this.estado.set(valor);
     this.pagina.set(1);
   }
 
   filtrarNivel(valor: string): void {
-    this.nivel.set(valor as UsuarioPlataforma['nivelActividad'] | 'todos');
+    this.nivel.set(valor);
     this.pagina.set(1);
   }
 
@@ -129,47 +132,55 @@ export class Usuarios implements OnInit {
     this.pagina.set(1);
   }
 
-  // --- Acciones ---
+  // acciones
   abrirModal(tipo: TipoAccion, usuario: UsuarioPlataforma): void {
     this.modal.set({ tipo, usuario });
   }
 
   confirmarAccion(motivo: string): void {
     const m = this.modal();
-    if (!m) return;
+    if (!m) {
+      return;
+    }
 
-    const acciones: Record<TipoAccion, { ejecutar: () => void; nombre: string; texto: string }> = {
-      suspender: {
-        ejecutar: () => this.usuariosSrv.suspender(m.usuario.id),
-        nombre: 'Suspensión',
-        texto: motivo || 'Cuenta suspendida por el administrador.',
-      },
-      activar: {
-        ejecutar: () => this.usuariosSrv.activar(m.usuario.id),
-        nombre: 'Activación',
-        texto: 'Cuenta reactivada por el administrador.',
-      },
-      advertir: {
-        ejecutar: () => this.usuariosSrv.advertir(m.usuario.id),
-        nombre: 'Advertencia',
-        texto: motivo || 'Advertencia enviada por mal uso.',
-      },
-    };
+    let nombre = '';
+    let texto = motivo;
 
-    const accion = acciones[m.tipo];
-    accion.ejecutar();
+    if (m.tipo === 'suspender') {
+      this.usuariosSrv.suspender(m.usuario.id);
+      nombre = 'Suspensión';
+      if (!texto) {
+        texto = 'Cuenta suspendida por el administrador.';
+      }
+    } else if (m.tipo === 'activar') {
+      this.usuariosSrv.activar(m.usuario.id);
+      nombre = 'Activación';
+      texto = 'Cuenta reactivada por el administrador.';
+    } else {
+      this.usuariosSrv.advertir(m.usuario.id);
+      nombre = 'Advertencia';
+      if (!texto) {
+        texto = 'Advertencia enviada por mal uso.';
+      }
+    }
 
-    // Queda registrada en el historial (HU71)
+    // queda guardada en el historial (HU71)
     this.historialSrv.registrar({
       usuarioId: m.usuario.id,
       adminId: this.auth.idActual(),
-      accion: accion.nombre,
-      descripcion: accion.texto,
+      accion: nombre,
+      descripcion: texto,
     });
 
-    // Refresca el panel de detalle si está abierto
-    if (this.detalle()?.id === m.usuario.id) {
-      this.detalle.set(this.usuariosSrv.obtener(m.usuario.id) ?? null);
+    // si el detalle de ese usuario esta abierto se actualiza
+    const detalle = this.detalle();
+    if (detalle && detalle.id === m.usuario.id) {
+      const actualizado = this.usuariosSrv.obtener(m.usuario.id);
+      if (actualizado) {
+        this.detalle.set(actualizado);
+      } else {
+        this.detalle.set(null);
+      }
     }
 
     this.modal.set(null);
