@@ -74,6 +74,20 @@
 
       </a>
 
+      <!-- PUBLICAR, solo se ve en el menu de abajo del celular -->
+
+      <a
+        class="menu__item menu__item--publicar"
+        href="javascript:void(0)"
+        (click)="publicarTrueque()"
+      >
+
+        <span class="menu__mas">+</span>
+
+        Publicar
+
+      </a>
+
       <!-- FAVORITOS -->
 
       <a
@@ -605,7 +619,13 @@
         </ng-container>
 
         <!-- si hay pocos resultados sale una tarjeta de ayuda al lado -->
-        <div class="ayuda-busqueda" *ngIf="pocosResultados()">
+        <div
+          class="ayuda-busqueda"
+          *ngIf="pocosResultados()"
+          [class.ayuda-busqueda--con-1]="truequesFiltrados.length === 1"
+          [class.ayuda-busqueda--con-2]="truequesFiltrados.length === 2"
+          [class.ayuda-busqueda--con-3]="truequesFiltrados.length === 3"
+        >
 
           <span class="sin-resultados__icono">
             <svg viewBox="0 0 24 24">
@@ -614,9 +634,10 @@
             </svg>
           </span>
 
-          <h3>¿No ves lo que buscas?</h3>
-
-          <p>Quita algunos filtros para ver más trueques o publica lo que necesitas.</p>
+          <div class="ayuda-busqueda__texto">
+            <h3>¿No ves lo que buscas?</h3>
+            <p>Quita algunos filtros para ver más trueques o publica lo que necesitas.</p>
+          </div>
 
           <div class="sin-resultados__botones">
             <button type="button" class="sin-resultados__ver" (click)="limpiarFiltros()">
