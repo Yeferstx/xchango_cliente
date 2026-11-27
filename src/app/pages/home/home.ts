@@ -276,21 +276,13 @@ export class HomeComponent implements OnInit {
     return false;
   }
 
-  // cuando hay pocos resultados se sugieren otras publicaciones
-  // para que la pagina no se vea vacia
-  get sugerencias(): PublicacionVista[] {
-    const encontrados = this.truequesFiltrados;
-    if (!this.hayFiltros() || encontrados.length >= 4) {
-      return [];
+  // true cuando se busco o filtro y salieron entre 1 y 3 publicaciones
+  pocosResultados(): boolean {
+    const cantidad = this.truequesFiltrados.length;
+    if (this.hayFiltros() && cantidad > 0 && cantidad < 4) {
+      return true;
     }
-
-    const lista: PublicacionVista[] = [];
-    for (const t of this.trueques) {
-      if (lista.length < 4 && !encontrados.includes(t)) {
-        lista.push(t);
-      }
-    }
-    return lista;
+    return false;
   }
 
   get cantidadFavoritos(): number {

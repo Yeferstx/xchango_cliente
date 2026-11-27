@@ -2215,16 +2215,49 @@ svg {
   transform: translateY(-1px);
 }
 
-/* titulo de las publicaciones sugeridas */
-.sugerencias-titulo {
-  grid-column: 1 / -1;
-  align-self: end;
+/* tarjeta de ayuda cuando hay pocos resultados */
+/* es punteada y sin foto para que no se confunda con una publicacion */
+.ayuda-busqueda {
+  padding: 28px 22px;
 
-  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border: 2px dashed rgba(146, 116, 80, 0.3);
+  border-radius: 24px;
+  background: rgba(var(--oscuro-fondo-rgb, 255, 253, 248), 0.45);
+}
+
+.ayuda-busqueda h3 {
+  margin: 0 0 8px;
 
   font-family: var(--font-title, sans-serif);
-  font-size: 18px;
+  font-size: 19px;
   color: var(--tinta);
+}
+
+.ayuda-busqueda p {
+  max-width: 280px;
+  margin: 0 0 18px;
+
+  color: var(--tinta-suave);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.ayuda-busqueda .sin-resultados__botones {
+  flex-direction: column;
+  width: 100%;
+  max-width: 240px;
+}
+
+.ayuda-busqueda .sin-resultados__ver,
+.ayuda-busqueda .sin-resultados__publicar {
+  justify-content: center;
 }
 
 /* SELECTOR DE UBICACIÓN (reemplaza "Más recientes") */

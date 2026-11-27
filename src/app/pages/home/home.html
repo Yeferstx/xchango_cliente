@@ -604,14 +604,30 @@
           <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: t }"></ng-container>
         </ng-container>
 
-        <!-- si hay pocos resultados se muestran otras publicaciones -->
-        <h3 class="sugerencias-titulo" *ngIf="sugerencias.length">
-          Otras publicaciones que te pueden interesar
-        </h3>
+        <!-- si hay pocos resultados sale una tarjeta de ayuda al lado -->
+        <div class="ayuda-busqueda" *ngIf="pocosResultados()">
 
-        <ng-container *ngFor="let t of sugerencias; trackBy: trackPorId">
-          <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: t }"></ng-container>
-        </ng-container>
+          <span class="sin-resultados__icono">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m20 20-3.5-3.5"/>
+            </svg>
+          </span>
+
+          <h3>¿No ves lo que buscas?</h3>
+
+          <p>Quita algunos filtros para ver más trueques o publica lo que necesitas.</p>
+
+          <div class="sin-resultados__botones">
+            <button type="button" class="sin-resultados__ver" (click)="limpiarFiltros()">
+              Ver todos los trueques
+            </button>
+            <a class="sin-resultados__publicar" routerLink="/trueque">
+              Publicar un trueque
+            </a>
+          </div>
+
+        </div>
 
         <!-- footer, sale al final de la lista completa, no cuando se busca o filtra -->
   <footer class="beneficios vidrio" *ngIf="!hayFiltros()">
@@ -812,7 +828,7 @@
 
       </section>
 
-      <!-- tarjeta de una publicacion, se usa en resultados y en sugerencias -->
+      <!-- tarjeta de una publicacion -->
       <ng-template #tarjeta let-t>
 
         <article
