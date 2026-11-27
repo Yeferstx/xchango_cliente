@@ -2112,12 +2112,152 @@ svg {
   color: #fff;
 }
 
-.vacio-rejilla {
+/* cuando no hay resultados */
+.sin-resultados {
   grid-column: 1 / -1;
-  padding: 60px 20px;
+  align-self: start;
+
+  padding: 44px 24px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
   text-align: center;
-  color: var(--tinta-tenue);
+
+  background: rgba(var(--oscuro-fondo-rgb, 255, 253, 248), 0.94);
+  border: 1px solid rgba(var(--oscuro-borde-rgb, 255, 255, 255), 0.88);
+  border-radius: 24px;
+  box-shadow: 0 14px 35px rgba(96, 77, 51, 0.08);
+}
+
+.sin-resultados__icono {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: rgba(201, 168, 118, 0.18);
+  color: var(--color-accent-dark);
+}
+
+.sin-resultados__icono svg {
+  width: 30px;
+  height: 30px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.sin-resultados h3 {
+  margin: 0 0 8px;
+
+  font-family: var(--font-title, sans-serif);
+  font-size: 22px;
+  color: var(--tinta);
+}
+
+.sin-resultados p {
+  max-width: 420px;
+  margin: 0 0 20px;
+
+  color: var(--tinta-suave);
   font-size: 14px;
+  line-height: 1.5;
+}
+
+.sin-resultados__botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sin-resultados__ver,
+.sin-resultados__publicar {
+  height: 44px;
+  padding: 0 20px;
+
+  display: inline-flex;
+  align-items: center;
+
+  border-radius: 999px;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.sin-resultados__ver {
+  background: var(--color-primary);
+  color: #fff;
+  border: 0;
+}
+
+.sin-resultados__publicar {
+  background: transparent;
+  color: var(--tinta);
+  border: 1px solid rgba(146, 116, 80, 0.35);
+}
+
+.sin-resultados__ver:hover,
+.sin-resultados__publicar:hover {
+  transform: translateY(-1px);
+}
+
+/* tarjeta de ayuda cuando hay pocos resultados */
+/* es punteada y sin foto para que no se confunda con una publicacion */
+.ayuda-busqueda {
+  padding: 28px 22px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border: 2px dashed rgba(146, 116, 80, 0.3);
+  border-radius: 24px;
+  background: rgba(var(--oscuro-fondo-rgb, 255, 253, 248), 0.45);
+}
+
+.ayuda-busqueda h3 {
+  margin: 0 0 8px;
+
+  font-family: var(--font-title, sans-serif);
+  font-size: 19px;
+  color: var(--tinta);
+}
+
+.ayuda-busqueda p {
+  max-width: 280px;
+  margin: 0 0 18px;
+
+  color: var(--tinta-suave);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.ayuda-busqueda .sin-resultados__botones {
+  flex-direction: column;
+  width: 100%;
+  max-width: 240px;
+}
+
+.ayuda-busqueda .sin-resultados__ver,
+.ayuda-busqueda .sin-resultados__publicar {
+  justify-content: center;
 }
 
 /* SELECTOR DE UBICACIÓN (reemplaza "Más recientes") */
@@ -2208,18 +2348,34 @@ svg {
 
 /* MODO INVITADO (sin sesión) */
 
+/* etiqueta pequeña con un ojo que dice que esta viendo sin cuenta */
 .modo-invitado {
-  padding: 0 14px;
-  height: 64px;
+  height: 32px;
+  margin: 0 6px 0 4px;
+  padding: 0 12px 0 10px;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
 
-  color: var(--tinta-tenue);
+  color: var(--tinta-suave);
+  background: rgba(var(--oscuro-fondo-tinte-rgb, 238, 228, 214), 0.6);
+  border-radius: 999px;
+
   font-size: 12.5px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.modo-invitado svg {
+  width: 16px;
+  height: 16px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .btn-entrar-invitado {
@@ -2367,5 +2523,278 @@ svg {
 
   .lateral .publicar {
     margin-top: 4px;
+  }
+}
+
+/* ARREGLOS DEL MENU DE ARRIBA */
+
+/* en computador el menu se pega a la derecha, igual que las tarjetas */
+@media (min-width: 981px) {
+  .menu {
+    margin-left: auto;
+  }
+}
+
+/* en pantallas medianas la etiqueta queda solo con el ojo para que no se apriete */
+@media (min-width: 981px) and (max-width: 1180px) {
+  .modo-invitado {
+    padding: 0 8px;
+  }
+
+  .modo-invitado__texto {
+    display: none;
+  }
+}
+
+/* las pestañas de tipo se pueden mover de lado pero sin la barra gris */
+.pestanas {
+  scrollbar-width: none;
+}
+
+.pestanas::-webkit-scrollbar {
+  display: none;
+}
+
+/* celular */
+@media (max-width: 620px) {
+  /* sin sesion: el boton de entrar va en la misma fila del logo y el buscador */
+  .modo-invitado {
+    display: none;
+  }
+
+  .acciones:has(.btn-entrar-invitado) {
+    height: 44px;
+    padding: 0;
+
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .btn-entrar-invitado {
+    height: 44px;
+    margin-right: 0;
+    padding: 0 16px;
+  }
+
+  /* el campo del buscador se puede encoger para que todo quepa en una fila */
+  .buscador {
+    flex: 1 1 0;
+  }
+
+  .buscador input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* las tres pestañas caben sin cortarse */
+  .pestanas {
+    justify-content: space-between;
+  }
+
+  .pestana {
+    flex: 1;
+    justify-content: center;
+
+    gap: 5px;
+    padding: 8px 6px;
+
+    font-size: 12.5px;
+  }
+
+  .pestana svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+/* PANTALLAS GRANDES */
+/* el inicio usa todo el ancho y caben mas tarjetas por fila */
+/* asi no quedan franjas vacias a los lados */
+
+@media (min-width: 1600px) {
+  .app {
+    max-width: none;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .cuerpo {
+    grid-template-columns:
+      250px
+      minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1700px) {
+  .rejilla {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2300px) {
+  .rejilla {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* TARJETA DE AYUDA MAS ANCHA */
+/* ocupa las columnas que sobran en la fila para que no quede tanto espacio */
+/* con 3 columnas (pantalla normal) */
+@media (min-width: 981px) {
+  .ayuda-busqueda--con-1 {
+    grid-column: span 2;
+  }
+}
+
+/* con 4 columnas */
+@media (min-width: 1700px) {
+  .ayuda-busqueda--con-1 {
+    grid-column: span 3;
+  }
+
+  .ayuda-busqueda--con-2 {
+    grid-column: span 2;
+  }
+}
+
+/* con 5 columnas */
+@media (min-width: 2300px) {
+  .ayuda-busqueda--con-1 {
+    grid-column: span 4;
+  }
+
+  .ayuda-busqueda--con-2 {
+    grid-column: span 3;
+  }
+
+  .ayuda-busqueda--con-3 {
+    grid-column: span 2;
+  }
+}
+
+/* cuando es ancha el icono, el texto y los botones van en una fila */
+@media (min-width: 981px) {
+  .ayuda-busqueda--con-1,
+  .ayuda-busqueda--con-2 {
+    flex-direction: row;
+    justify-content: center;
+    gap: 28px;
+
+    text-align: left;
+  }
+
+  .ayuda-busqueda--con-1 .sin-resultados__icono,
+  .ayuda-busqueda--con-2 .sin-resultados__icono {
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+
+  .ayuda-busqueda--con-1 .ayuda-busqueda__texto,
+  .ayuda-busqueda--con-2 .ayuda-busqueda__texto {
+    max-width: 340px;
+  }
+
+  .ayuda-busqueda--con-1 p,
+  .ayuda-busqueda--con-2 p {
+    margin-bottom: 0;
+  }
+
+  .ayuda-busqueda--con-1 .sin-resultados__botones,
+  .ayuda-busqueda--con-2 .sin-resultados__botones {
+    flex-shrink: 0;
+    width: auto;
+  }
+}
+
+/* el boton publicar del menu solo existe en el celular */
+.menu__item--publicar {
+  display: none;
+}
+
+/* MENU DE ABAJO EN CELULAR */
+/* inicio, mis trueques, publicar y favoritos quedan fijos abajo como en una app */
+@media (max-width: 620px) {
+  .app {
+    padding-bottom: 96px;
+  }
+
+  .menu {
+    position: fixed;
+    z-index: 200;
+
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+
+    width: auto;
+    height: 64px;
+
+    padding: 6px;
+
+    justify-content: space-around;
+
+    background: rgba(var(--oscuro-fondo-rgb, 255, 253, 248), 0.96);
+    border: 1px solid rgba(146, 116, 80, 0.18);
+    border-radius: 22px;
+
+    box-shadow: 0 12px 30px rgba(60, 45, 26, 0.18);
+  }
+
+  .menu__item {
+    flex: 1;
+
+    height: 52px;
+    min-height: 52px;
+
+    flex-direction: column;
+    gap: 3px;
+
+    padding: 0 4px;
+
+    border-radius: 16px;
+
+    font-size: 11px;
+  }
+
+  .menu__item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .menu__item--publicar {
+    display: flex;
+  }
+
+  /* el mas del boton publicar va en un circulo negro */
+  .menu__item .menu__mas {
+    width: 26px;
+    height: 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* el boton publicar de arriba ya no hace falta */
+  .lateral .publicar {
+    display: none;
+  }
+
+  /* menos espacio entre las categorias y los filtros */
+  .cuerpo {
+    gap: 10px;
+  }
+
+  .lateral__lista {
+    padding-bottom: 4px;
   }
 }

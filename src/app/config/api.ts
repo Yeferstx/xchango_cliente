@@ -1,4 +1,12 @@
-export const API_URL = 'http://localhost:8080/api/v1';
+// en el computador se usa el MID local y publicado se usa el MID de Render
+function direccionMid(): string {
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:8080/api/v1';
+  }
+  return 'https://xchango-mid.onrender.com/api/v1';
+}
+
+export const API_URL = direccionMid();
 
 const CLAVE_TOKEN = 'xchango_token';
 const CLAVE_TOKEN_ADMIN = 'xchango_admin_token';

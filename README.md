@@ -1,59 +1,59 @@
-# Xchango
+# xchango_cliente
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.7.
+Cliente web de XchanGo (Angular). Es la pagina que ven los usuarios y el panel de administracion.
+No se conecta a la base de datos: todo lo pide al MID por HTTP.
 
-## Development server
+Cliente (4200) -> MID (8080) -> CRUD (3000) -> PostgreSQL db_xchango (5432)
 
-To start a local development server, run:
+## 1. Antes de correrlo
+Tienen que estar encendidos en este orden:
+1. PostgreSQL con la base `db_xchango`
+2. El CRUD (`go run main.go` en xchango_crud)
+3. El MID (`go run main.go` en xchango_mid)
 
-```bash
-ng serve
+La direccion del MID esta en `src/app/config/api.ts` (`http://localhost:8080/api/v1`).
+
+## 2. Instalar
+Solo la primera vez:
+```
+npm install
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+## 3. Correr
 ```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
+npm start
 ```
+Abrir en el navegador http://localhost:4200
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
+## 4. Compilar
 ```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+npm run build
 ```
+Queda en la carpeta `dist/`.
 
-## Running end-to-end tests
+## Como entrar
+- Usuarios: con el correo, el MID manda un PIN al correo para entrar o registrarse.
+- Panel de administracion: boton "XchanGo Admin" arriba a la derecha del login, o en http://localhost:4200/admin/login
+  - Administrador: admin@xchango.com / admin123
+  - Moderador: moderador@xchango.com / mod123
 
-For end-to-end (e2e) testing, run:
+## Carpetas
+- `src/app/pages`: las paginas (inicio, perfil, mis trueques, publicar, panel admin, etc).
+- `src/app/components`: partes que se repiten (logo, iconos, aviso de cookies, graficas del panel).
+- `src/app/layout`: el detalle de la publicacion y la ventana del codigo.
+- `src/app/services`: las peticiones al MID.
+- `src/app/models`: como son los datos (usuario, publicacion, trueque).
+- `src/app/guards`: no dejan entrar a paginas sin iniciar sesion.
+- `src/app/interceptors`: le pone el token a cada peticion.
 
-```bash
-ng e2e
-```
+## Ramas
+- `main`: version final.
+- `develop`: donde se junta el trabajo de todos.
+- `release`: para probar antes de pasar a main. Al subir a esta rama se publica en GitHub Pages.
+- `feature/yeferson`, `feature/miguel`, `feature/tomas`, `feature/stiven`: trabajo de cada uno.
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Integrantes
+- Yeferson
+- Miguel
+- Tomas
+- Stiven
