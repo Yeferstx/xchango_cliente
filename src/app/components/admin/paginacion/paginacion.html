@@ -1,1 +1,17 @@
-<p>paginacion works!</p>
+<div class="paginacion">
+  <span class="paginacion__texto">
+    Mostrando {{ desde() }} a {{ hasta() }} de {{ total() }} usuarios
+  </span>
+
+  <div class="paginacion__botones">
+    <button type="button" class="paginacion__boton" (click)="anterior()" [disabled]="pagina() === 1">
+      Anterior
+    </button>
+
+    <span class="paginacion__pagina">Página {{ pagina() }} de {{ totalPaginas() }}</span>
+
+    <button type="button" class="paginacion__boton" (click)="siguiente()" [disabled]="pagina() === totalPaginas()">
+      Siguiente
+    </button>
+  </div>
+</div>
