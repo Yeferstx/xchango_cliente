@@ -568,7 +568,7 @@
 
       <div class="resultados-info">
 
-        <span class="resultados-info__conteo">
+        <span class="resultados-info__conteo" [style.visibility]="cargando ? 'hidden' : 'visible'">
           {{ truequesFiltrados.length }}
           {{ truequesFiltrados.length === 1 ? 'publicación encontrada' : 'publicaciones encontradas' }}
         </span>
@@ -587,8 +587,34 @@
 
       <section class="rejilla">
 
-        <!-- cuando no hay ningun resultado -->
-        <div class="sin-resultados vidrio" *ngIf="!truequesFiltrados.length">
+        <!-- mientras llegan los datos del MID -->
+        <div class="sin-resultados vidrio" *ngIf="cargando && !truequesFiltrados.length">
+
+          <span class="cargando-ruedita"></span>
+
+          <h3>Cargando trueques...</h3>
+
+          <p>La primera vez puede tardar hasta un minuto mientras el servidor se enciende.</p>
+
+        </div>
+
+        <!-- si el MID no respondio -->
+        <div class="sin-resultados vidrio" *ngIf="!cargando && errorCarga">
+
+          <h3>No pudimos cargar los trueques</h3>
+
+          <p>Revisa tu conexión a internet e intenta otra vez.</p>
+
+          <div class="sin-resultados__botones">
+            <button type="button" class="sin-resultados__ver" (click)="reintentar()">
+              Reintentar
+            </button>
+          </div>
+
+        </div>
+
+        <!-- cuando ya cargo y no hay ningun resultado -->
+        <div class="sin-resultados vidrio" *ngIf="!cargando && !errorCarga && !truequesFiltrados.length">
 
           <span class="sin-resultados__icono">
             <svg viewBox="0 0 24 24">
@@ -651,7 +677,7 @@
         </div>
 
         <!-- footer, sale al final de la lista completa, no cuando se busca o filtra -->
-  <footer class="beneficios vidrio" *ngIf="!hayFiltros()">
+  <footer class="beneficios vidrio" *ngIf="!hayFiltros() && truequesFiltrados.length">
 
     <!-- seguro y confiable -->
 

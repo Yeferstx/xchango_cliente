@@ -211,9 +211,14 @@ export class HomeComponent implements OnInit {
     return this.truequesService.cargando();
   }
 
-  // mensaje de error si los JSON no se pudieron cargar
+  // mensaje de error si el MID no respondio
   get errorCarga(): string | null {
     return this.truequesService.error();
+  }
+
+  // vuelve a pedir los datos al MID
+  reintentar(): void {
+    this.truequesService.cargar();
   }
 
   // abre WhatsApp con el dueño. XchanGo no tiene chat interno
