@@ -36,33 +36,49 @@ export class MetodoAcceso {
 
   get titulo(): string {
 
-    return this.modo === 'registro'
-      ? 'Crear una cuenta'
-      : 'Iniciar sesión';
+    if (this.modo === 'registro') {
+
+      return 'Crear una cuenta';
+
+    }
+
+    return 'Iniciar sesión';
 
   }
 
   get subtitulo(): string {
 
-    return this.modo === 'registro'
-      ? 'Elige cómo quieres crear tu cuenta'
-      : 'Elige cómo quieres continuar';
+    if (this.modo === 'registro') {
+
+      return 'Elige cómo quieres crear tu cuenta';
+
+    }
+
+    return 'Elige cómo quieres continuar';
 
   }
 
   get textoCambioModo(): string {
 
-    return this.modo === 'registro'
-      ? '¿Ya tienes una cuenta?'
-      : '¿No tienes una cuenta?';
+    if (this.modo === 'registro') {
+
+      return '¿Ya tienes una cuenta?';
+
+    }
+
+    return '¿No tienes una cuenta?';
 
   }
 
   get accionCambioModo(): string {
 
-    return this.modo === 'registro'
-      ? 'Iniciar sesión'
-      : 'Crear cuenta';
+    if (this.modo === 'registro') {
+
+      return 'Iniciar sesión';
+
+    }
+
+    return 'Crear cuenta';
 
   }
 

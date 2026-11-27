@@ -16,9 +16,11 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   const esAdmin = req.url.startsWith(API_URL + '/admin');
   const token = leerToken(esAdmin);
 
-  const peticion = token
-    ? req.clone({ setHeaders: { Authorization: 'Bearer ' + token } })
-    : req;
+  // si hay token se copia la peticion y se le agrega en la cabecera
+  let peticion = req;
+  if (token) {
+    peticion = req.clone({ setHeaders: { Authorization: 'Bearer ' + token } });
+  }
 
   const router = inject(Router);
   const admins = inject(AdminsAdminService);

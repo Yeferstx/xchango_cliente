@@ -84,11 +84,12 @@ export class MisPublicacionesComponent implements OnInit {
     // publicaciones reales del usuario en sesion
     publicaciones = this.srv.misPublicaciones;
 
-    publicacionesFiltradas = computed<PublicacionVista[]>(() => {
+    publicacionesFiltradas = computed(() => {
         const f = this.filtro();
-        return f === 'todas'
-            ? this.publicaciones()
-            : this.publicaciones().filter(p => p.estado === f);
+        if (f === 'todas') {
+          return this.publicaciones();
+        }
+        return this.publicaciones().filter(p => p.estado === f);
     });
 
     totalActivas = computed(() => this.publicaciones().filter(p => p.estado === 'activa').length);
