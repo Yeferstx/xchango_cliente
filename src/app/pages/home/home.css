@@ -2798,3 +2798,22 @@ svg {
     padding-bottom: 4px;
   }
 }
+
+/* ruedita que gira mientras cargan los trueques */
+.cargando-ruedita {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+
+  border: 4px solid rgba(201, 168, 118, 0.25);
+  border-top-color: var(--color-accent-dark);
+  border-radius: 50%;
+
+  animation: girar-ruedita 0.9s linear infinite;
+}
+
+@keyframes girar-ruedita {
+  to {
+    transform: rotate(360deg);
+  }
+}
