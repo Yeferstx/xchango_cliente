@@ -2208,18 +2208,34 @@ svg {
 
 /* MODO INVITADO (sin sesión) */
 
+/* etiqueta pequeña con un ojo que dice que esta viendo sin cuenta */
 .modo-invitado {
-  padding: 0 14px;
-  height: 64px;
+  height: 32px;
+  margin: 0 6px 0 4px;
+  padding: 0 12px 0 10px;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
 
-  color: var(--tinta-tenue);
+  color: var(--tinta-suave);
+  background: rgba(var(--oscuro-fondo-tinte-rgb, 238, 228, 214), 0.6);
+  border-radius: 999px;
+
   font-size: 12.5px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.modo-invitado svg {
+  width: 16px;
+  height: 16px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .btn-entrar-invitado {
@@ -2367,5 +2383,87 @@ svg {
 
   .lateral .publicar {
     margin-top: 4px;
+  }
+}
+
+/* ARREGLOS DEL MENU DE ARRIBA */
+
+/* en computador el menu se pega a la derecha, igual que las tarjetas */
+@media (min-width: 981px) {
+  .menu {
+    margin-left: auto;
+  }
+}
+
+/* en pantallas medianas la etiqueta queda solo con el ojo para que no se apriete */
+@media (min-width: 981px) and (max-width: 1180px) {
+  .modo-invitado {
+    padding: 0 8px;
+  }
+
+  .modo-invitado__texto {
+    display: none;
+  }
+}
+
+/* las pestañas de tipo se pueden mover de lado pero sin la barra gris */
+.pestanas {
+  scrollbar-width: none;
+}
+
+.pestanas::-webkit-scrollbar {
+  display: none;
+}
+
+/* celular */
+@media (max-width: 620px) {
+  /* sin sesion: el boton de entrar va en la misma fila del logo y el buscador */
+  .modo-invitado {
+    display: none;
+  }
+
+  .acciones:has(.btn-entrar-invitado) {
+    height: 44px;
+    padding: 0;
+
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .btn-entrar-invitado {
+    height: 44px;
+    margin-right: 0;
+    padding: 0 16px;
+  }
+
+  /* el campo del buscador se puede encoger para que todo quepa en una fila */
+  .buscador {
+    flex: 1 1 0;
+  }
+
+  .buscador input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* las tres pestañas caben sin cortarse */
+  .pestanas {
+    justify-content: space-between;
+  }
+
+  .pestana {
+    flex: 1;
+    justify-content: center;
+
+    gap: 5px;
+    padding: 8px 6px;
+
+    font-size: 12.5px;
+  }
+
+  .pestana svg {
+    width: 15px;
+    height: 15px;
   }
 }
