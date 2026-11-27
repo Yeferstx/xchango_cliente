@@ -321,3 +321,9 @@ body.xg-auth-landing {
   outline: 2px solid currentColor;
   outline-offset: 3px;
 }
+
+/* en el menu negro del panel admin el logo va en blanco para que se vea */
+.sidebar__marca .logo__chango,
+.sidebar__marca .logo__letras {
+  filter: brightness(0) invert(0.96);
+}
