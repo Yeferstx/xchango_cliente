@@ -265,6 +265,34 @@ export class HomeComponent implements OnInit {
     return resultado;
   }
 
+  // true si hay alguna busqueda o filtro puesto
+  hayFiltros(): boolean {
+    if (this.busqueda.trim() || this.mostrarSoloFavoritos || this.municipioSeleccionado) {
+      return true;
+    }
+    if (this.filtroActivo !== 'todos' || this.categoriaSeleccionada !== 'todos') {
+      return true;
+    }
+    return false;
+  }
+
+  // cuando hay pocos resultados se sugieren otras publicaciones
+  // para que la pagina no se vea vacia
+  get sugerencias(): PublicacionVista[] {
+    const encontrados = this.truequesFiltrados;
+    if (!this.hayFiltros() || encontrados.length >= 4) {
+      return [];
+    }
+
+    const lista: PublicacionVista[] = [];
+    for (const t of this.trueques) {
+      if (lista.length < 4 && !encontrados.includes(t)) {
+        lista.push(t);
+      }
+    }
+    return lista;
+  }
+
   get cantidadFavoritos(): number {
     return this.trueques.filter((t) => t.favorito).length;
   }
@@ -287,10 +315,20 @@ export class HomeComponent implements OnInit {
   seleccionarMunicipio(municipio: string): void {
     this.municipioSeleccionado = municipio;
     this.ubicacionAbierta = false;
+    this.subirRejilla();
+  }
+
+  // al cambiar un filtro la lista vuelve arriba para ver los resultados desde el inicio
+  subirRejilla(): void {
+    const rejilla = document.querySelector('.rejilla');
+    if (rejilla) {
+      rejilla.scrollTop = 0;
+    }
   }
 
   seleccionarFiltro(filtro: FiltroTrueque): void {
     this.filtroActivo = filtro;
+    this.subirRejilla();
 
     // "Todos" limpia todo: tipo, categoria, municipio, busqueda y favoritos,
     // para que de verdad se vean todos los trueques
@@ -305,6 +343,7 @@ export class HomeComponent implements OnInit {
   seleccionarCategoria(id: string): void {
     this.categoriaSeleccionada = id;
     this.categoriasAbiertas = false;
+    this.subirRejilla();
   }
 
   irAInicio(): void {
@@ -316,6 +355,7 @@ export class HomeComponent implements OnInit {
 
   verSoloFavoritos(): void {
     this.mostrarSoloFavoritos = true;
+    this.subirRejilla();
   }
 
   alternarFavorito(trueque: PublicacionVista, evento: Event): void {
@@ -327,7 +367,9 @@ export class HomeComponent implements OnInit {
     this.busqueda = '';
     this.filtroActivo = 'todos';
     this.categoriaSeleccionada = 'todos';
+    this.municipioSeleccionado = '';
     this.mostrarSoloFavoritos = false;
+    this.subirRejilla();
   }
 
   // clase del badge segun el tipo

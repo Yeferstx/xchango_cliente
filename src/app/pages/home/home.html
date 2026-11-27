@@ -19,6 +19,7 @@
         type="text"
         placeholder="Buscar trueques..."
         [(ngModel)]="busqueda"
+        (ngModelChange)="subirRejilla()"
       />
 
     </label>
@@ -570,116 +571,50 @@
 
       <!-- tarjetas -->
 
-      <section class="rejilla" *ngIf="truequesFiltrados.length; else sinResultados">
+      <section class="rejilla">
 
-        <article
-          class="tarjeta vidrio"
-          *ngFor="let t of truequesFiltrados; trackBy: trackPorId"
-          tabindex="0"
-          (click)="irADetalle(t)"
-          (keydown.enter)="irADetalle(t)"
-        >
+        <!-- cuando no hay ningun resultado -->
+        <div class="sin-resultados vidrio" *ngIf="!truequesFiltrados.length">
 
-          <div class="tarjeta__foto">
+          <span class="sin-resultados__icono">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m20 20-3.5-3.5"/>
+              <path d="M8.5 11h5"/>
+            </svg>
+          </span>
 
-            <img
-              [src]="t.imagen"
-              [alt]="t.titulo"
-              (error)="manejarErrorImagen($event)"
-            />
+          <h3>No encontramos trueques</h3>
 
-            <span class="etiqueta">
-              {{ t.categoria }}
-            </span>
+          <p>Prueba con otra palabra, otra categoría u otro municipio. También puedes publicar lo que buscas.</p>
 
-            <button
-              class="corazon"
-              [class.corazon--activo]="t.favorito"
-              type="button"
-              aria-label="Favorito"
-              (click)="alternarFavorito(t, $event)"
-            >
-
-              <svg viewBox="0 0 24 24">
-
-                <path d="M12 20s-7-4.4-7-9.4A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.6c0 5-7 9.4-7 9.4z"/>
-
-              </svg>
-
+          <div class="sin-resultados__botones">
+            <button type="button" class="sin-resultados__ver" (click)="limpiarFiltros()">
+              Ver todos los trueques
             </button>
-
+            <a class="sin-resultados__publicar" routerLink="/trueque">
+              Publicar un trueque
+            </a>
           </div>
 
-          <div class="tarjeta__cuerpo">
+        </div>
 
-            <div class="tarjeta__titulo-fila">
+        <!-- resultados -->
+        <ng-container *ngFor="let t of truequesFiltrados; trackBy: trackPorId">
+          <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: t }"></ng-container>
+        </ng-container>
 
-              <h3 class="tarjeta__titulo">
-                {{ t.titulo }}
-              </h3>
+        <!-- si hay pocos resultados se muestran otras publicaciones -->
+        <h3 class="sugerencias-titulo" *ngIf="sugerencias.length">
+          Otras publicaciones que te pueden interesar
+        </h3>
 
-              <svg
-                class="tarjeta__cambio"
-                viewBox="0 0 24 24"
-              >
+        <ng-container *ngFor="let t of sugerencias; trackBy: trackPorId">
+          <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: t }"></ng-container>
+        </ng-container>
 
-                <path d="M4 8h13"/>
-
-                <path d="m14 5 3 3-3 3"/>
-
-                <path d="M20 16H7"/>
-
-                <path d="m10 19-3-3 3-3"/>
-
-              </svg>
-
-            </div>
-
-            <div class="tarjeta__pie">
-
-              <span class="autor">
-
-                por
-
-                <img
-                  [src]="t.avatar"
-                  alt=""
-                />
-
-                {{ nombreCorto(t.autor) }}
-
-              </span>
-
-              <span class="ciudad">
-
-                <svg viewBox="0 0 24 24">
-
-                  <path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/>
-
-                  <circle
-                    cx="12"
-                    cy="10"
-                    r="2.4"
-                  />
-
-                </svg>
-
-                {{ t.ciudad }}
-
-              </span>
-
-              <span class="intercambio">
-                Intercambio
-              </span>
-
-            </div>
-
-          </div>
-
-        </article>
-
-        <!-- footer, sale al final de la rejilla -->
-  <footer class="beneficios vidrio">
+        <!-- footer, sale al final de la lista completa, no cuando se busca o filtra -->
+  <footer class="beneficios vidrio" *ngIf="!hayFiltros()">
 
     <!-- seguro y confiable -->
 
@@ -877,8 +812,114 @@
 
       </section>
 
-      <ng-template #sinResultados>
-        <p class="vacio-rejilla">No hay trueques con estos filtros todavía.</p>
+      <!-- tarjeta de una publicacion, se usa en resultados y en sugerencias -->
+      <ng-template #tarjeta let-t>
+
+        <article
+          class="tarjeta vidrio"
+          tabindex="0"
+          (click)="irADetalle(t)"
+          (keydown.enter)="irADetalle(t)"
+        >
+
+          <div class="tarjeta__foto">
+
+            <img
+              [src]="t.imagen"
+              [alt]="t.titulo"
+              (error)="manejarErrorImagen($event)"
+            />
+
+            <span class="etiqueta">
+              {{ t.categoria }}
+            </span>
+
+            <button
+              class="corazon"
+              [class.corazon--activo]="t.favorito"
+              type="button"
+              aria-label="Favorito"
+              (click)="alternarFavorito(t, $event)"
+            >
+
+              <svg viewBox="0 0 24 24">
+
+                <path d="M12 20s-7-4.4-7-9.4A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.6c0 5-7 9.4-7 9.4z"/>
+
+              </svg>
+
+            </button>
+
+          </div>
+
+          <div class="tarjeta__cuerpo">
+
+            <div class="tarjeta__titulo-fila">
+
+              <h3 class="tarjeta__titulo">
+                {{ t.titulo }}
+              </h3>
+
+              <svg
+                class="tarjeta__cambio"
+                viewBox="0 0 24 24"
+              >
+
+                <path d="M4 8h13"/>
+
+                <path d="m14 5 3 3-3 3"/>
+
+                <path d="M20 16H7"/>
+
+                <path d="m10 19-3-3 3-3"/>
+
+              </svg>
+
+            </div>
+
+            <div class="tarjeta__pie">
+
+              <span class="autor">
+
+                por
+
+                <img
+                  [src]="t.avatar"
+                  alt=""
+                />
+
+                {{ nombreCorto(t.autor) }}
+
+              </span>
+
+              <span class="ciudad">
+
+                <svg viewBox="0 0 24 24">
+
+                  <path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/>
+
+                  <circle
+                    cx="12"
+                    cy="10"
+                    r="2.4"
+                  />
+
+                </svg>
+
+                {{ t.ciudad }}
+
+              </span>
+
+              <span class="intercambio">
+                Intercambio
+              </span>
+
+            </div>
+
+          </div>
+
+        </article>
+
       </ng-template>
 
     </main>
