@@ -2467,3 +2467,33 @@ svg {
     height: 15px;
   }
 }
+
+/* PANTALLAS GRANDES */
+/* el inicio usa todo el ancho y caben mas tarjetas por fila */
+/* asi no quedan franjas vacias a los lados */
+
+@media (min-width: 1600px) {
+  .app {
+    max-width: none;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .cuerpo {
+    grid-template-columns:
+      250px
+      minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1700px) {
+  .rejilla {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2300px) {
+  .rejilla {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
